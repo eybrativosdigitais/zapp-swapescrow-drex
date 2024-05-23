@@ -1,0 +1,104 @@
+services:
+  zokrates:
+      volumes:
+          - ./proving-files:/app/output
+          - ./circuits:/app/circuits
+          - ./orchestration/common/write-vk.mjs:/app/write-vk.mjs
+          - ./orchestration/common/db:/app/orchestration/common/db
+      container_name: zokrates
+      environment:
+        PROVING_SCHEME: 'g16'
+      networks:
+          - starlight
+      image: ghcr.io/eyblockchain/zokrates-worker-updated:latest
+  
+  timber-mongo:
+      volumes:
+          - timber-mongo:/data/db
+      environment:
+          - MONGO_INITDB_ROOT_USERNAME=admin
+          - MONGO_INITDB_ROOT_PASSWORD=admin
+          - MONGO_INITDB_DATABASE=merkle_tree
+      container_name: timber-mongo
+      networks:
+          - starlight
+      image: starlight-mongo
+  
+  zapp-mongo:
+      volumes:
+          - zapp-mongo:/data/db
+      environment:
+          - MONGO_INITDB_ROOT_USERNAME=admin
+          - MONGO_INITDB_ROOT_PASSWORD=admin
+          - MONGO_INITDB_DATABASE=zapp_db
+      container_name: zapp-mongo
+      networks:
+          - starlight
+      image: zapp-mongo
+  
+  timber:
+    env_file:
+      - .env
+    build: 
+      context: https://github.com/eybrativosdigitais/timber.git#starlight-timber:merkle-tree
+      dockerfile: Dockerfile
+    restart: on-failure
+    depends_on:
+      - timber-mongo
+    volumes:
+      - ./config/:/app/config
+      - ./contracts/:/app/contracts
+      - ./build/:/app/build
+    ports:
+      - '3100:80'
+    environment:
+      HASH_TYPE: 'mimc'
+      LOG_LEVEL: 'debug'
+      UNIQUE_LEAVES: 'true'
+      DEFAULT_GAS: ${DEFAULT_GAS}
+      DEFAULT_GAS_PRICE: ${DEFAULT_GAS_PRICE}
+      RPC_URL: ${SWAPESCROW_RPC_URL}
+      DEFAULT_ACCOUNT: ${DEFAULT_ACCOUNT}
+      KEY: ${KEY}
+      CONTRACT_LOCATION: 'default'
+      MONGO_HOST: mongodb://admin:admin@timber-mongo:27017
+      MONGO_PORT: 27017
+      MONGO_NAME: merkle_tree
+      MONGO_USERNAME: admin
+      MONGO_PASSWORD: admin
+      DB_URL: mongodb://admin:admin@timber-mongo:27017
+    networks:
+      - zapp_network
+
+  zapp:
+      ports:
+          - 3000:3000
+      environment:
+        RPC_URL: ${SWAPESCROW_RPC_URL}
+        DEFAULT_ACCOUNT: ${DEFAULT_ACCOUNT}
+        KEY: ${KEY}
+        LOG_LEVEL: info
+        MONGO_URL: mongodb://admin:admin@zapp-mongo:27017
+        MONGO_NAME: zapp_db
+        TIMBER_URL: http://timber
+      networks:
+          - starlight
+      container_name: zapp
+      image: ghcr.io/eyblockchain/swapescrow-orchestrator:latest
+      depends_on:
+        - timber
+        - zapp-mongo
+        - zokrates
+      volumes:
+        - ./build:/app/build
+        - ./contracts/:/app/contracts/
+        - ./circuits/:/app/circuits
+        - ./orchestration/:/app/orchestration
+        - ./config/:/app/config
+        
+networks:
+  starlight:
+    driver: bridge
+volumes:
+  timber-mongo:
+  zapp-mongo:
