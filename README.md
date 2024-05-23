@@ -24,48 +24,38 @@ Todas as interações com as aplicações Starlight são realizadas através do 
 
 <br />
 
-## Cenário 1: Transferência simples
+## Setup da Infra
 <br />
-
-### Passo a passo
 
 Para efetuar os testes, é necessário realizar a configuração do SwapEscrow. Com o intuito de simplificar esse processo, disponibilizamos uma série de scripts que podem ser executados em plataformas como Postman ou outras ferramentas análogas (Insomnia, etc.).”
 
-#### 1 - Geração das imagens
+### Geração das imagens
 
 O primeiro passo consiste na geração das imagens dos componentes do Starlight. Para isto deve-se seguir as instruções detalhadas abaixo:
 
+#### Build da imagem do **MongoDB**
 
-Construção dos componentes **Zapp** e **MongoDB**
-* git clone https://github.com/kaleido-io/starlight
-* git checkout refactor (**IMPORTANTE:** usar essa branch)
-* **ATENÇÃO**: o repositório da Kaleido contém instruções para uso do projeto. No entanto, pedimos que sigam as nossas instruções abaixo.
-* cd zapps/Escrow (recomendamos executar os comandos dentro desse diretório para facilitar a instalação)
-* Dentro desta pasta, copiar os seguintes arquivos que estão neste projeto: 
-  * [bn.js](bn.js)
-  * [config_timber.js](config_timber.js)
-  * [docker-compose.yaml](docker-compose.yaml)
-* Dentro da pasta zapps/Escrow/build/contracts, copiar o arquivo [EscrowShield.json](EscrowShield.json) e o arquivo [ERC20.json](ERC20.json)
+É altamente recomendável que você crie um pequeno servidor somente para ter sua instancia de banco de dados do Zapp para evitar perda de commitments e consequentemente de operações.
 
-Build da imagem do **MongoDB**
-* docker build -t starlight-mongo -f Dockerfile.mongo .
+* docker build -t zapp-mongo -f Dockerfile.mongo .
 
-Build da imagem do **Zapp Escrow**
-* Atualizar o Dockerfile para substituir a biblioteca [bn.js](bn.js):
-  * No Dockerfile, antes da linha com o comando EXPOSE, adicionar a linha:
-    * COPY bn.js ./node_modules/number-to-bn/node_modules/bn.js/lib
-  * docker build -t zapp-escrow -f Dockerfile . 
+#### Build da imagem do **Zapp Escrow**
 
-Construção do componente **Timber**
-* git clone https://github.com/EYBlockchain/timber
+A imagem já esta disponível em: ghcr.io/eyblockchain/swapescrow-orchestrator:latest
+
+#### Build da imagem do **Timber**
+
+O build da mesma já esta disponível no arquivo docker-compose.yml. Entretanto, caso necessite criá-la manualmente siga os seguintes passos:
+
+* git clone https://github.com/eybrativosdigitais/timber
 * git checkout multiple-contracts (**IMPORTANTE:** usar essa branch)
 * cd merkle-tree
-
-Build da imagem do **Timber** que controla o merkle tree
 * docker build -t timber .
 
+### Configuração do Docker Compose
+
 Com as imagens dos componentes do Starlight devidamente criadas, o passo subsequente é dar início aos serviços
-* Configurar os dados abaixo no [docker-compose.yaml](docker-compose.yaml) e copie para a pasta zapps/Escrow:
+* Configurar os dados abaixo no [docker-compose.yml](docker-compose.yml):
   * Apontar para o seu fullnode no parâmetro: RPC_URL=ws://host:porta (linha 37 e 62)
   * Endereço da sua conta: DEFAULT_ACCOUNT (linha 63)
   * Chave da sua conta default: KEY (linha 64)
@@ -74,37 +64,39 @@ Com as imagens dos componentes do Starlight devidamente criadas, o passo subsequ
 
 * Alterar as configurações do seu nó Besu, aumentando ou desabilitando o limite RPC para logs (parâmetro (RPC-MAX-LOGS-RANGE)[https://besu.hyperledger.org/23.4.0/public-networks/reference/cli/options#rpc-max-logs-range]) (necessário para o correto funcionamento do Timber)
 
+
+### Inicialização dos Serviços
+
 * Executar os comandos abaixo para subir os componentes:
-  * cd zapps/Escrow
   * docker-compose up
   * verificar se todos os containers estão up:
 
-|  IMAGE                    | STATUS      |  PORTS                   | NAMES               |
-| ------------------------- | ----------- | ------------------------ | ------------------- |
-|  zapp-escrow              | Up          |  0.0.0.0:3000->3000/tcp  | zapp-sender         |
-|  timber                   | Up          |  0.0.0.0:3100->80/tcp    | timber-sender       |
-|  zokrates-worker-updated  | Up          |  80/tcp                  | zokrates-sender     |
-|  starlight-mongo          | Up          |  27017/tcp               | timber-mongo-sender |
-|  starlight-mongo          | Up          |  27017/tcp               | zapp-mongo-sender   |
+|  IMAGE                    | STATUS      |  PORTS                   | NAMES                 |
+| ------------------------- | ----------- | ------------------------ | --------------------- |
+|  zapp-escrow              | Up          |  0.0.0.0:3000->3000/tcp  | zapp-sender           |
+|  timber                   | Up          |  0.0.0.0:3100->80/tcp    | timber-sender         |
+|  zokrates-worker-updated  | Up          |  80/tcp                  | zokrates-sender       |
+|  zapp-mongo               | Up          |  27017/tcp               | zapp-mongo-sender     |
+|  timber-mongo             | Up          |  27017/tcp               | timber-mongo-sender   |
 
 <br />
 
 **ATENÇÃO**
 
-O docker-compose fornecido cria volumes para ambos os bancos de dados. Recomenda-se que os volumes não sejam apagados durante os testes.
+O docker-compose fornecido cria volumes para ambos os bancos de dados. Recomenda-se que haja um servidor mongo para o Timber e o Zapp SwapEscrow. Caso teste em uma só maquina, cuide para que os volumes não sejam apagados durante os testes.
+
+### Permissões nos contratos
+
+Foi realizado o deploy do contrato inteligente denominado **SwapShield** responsável por gerenciar os *commitments* do Starlight para os testes de transferência, assegurando que os saldos permaneçam criptografados na rede. Para participar dos testes, os envolvidos no projeto piloto deverão realizar um depósito neste contrato. Isso requer a autorização do contrato **SwapShield** para retirar o Real Digital da carteira Ethereum do participante, o que é feito por meio do **approve** do valor no contrato de Real Digital. O endereço do contrato de escrow que necessita autorização está especificado na seção [Configurar scripts](#-2---Configurar-scripts-(Postman)).
 
 
-#### 2 - Configurar scripts (Postman)
+## Operação
 
 * Importe o arquivo [starlight.json](starlight.json) no [Postman](https://www.postman.com/downloads/).
 * Dentro do Postman, crie um ambiente e defina as seguintes variáveis:
 * * `host`: `http://localhost:3000` (servidor onde está rodando o cliente, o valor default é `http://localhost:3000`)
 * * `EscrowShield`: `0xf3cBfC5c2d71CdB931B004b3B5Ca4ABEdbA3Cd43` (endereço do contrato de escrow na rede)
 * * `account`: `` (preencher com conta Ethereum do participante que será utilizada para o teste)
-
-#### 3 - Permissões contratos
-
-Foi realizado o deploy do contrato inteligente denominado **SwapShield** responsável por gerenciar os *commitments* do Starlight para os testes de transferência, assegurando que os saldos permaneçam criptografados na rede. Para participar dos testes, os envolvidos no projeto piloto deverão realizar um depósito neste contrato. Isso requer a autorização do contrato **SwapShield** para retirar o Real Digital da carteira Ethereum do participante, o que é feito por meio do **approve** do valor no contrato de Real Digital. O endereço do contrato de escrow que necessita autorização está especificado na seção [Configurar scripts](#-2---Configurar-scripts-(Postman)).
 
 
 ### APIs
