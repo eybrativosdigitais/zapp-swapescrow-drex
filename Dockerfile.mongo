@@ -1,2 +1,2 @@
-FROM mongo
+FROM mongo:7.0.9
 COPY setup-admin-user.js /docker-entrypoint-initdb.d/setup_admin_user.js
