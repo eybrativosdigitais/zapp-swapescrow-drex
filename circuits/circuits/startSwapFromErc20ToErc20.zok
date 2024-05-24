@@ -1,0 +1,367 @@
+from "./common/hashes/mimc/altbn254/mimc3.zok" import main as mimc3
+from "ecc/babyjubjubParams" import main as curveParams
+from "ecc/edwardsScalarMult" import main as scalarMult
+from "ecc/edwardsCompress" import main as edwardsCompress
+from "utils/pack/bool/pack256.zok" import main as bool_256_to_field
+from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
+from "./common/hashes/poseidon/poseidon.zok" import main as poseidon
+from "./common/merkle-tree/mimc/altbn254/verify-membership/height32.zok" import main as checkRoot
+from "./common/hashes/mimc/altbn254/mimc2.zok" import main as mimc2
+from "ecc/babyjubjubParams" import BabyJubJubParams
+from "utils/casts/u32_to_field" import main as u32_to_field
+from "./common/encryption/kem-dem.zok" import main as enc
+from "./common/encryption/kem-dem.zok" import EncryptedMsgs as EncryptedMsgs
+
+struct swapStruct {
+        field swapAmountSent
+field swapAmountRecieved
+field swapTokenSentId
+field swapTokenSentAmount
+field swapTokenRecievedId
+field swapTokenRecievedAmount
+field swapId
+field swapSender
+field swapReciever
+field erc20AddressSent
+field erc20AddressRecieved
+field pendingStatus
+      }
+
+def main(\
+	private field msgSender,\
+	private field erc20AddressSent,\
+	private field erc20AddressRecieved,\
+	private field counterParty,\
+	private field amountSent,\
+	private field amountRecieved,\
+	public field swapIdCounter,\
+	private field balances_msgSender_erc20AddressSent_0_oldCommitment_owner_secretKey,\
+	private field balances_msgSender_erc20AddressSent_1_oldCommitment_owner_secretKey,\
+	public field balances_msgSender_erc20AddressSent_0_oldCommitment_nullifier,\
+	public field balances_msgSender_erc20AddressSent_1_oldCommitment_nullifier,\
+	private  field balances_msgSender_erc20AddressSent_0_oldCommitment_value,\
+	private field balances_msgSender_erc20AddressSent_0_oldCommitment_salt,\
+	private  field balances_msgSender_erc20AddressSent_1_oldCommitment_value,\
+	private field balances_msgSender_erc20AddressSent_1_oldCommitment_salt,\
+	public field commitmentRoot,\
+	private field balances_msgSender_erc20AddressSent_0_oldCommitment_membershipWitness_index,\
+	private field[32] balances_msgSender_erc20AddressSent_0_oldCommitment_membershipWitness_siblingPath,\
+	private field balances_msgSender_erc20AddressSent_1_oldCommitment_membershipWitness_index,\
+	private field[32] balances_msgSender_erc20AddressSent_1_oldCommitment_membershipWitness_siblingPath,\
+	private field balances_msgSender_erc20AddressSent_2_newCommitment_owner_publicKey,\
+	private field balances_msgSender_erc20AddressSent_2_newCommitment_salt,\
+	public field balances_msgSender_erc20AddressSent_2_newCommitment_commitment,\
+	private field swapProposals_swapIdCounter_2_oldCommitment_owner_secretKey,\
+	public field swapProposals_swapIdCounter_2_oldCommitment_nullifier,\
+	private  swapStruct swapProposals_swapIdCounter_2_oldCommitment_value,\
+	private field swapProposals_swapIdCounter_2_oldCommitment_salt,\
+	private bool swapProposals_swapIdCounter_2_oldCommitment_isDummy,\
+	private field swapProposals_swapIdCounter_2_oldCommitment_membershipWitness_index,\
+	private field[32] swapProposals_swapIdCounter_2_oldCommitment_membershipWitness_siblingPath,\
+  private field swapProposals_swapIdCounter_2_newCommitment_owner_publicKey,\
+	private field swapProposals_swapIdCounter_2_newCommitment_salt,\
+	public field swapProposals_swapIdCounter_2_newCommitment_commitment,\
+	private field swapProposals_swapIdCounter_2_newCommitment_ephSecretKey,\
+	private field[2] swapProposals_swapIdCounter_2_newCommitment_encpublicKey_point\
+) -> (EncryptedMsgs<14>):
+
+        
+        // We need to hard-code the mappingId's of mappings into the circuit:
+        field balances_mappingId = 9
+
+
+        field balances_msgSender_erc20AddressSent_0 = balances_msgSender_erc20AddressSent_0_oldCommitment_value
+
+
+        field balances_msgSender_erc20AddressSent_1 = balances_msgSender_erc20AddressSent_1_oldCommitment_value
+
+
+        // We need to hard-code the mappingId's of mappings into the circuit:
+        field swapProposals_mappingId = 47
+
+
+        swapStruct swapProposals_swapIdCounter_2 = swapProposals_swapIdCounter_2_oldCommitment_value
+
+
+        field swapIdCounter_init = swapIdCounter
+
+
+        field swapIdCounter_2 = swapIdCounter + 1
+
+swapIdCounter = swapIdCounter_2
+
+swapProposals_swapIdCounter_2.swapAmountSent = amountSent
+
+swapProposals_swapIdCounter_2.swapAmountRecieved = amountRecieved
+
+swapProposals_swapIdCounter_2.swapId = swapIdCounter_2
+
+swapProposals_swapIdCounter_2.pendingStatus = 1
+
+swapProposals_swapIdCounter_2.swapSender = msgSender
+
+swapProposals_swapIdCounter_2.swapReciever = counterParty
+
+swapProposals_swapIdCounter_2.erc20AddressSent = erc20AddressSent
+
+swapProposals_swapIdCounter_2.erc20AddressRecieved = erc20AddressRecieved
+
+swapIdCounter = swapIdCounter_init
+
+
+        field balances_msgSender_erc20AddressSent_0_stateVarId_field = mimc3([balances_mappingId,  msgSender,erc20AddressSent])
+
+
+        field balances_msgSender_erc20AddressSent_1_stateVarId_field = mimc3([balances_mappingId,  msgSender,erc20AddressSent])
+
+
+        field balances_msgSender_erc20AddressSent_2_stateVarId_field = mimc3([balances_mappingId,  msgSender,erc20AddressSent])
+
+
+        // balances_msgSender_erc20AddressSent_0_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] balances_msgSender_erc20AddressSent_0_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(balances_msgSender_erc20AddressSent_0_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool balances_msgSender_erc20AddressSent_0_oldCommitment_owner_publicKey_sign = edwardsCompress(balances_msgSender_erc20AddressSent_0_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] balances_msgSender_erc20AddressSent_0_oldCommitment_yBits = field_to_bool_256(balances_msgSender_erc20AddressSent_0_oldCommitment_owner_publicKey_point[1])[2..256]
+        balances_msgSender_erc20AddressSent_0_oldCommitment_yBits[0] = balances_msgSender_erc20AddressSent_0_oldCommitment_owner_publicKey_sign
+
+        field balances_msgSender_erc20AddressSent_0_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...balances_msgSender_erc20AddressSent_0_oldCommitment_yBits])
+
+
+        // balances_msgSender_erc20AddressSent_1_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] balances_msgSender_erc20AddressSent_1_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(balances_msgSender_erc20AddressSent_1_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool balances_msgSender_erc20AddressSent_1_oldCommitment_owner_publicKey_sign = edwardsCompress(balances_msgSender_erc20AddressSent_1_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] balances_msgSender_erc20AddressSent_1_oldCommitment_yBits = field_to_bool_256(balances_msgSender_erc20AddressSent_1_oldCommitment_owner_publicKey_point[1])[2..256]
+        balances_msgSender_erc20AddressSent_1_oldCommitment_yBits[0] = balances_msgSender_erc20AddressSent_1_oldCommitment_owner_publicKey_sign
+
+        field balances_msgSender_erc20AddressSent_1_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...balances_msgSender_erc20AddressSent_1_oldCommitment_yBits])
+
+
+          // Nullify balances_msgSender_erc20AddressSent_0:
+  
+          field balances_msgSender_erc20AddressSent_0_oldCommitment_nullifier_check_field = poseidon([\
+            balances_msgSender_erc20AddressSent_0_stateVarId_field,\
+            balances_msgSender_erc20AddressSent_0_oldCommitment_owner_secretKey,\
+            balances_msgSender_erc20AddressSent_0_oldCommitment_salt\
+          ])
+  
+          assert(\
+          field_to_bool_256(balances_msgSender_erc20AddressSent_0_oldCommitment_nullifier)[8..256] == field_to_bool_256(balances_msgSender_erc20AddressSent_0_oldCommitment_nullifier_check_field)[8..256]\
+          )
+          
+
+
+          // Nullify balances_msgSender_erc20AddressSent_1:
+  
+          field balances_msgSender_erc20AddressSent_1_oldCommitment_nullifier_check_field = poseidon([\
+            balances_msgSender_erc20AddressSent_1_stateVarId_field,\
+            balances_msgSender_erc20AddressSent_1_oldCommitment_owner_secretKey,\
+            balances_msgSender_erc20AddressSent_1_oldCommitment_salt\
+          ])
+  
+          assert(\
+          field_to_bool_256(balances_msgSender_erc20AddressSent_1_oldCommitment_nullifier)[8..256] == field_to_bool_256(balances_msgSender_erc20AddressSent_1_oldCommitment_nullifier_check_field)[8..256]\
+          )
+          
+
+
+        // balances_msgSender_erc20AddressSent_0_oldCommitment_commitment: preimage check
+
+
+        field balances_msgSender_erc20AddressSent_0_oldCommitment_commitment_field = poseidon([\
+          balances_msgSender_erc20AddressSent_0_stateVarId_field,\
+          balances_msgSender_erc20AddressSent_0_oldCommitment_value,\
+          balances_msgSender_erc20AddressSent_0_oldCommitment_owner_publicKey,\
+          balances_msgSender_erc20AddressSent_0_oldCommitment_salt        ])
+
+
+        // balances_msgSender_erc20AddressSent_1_oldCommitment_commitment: preimage check
+
+
+        field balances_msgSender_erc20AddressSent_1_oldCommitment_commitment_field = poseidon([\
+          balances_msgSender_erc20AddressSent_1_stateVarId_field,\
+          balances_msgSender_erc20AddressSent_1_oldCommitment_value,\
+          balances_msgSender_erc20AddressSent_1_oldCommitment_owner_publicKey,\
+          balances_msgSender_erc20AddressSent_1_oldCommitment_salt        ])
+
+
+        // balances_msgSender_erc20AddressSent_0_oldCommitment_commitment: existence check
+
+
+        field balances_msgSender_erc20AddressSent_0_commitmentRoot_check = checkRoot(\
+          balances_msgSender_erc20AddressSent_0_oldCommitment_membershipWitness_siblingPath,\
+          balances_msgSender_erc20AddressSent_0_oldCommitment_commitment_field,\
+          balances_msgSender_erc20AddressSent_0_oldCommitment_membershipWitness_index\
+        )
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(balances_msgSender_erc20AddressSent_0_commitmentRoot_check)[8..256]\
+        )
+
+
+        // balances_msgSender_erc20AddressSent_1_oldCommitment_commitment: existence check
+
+
+        field balances_msgSender_erc20AddressSent_1_commitmentRoot_check = checkRoot(\
+          balances_msgSender_erc20AddressSent_1_oldCommitment_membershipWitness_siblingPath,\
+          balances_msgSender_erc20AddressSent_1_oldCommitment_commitment_field,\
+          balances_msgSender_erc20AddressSent_1_oldCommitment_membershipWitness_index\
+        )
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(balances_msgSender_erc20AddressSent_1_commitmentRoot_check)[8..256]\
+        )
+
+
+        // prepare secret state 'balances_msgSender_erc20AddressSent_2' for commitment
+
+        assert(balances_msgSender_erc20AddressSent_0 + balances_msgSender_erc20AddressSent_1 >= amountSent)
+            // TODO: assert no under/overflows
+
+            field balances_msgSender_erc20AddressSent_2_newCommitment_value_field = (balances_msgSender_erc20AddressSent_0 + balances_msgSender_erc20AddressSent_1) - (amountSent)
+
+        // balances_msgSender_erc20AddressSent_2_newCommitment_commitment - preimage check
+
+        field balances_msgSender_erc20AddressSent_2_newCommitment_commitment_check_field = poseidon([\
+          balances_msgSender_erc20AddressSent_2_stateVarId_field,\
+          balances_msgSender_erc20AddressSent_2_newCommitment_value_field,\
+          balances_msgSender_erc20AddressSent_2_newCommitment_owner_publicKey,\
+          balances_msgSender_erc20AddressSent_2_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(balances_msgSender_erc20AddressSent_2_newCommitment_commitment)[8..256] == field_to_bool_256(balances_msgSender_erc20AddressSent_2_newCommitment_commitment_check_field)[8..256]\
+        )
+
+
+        field swapProposals_swapIdCounter_2_stateVarId_field = mimc2([swapProposals_mappingId, swapIdCounter_2])
+
+
+        // swapProposals_swapIdCounter_2_oldCommitment - PoKoSK:
+        // The correctness of this secret key will be constrained within the oldCommitment existence check.
+
+        field[2] swapProposals_swapIdCounter_2_oldCommitment_owner_publicKey_point = scalarMult(field_to_bool_256(swapProposals_swapIdCounter_2_oldCommitment_owner_secretKey), [curveParams().Gu, curveParams().Gv], curveParams())
+
+        bool swapProposals_swapIdCounter_2_oldCommitment_owner_publicKey_sign = edwardsCompress(swapProposals_swapIdCounter_2_oldCommitment_owner_publicKey_point)[0]
+
+        bool[254] swapProposals_swapIdCounter_2_oldCommitment_yBits = field_to_bool_256(swapProposals_swapIdCounter_2_oldCommitment_owner_publicKey_point[1])[2..256]
+        swapProposals_swapIdCounter_2_oldCommitment_yBits[0] = swapProposals_swapIdCounter_2_oldCommitment_owner_publicKey_sign
+
+        field swapProposals_swapIdCounter_2_oldCommitment_owner_publicKey = bool_256_to_field([false, false, ...swapProposals_swapIdCounter_2_oldCommitment_yBits])
+
+
+          // Nullify swapProposals_swapIdCounter_2:
+  
+          field swapProposals_swapIdCounter_2_oldCommitment_nullifier_check_field = poseidon([\
+            swapProposals_swapIdCounter_2_stateVarId_field,\
+            swapProposals_swapIdCounter_2_oldCommitment_owner_secretKey,\
+            swapProposals_swapIdCounter_2_oldCommitment_salt\
+          ])
+  
+          assert(\
+          field_to_bool_256(swapProposals_swapIdCounter_2_oldCommitment_nullifier)[8..256] == field_to_bool_256(swapProposals_swapIdCounter_2_oldCommitment_nullifier_check_field)[8..256]\
+          )
+          
+
+
+          // swapProposals_swapIdCounter_2_oldCommitment_commitment: preimage check
+
+          field swapProposals_swapIdCounter_2_oldCommitment_commitment_field = poseidon([\
+            swapProposals_swapIdCounter_2_stateVarId_field,\
+            	 swapProposals_swapIdCounter_2_oldCommitment_value.swapAmountSent,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.swapAmountRecieved,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.swapTokenSentId,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.swapTokenSentAmount,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.swapTokenRecievedId,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.swapTokenRecievedAmount,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.swapId,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.swapSender,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.swapReciever,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.erc20AddressSent,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.erc20AddressRecieved,\
+	 swapProposals_swapIdCounter_2_oldCommitment_value.pendingStatus,\
+            swapProposals_swapIdCounter_2_oldCommitment_owner_publicKey,\
+            swapProposals_swapIdCounter_2_oldCommitment_salt\
+          ])
+
+
+        // swapProposals_swapIdCounter_2_oldCommitment_commitment: existence check
+
+
+        field swapProposals_swapIdCounter_2_commitmentRoot_check = checkRoot(\
+          swapProposals_swapIdCounter_2_oldCommitment_membershipWitness_siblingPath,\
+          swapProposals_swapIdCounter_2_oldCommitment_commitment_field,\
+          swapProposals_swapIdCounter_2_oldCommitment_membershipWitness_index\
+        )
+
+
+        // Note: Don't bother actually asserting existence, if the oldCommitment is a dummy:
+        swapProposals_swapIdCounter_2_commitmentRoot_check = if swapProposals_swapIdCounter_2_oldCommitment_isDummy == true then commitmentRoot else swapProposals_swapIdCounter_2_commitmentRoot_check fi
+
+
+        assert(\
+          field_to_bool_256(commitmentRoot)[8..256] == field_to_bool_256(swapProposals_swapIdCounter_2_commitmentRoot_check)[8..256]\
+        )
+
+
+          // prepare secret state 'swapProposals_swapIdCounter_2' for commitment
+
+          swapStruct swapProposals_swapIdCounter_2_newCommitment_value = swapStruct {  swapAmountSent: swapProposals_swapIdCounter_2.swapAmountSent, swapAmountRecieved: swapProposals_swapIdCounter_2.swapAmountRecieved, swapTokenSentId: swapProposals_swapIdCounter_2.swapTokenSentId, swapTokenSentAmount: swapProposals_swapIdCounter_2.swapTokenSentAmount, swapTokenRecievedId: swapProposals_swapIdCounter_2.swapTokenRecievedId, swapTokenRecievedAmount: swapProposals_swapIdCounter_2.swapTokenRecievedAmount, swapId: swapProposals_swapIdCounter_2.swapId, swapSender: swapProposals_swapIdCounter_2.swapSender, swapReciever: swapProposals_swapIdCounter_2.swapReciever, erc20AddressSent: swapProposals_swapIdCounter_2.erc20AddressSent, erc20AddressRecieved: swapProposals_swapIdCounter_2.erc20AddressRecieved, pendingStatus: swapProposals_swapIdCounter_2.pendingStatus }
+
+          // swapProposals_swapIdCounter_2_newCommitment_commitment - preimage check
+
+          field swapProposals_swapIdCounter_2_newCommitment_commitment_check_field = poseidon([\
+            swapProposals_swapIdCounter_2_stateVarId_field,\
+            	 swapProposals_swapIdCounter_2_newCommitment_value.swapAmountSent,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapAmountRecieved,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapTokenSentId,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapTokenSentAmount,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapTokenRecievedId,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapTokenRecievedAmount,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapId,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapSender,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapReciever,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.erc20AddressSent,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.erc20AddressRecieved,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.pendingStatus,\
+            swapProposals_swapIdCounter_2_newCommitment_owner_publicKey,\
+            swapProposals_swapIdCounter_2_newCommitment_salt\
+          ])
+
+          assert(\
+            field_to_bool_256(swapProposals_swapIdCounter_2_newCommitment_commitment)[8..256] == field_to_bool_256(swapProposals_swapIdCounter_2_newCommitment_commitment_check_field)[8..256]\
+          )
+
+
+        // swapProposals_swapIdCounter_2_newCommitment encryption for owner
+
+        EncryptedMsgs<14> swapProposals_swapIdCounter_2_cipherText = enc(\
+            field_to_bool_256(swapProposals_swapIdCounter_2_newCommitment_ephSecretKey),\
+            swapProposals_swapIdCounter_2_newCommitment_encpublicKey_point,\
+            [\
+              swapProposals_swapIdCounter_2_stateVarId_field,\
+              	 swapProposals_swapIdCounter_2_newCommitment_value.swapAmountSent,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapAmountRecieved,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapTokenSentId,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapTokenSentAmount,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapTokenRecievedId,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapTokenRecievedAmount,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapId,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapSender,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.swapReciever,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.erc20AddressSent,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.erc20AddressRecieved,\
+	 swapProposals_swapIdCounter_2_newCommitment_value.pendingStatus,\
+              swapProposals_swapIdCounter_2_newCommitment_salt\
+            ])
+
+         return swapProposals_swapIdCounter_2_cipherText
