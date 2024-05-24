@@ -62,11 +62,9 @@ services:
       HASH_TYPE: 'mimc'
       LOG_LEVEL: 'debug'
       UNIQUE_LEAVES: 'true'
-      # mudar isso aqui pra sepolia
       DEFAULT_GAS: ${DEFAULT_GAS}
       DEFAULT_GAS_PRICE: ${DEFAULT_GAS_PRICE}
       RPC_URL: ${SWAPESCROW_RPC_URL}
-      # mudar esses aqui pro que tá no .env do starlight-deployer
       DEFAULT_ACCOUNT: ${DEFAULT_ACCOUNT}
       KEY: ${KEY}
       CONTRACT_LOCATION: 'default'
