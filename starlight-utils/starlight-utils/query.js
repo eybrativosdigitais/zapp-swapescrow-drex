@@ -85,10 +85,13 @@ async function main() {
     console.log(`Receiver:\n  Balance:    ${balance.toString()}`);
   })
 
-  console.log("\n==COMMITMENTS SENDER========");
-  console.log(JSON.stringify(commitmentsSender, null, 4));
-  console.log("\n==COMMITMENTS RECEIVER======");
-  console.log(JSON.stringify(commitmentsReceiver, null, 4));
+  const displayRawCommitments = false;
+  if (displayRawCommitments) {
+    console.log("\n==COMMITMENTS SENDER========");
+    console.log(JSON.stringify(commitmentsSender, null, 4));
+    console.log("\n==COMMITMENTS RECEIVER======");
+    console.log(JSON.stringify(commitmentsReceiver, null, 4));
+  }
 }
 
 async function printERC20Stats(erc20Contract, senderAddress, receiverAddress) {
