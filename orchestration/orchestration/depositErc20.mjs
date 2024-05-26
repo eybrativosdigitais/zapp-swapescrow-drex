@@ -21,8 +21,8 @@ import {
 	getnullifierMembershipWitness,
 	getupdatedNullifierPaths,
 	temporaryUpdateNullifier,
-	updateNullifierTree,
-} from "./common/commitment-storage.mjs";
+	updateNullifierTree, getCommitmentsWhere,
+} from "./common/commitment-storage.mjs"
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
 import Web3 from "./common/web3.mjs";
@@ -32,6 +32,7 @@ import {
 	encrypt,
 	decrypt
 } from "./common/number-theory.mjs";
+import logger from './common/logger.mjs'
 
 const { generalise } = GN;
 const db = "/app/orchestration/common/db/preimage.json";
@@ -44,7 +45,7 @@ export class DepositErc20Manager {
 	constructor(web3) {
 	  this.web3 = web3;
 	}
-  
+
 	async init() {
 		this.instance = await getContractInstance('SwapShield');
 		this.contractAddr = await getContractAddress('SwapShield');
@@ -161,7 +162,7 @@ export class DepositErc20Manager {
 
 		// Call Zokrates to generate the proof:
 
-		
+
 
 		const allInputs = [
 			erc20Address.integer,
@@ -210,7 +211,7 @@ export class DepositErc20Manager {
 		for (let maxGetEventAttempts = 5; maxGetEventAttempts > 0; maxGetEventAttempts--) {
 			tx = await this.instance.getPastEvents("NewLeaves");
 			tx = tx[0];
-			if (tx) { 
+			if (tx) {
 				break;
 			}
 			await delay(1000);
@@ -230,7 +231,7 @@ export class DepositErc20Manager {
 
 		// Write new commitment preimage to db:
 
-		await storeCommitment({
+		const insertedDocument = await storeCommitment({
 			hash: balances_msgSender_erc20Address_newCommitment,
 			name: "balances",
 			mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
@@ -248,7 +249,12 @@ export class DepositErc20Manager {
 			isNullified: false,
 		});
 
-		return { tx, encEvent };
+		if (!insertedDocument.acknowledged) {
+			logger.error(`Commitment not inserted`)
+		}
+
+		const [commitment] = await getCommitmentsWhere({ _id: insertedDocument.insertedId })
+		return { tx, encEvent, commitment };
 	}
 }
 

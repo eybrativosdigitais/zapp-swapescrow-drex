@@ -99,14 +99,14 @@ export class ServiceManager {
 		const { amount } = req.body;
 		const balances_msgSender_erc20Address_newOwnerPublicKey =
 			req.body.balances_msgSender_erc20Address_newOwnerPublicKey || 0;
-		const { tx, encEvent } = await this.depositErc20.depositErc20(
+		const { tx, encEvent, commitment } = await this.depositErc20.depositErc20(
 			erc20Address,
 			amount,
 			balances_msgSender_erc20Address_newOwnerPublicKey
 		);
 		// prints the tx
 		console.log(tx);
-		res.send({ tx, encEvent });
+		res.send({ tx, encEvent, commitment });
 		// reassigns leafIndex to the index of the first commitment added by this function
 		if (tx.event) {
 			leafIndex = tx.returnValues[0];
@@ -136,7 +136,7 @@ async service_depositErc1155(req, res, next) {
 		const { tokenId } = req.body;
 		const tokenOwners_msgSender_tokenId_newOwnerPublicKey =
 			req.body.tokenOwners_msgSender_tokenId_newOwnerPublicKey || 0;
-		const { tx, encEvent } = await this.depositErc1155.depositErc1155(
+		const { tx, encEvent, commitment } = await this.depositErc1155.depositErc1155(
 			erc1155Address,
 			amount,
 			tokenId,
@@ -144,7 +144,7 @@ async service_depositErc1155(req, res, next) {
 		);
 		// prints the tx
 		console.log(tx);
-		res.send({ tx, encEvent });
+		res.send({ tx, encEvent, commitment });
 		// reassigns leafIndex to the index of the first commitment added by this function
 		if (tx.event) {
 			leafIndex = tx.returnValues[0];
@@ -178,7 +178,7 @@ async service_startSwapFromErc20ToErc1155(req, res, next) {
 			req.body.balances_msgSender_erc20Address_newOwnerPublicKey || 0;
 		const swapProposals_swapIdCounter_1_newOwnerPublicKey =
 			req.body.swapProposals_swapIdCounter_1_newOwnerPublicKey || 0;
-		const { tx, encEvent } = await this.startSwapFromErc20ToErc1155.startSwapFromErc20ToErc1155(
+		const { tx, encEvent, commitment } = await this.startSwapFromErc20ToErc1155.startSwapFromErc20ToErc1155(
 			erc20Address,
 			counterParty,
 			amountSent,
@@ -189,7 +189,7 @@ async service_startSwapFromErc20ToErc1155(req, res, next) {
 		);
 		// prints the tx
 		console.log(tx);
-		res.send({ tx, encEvent });
+		res.send({ tx, encEvent, commitment });
 		// reassigns leafIndex to the index of the first commitment added by this function
 		if (tx.event) {
 			leafIndex = tx.returnValues[0];
@@ -223,7 +223,7 @@ async service_startSwapFromErc20ToErc20(req, res, next) {
 			req.body.balances_msgSender_erc20AddressSent_newOwnerPublicKey || 0;
 		const swapProposals_swapIdCounter_2_newOwnerPublicKey =
 			req.body.swapProposals_swapIdCounter_2_newOwnerPublicKey || 0;
-		const { tx, encEvent } = await this.startSwapFromErc20ToErc20.startSwapFromErc20ToErc20(
+		const { tx, encEvent, commitment } = await this.startSwapFromErc20ToErc20.startSwapFromErc20ToErc20(
 			erc20AddressSent,
 			erc20AddressReceived,
 			counterParty,
@@ -234,7 +234,7 @@ async service_startSwapFromErc20ToErc20(req, res, next) {
 		);
 		// prints the tx
 		console.log(tx);
-		res.send({ tx, encEvent });
+		res.send({ tx, encEvent, commitment });
 		// reassigns leafIndex to the index of the first commitment added by this function
 		if (tx.event) {
 			leafIndex = tx.returnValues[0];
@@ -268,7 +268,7 @@ async service_startSwapFromErc1155ToErc1155(req, res, next) {
 			req.body.tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey || 0;
 		const swapProposals_swapIdCounter_3_newOwnerPublicKey =
 			req.body.swapProposals_swapIdCounter_3_newOwnerPublicKey || 0;
-		const { tx, encEvent } = await this.startSwapFromErc1155ToErc1155.startSwapFromErc1155ToErc1155(
+		const { tx, encEvent, commitment } = await this.startSwapFromErc1155ToErc1155.startSwapFromErc1155ToErc1155(
 			counterParty,
 			tokenIdSent,
 			tokenSentAmount,
@@ -279,7 +279,7 @@ async service_startSwapFromErc1155ToErc1155(req, res, next) {
 		);
 		// prints the tx
 		console.log(tx);
-		res.send({ tx, encEvent });
+		res.send({ tx, encEvent, commitment });
 		// reassigns leafIndex to the index of the first commitment added by this function
 		if (tx.event) {
 			leafIndex = tx.returnValues[0];
