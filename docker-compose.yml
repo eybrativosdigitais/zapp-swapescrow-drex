@@ -33,6 +33,8 @@ services:
     # platform: linux/arm64/v8
     volumes:
       - ./circuits/:/app/circuits
+      - ./proving-files/:/app/output
+      - ./orchestration/common/write-vk.mjs:/app/write-vk.mjs
       - ./orchestration/common/db/:/app/orchestration/common/db
     environment:
       PROVING_SCHEME: 'g16'
