@@ -22,8 +22,8 @@ import {
 	getupdatedNullifierPaths,
 	temporaryUpdateNullifier,
 	updateNullifierTree,
-	getSharedSecretskeys,
-} from "./common/commitment-storage.mjs";
+	getSharedSecretskeys, getCommitmentsWhere,
+} from "./common/commitment-storage.mjs"
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
 import Web3 from "./common/web3.mjs";
@@ -31,6 +31,7 @@ import {
 	decompressStarlightKey,
 	poseidonHash,
 } from "./common/number-theory.mjs";
+import logger from './common/logger.mjs'
 
 const { generalise } = GN;
 const db = "/app/orchestration/common/db/preimage.json";
@@ -40,7 +41,7 @@ export class StartSwapFromErc1155ToErc1155Manager {
 	constructor(web3) {
 	  this.web3 = web3;
 	}
-  
+
 	async init() {
 		this.instance = await getContractInstance('SwapShield');
 		this.contractAddr = await getContractAddress('SwapShield');
@@ -90,10 +91,10 @@ export class StartSwapFromErc1155ToErc1155Manager {
 		);
 		const secretKey = generalise(keys.secretKey);
 		const publicKey = generalise(keys.publicKey);
-	
+
 		let recipientPublicKey = await this.instance.methods.zkpPublicKeys(counterParty.hex(20)).call();
 		recipientPublicKey = generalise(recipientPublicKey);
-	
+
 			if (recipientPublicKey.length === 0) {
 				throw new Error("WARNING: Public key for given  eth address not found.");
 			  }
@@ -106,7 +107,7 @@ export class StartSwapFromErc1155ToErc1155Manager {
 				let sharedSecretKey = generalise(keys.sharedSecretKey);
 				 sharedPublicKey = generalise(keys.sharedPublicKey);
 
-	
+
 
 	let swapIdCounter = generalise(await instance.methods.swapIdCounter().call());
 	let swapIdCounter_init = swapIdCounter;
@@ -392,7 +393,7 @@ export class StartSwapFromErc1155ToErc1155Manager {
 		parseInt(tokenIdSent.integer, 10)
 	);
 
-	
+
 
 	swapProposals_swapIdCounter_3.swapTokenSentAmount = generalise(
 		parseInt(tokenSentAmount.integer, 10)
@@ -404,7 +405,7 @@ export class StartSwapFromErc1155ToErc1155Manager {
 		parseInt(tokenIdRecieved.integer, 10)
 	);
 
-	
+
 
 	swapProposals_swapIdCounter_3.swapTokenRecievedAmount = generalise(
 		parseInt(tokenRecievedAmount.integer, 10)
@@ -722,7 +723,7 @@ export class StartSwapFromErc1155ToErc1155Manager {
 
 	// Else we always update it in markNullified
 
-	await storeCommitment({
+	const insertedDocument = await storeCommitment({
 		hash: swapProposals_swapIdCounter_3_newCommitment,
 		name: "swapProposals",
 		mappingKey: swapProposals_swapIdCounter_3_stateVarId_key.integer,
@@ -755,6 +756,11 @@ export class StartSwapFromErc1155ToErc1155Manager {
 		isNullified: false,
 	});
 
-	return { tx, encEvent };
+	 if (!insertedDocument.acknowledged) {
+		 logger.error(`Commitment not inserted`)
+	 }
+
+	 const [commitment] = await getCommitmentsWhere({ _id: insertedDocument.insertedId })
+	return { tx, encEvent, commitment };
 }
 }

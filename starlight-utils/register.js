@@ -136,6 +136,8 @@ async function main() {
   console.log("Generating ECDH keys using BabyJubJub curve to the defaultAccount: ", 
   defaultAccountAddress);
 
+  const registerNewKey = false;
+
   // Define the contract
   const escrowShieldContract = new ethers.Contract( 
     process.env.STARLIGHT_ESCROWSHIELD_ADDRESS, 
@@ -148,25 +150,56 @@ async function main() {
     "via this Ethereum JSON-RPC server: ", 
     process.env.STARLIGHT_RPC_URL
   );
-    
-  let secretKey = generalise(generateRandomHex(31));
-  let publicKeyPoint = generalise(
-    scalarMult(secretKey.hex(32), config.BABYJUBJUB.GENERATOR),
-  );
-  let publicKey = compressStarlightKey(publicKeyPoint);
+  
+  let secretKey;
+  let publicKey;
 
-  while (publicKey === null) {
-    console.log("generated secret key is larger than public key - resetting...");
+  if (registerNewKey) {
     secretKey = generalise(generateRandomHex(31));
-    publicKeyPoint = generalise(
+    let publicKeyPoint = generalise(
       scalarMult(secretKey.hex(32), config.BABYJUBJUB.GENERATOR),
     );
     publicKey = compressStarlightKey(publicKeyPoint);
-  }
 
-  console.log("Saving BabyJubJub ECDH key to EscrowShield Contract. They are:");
-  console.log("secretKey:", secretKey.integer);
-  console.log("publicKey:", publicKey.integer);
+    while (publicKey === null) {
+      console.log("generated secret key is larger than public key - resetting...");
+      secretKey = generalise(generateRandomHex(31));
+      publicKeyPoint = generalise(
+        scalarMult(secretKey.hex(32), config.BABYJUBJUB.GENERATOR),
+      );
+      publicKey = compressStarlightKey(publicKeyPoint);
+    }
+
+    console.log("Saving BabyJubJub ECDH key to EscrowShield Contract. They are:");
+    console.log("secretKey:", secretKey.integer);
+    console.log("publicKey:", publicKey.integer);
+
+    const keyJson = {
+      secretKey: secretKey.integer,
+      publicKey: publicKey.integer, // not req
+    };
+    const keyJsonStringified = JSON.stringify(keyJson, null, 4);
+
+    const keyDbPath =
+      __dirname.substring(0, __dirname.lastIndexOf('zapp-swapescrow')) +
+      'zapp-swapescrow/orchestration/common/db/key.json';
+    
+    console.log("Writing key\n", 
+    keyJsonStringified, "\n",
+    "to keyDbPath: ",
+    keyDbPath);
+
+    fs.writeFileSync(keyDbPath, keyJsonStringified);
+
+  } else {
+    const keyDbPath = 'key.json';
+    const keyJson = JSON.parse(fs.readFileSync(keyDbPath, 'utf-8'));
+    secretKey = generalise(keyJson.secretKey);
+    publicKey = generalise(keyJson.publicKey);
+    console.log("Reading BabyJubJub ECDH key from key.json. They are:");
+    console.log("secretKey:", secretKey.integer);
+    console.log("publicKey:", publicKey.integer);
+  }
 
   const txParams = {
     gas: config.web3.options.defaultGas,
@@ -186,32 +219,12 @@ async function main() {
     return;
   }
 
-  const keyJson = {
-    secretKey: secretKey.integer,
-    publicKey: publicKey.integer, // not req
-  };
-  const keyJsonStringified = JSON.stringify(keyJson, null, 4);
-
-  const keyDbPath =
-    __dirname.substring(0, __dirname.lastIndexOf('Escrow')) +
-    'Escrow/orchestration/common/db/key.json';
-  
-  console.log("Writing key\n", 
-  keyJsonStringified, "\n",
-  "to keyDbPath: ",
-  keyDbPath);
-
-  fs.writeFileSync(keyDbPath, keyJsonStringified);
+  if (registerNewKey) {
+    
+  }
 
   const defaultAccountPubKey = await escrowShieldContract.zkpPublicKeys(defaultAccountAddress);
   console.log("defaultAccountPubKey registered into EscrowShield: ", defaultAccountPubKey);
-
-  console.log("============================");
-  const erc20Contract = new ethers.Contract(process.env.STARLIGHT_ERC20_ADDRESS, erc20Abi, provider);
-  
-  let balance = await erc20Contract.balanceOf(defaultAccountAddress);
-  console.log("Sender's ERC20 balance: ", balance.toString());
-
 }
 
 try {

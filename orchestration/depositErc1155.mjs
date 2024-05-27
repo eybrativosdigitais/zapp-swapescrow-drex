@@ -21,8 +21,8 @@ import {
 	getnullifierMembershipWitness,
 	getupdatedNullifierPaths,
 	temporaryUpdateNullifier,
-	updateNullifierTree,
-} from "./common/commitment-storage.mjs";
+	updateNullifierTree, getCommitmentsWhere,
+} from "./common/commitment-storage.mjs"
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
 import Web3 from "./common/web3.mjs";
@@ -30,6 +30,7 @@ import {
 	decompressStarlightKey,
 	poseidonHash,
 } from "./common/number-theory.mjs";
+import logger from './common/logger.mjs'
 
 const { generalise } = GN;
 const db = "/app/orchestration/common/db/preimage.json";
@@ -42,7 +43,7 @@ export class DepositErc1155Manager {
 	constructor(web3) {
 	  this.web3 = web3;
 	}
-  
+
 	async init() {
 		this.instance = await getContractInstance('SwapShield');
 		this.contractAddr = await getContractAddress('SwapShield');
@@ -174,7 +175,7 @@ export class DepositErc1155Manager {
 	for (let maxGetEventAttempts = 5; maxGetEventAttempts > 0; maxGetEventAttempts--) {
 		tx = await this.instance.getPastEvents("NewLeaves");
 		tx = tx[0];
-		if (tx) { 
+		if (tx) {
 			break;
 		}
 		await delay(1000);
@@ -184,7 +185,7 @@ export class DepositErc1155Manager {
 			"depositErc1155 - Tx is undefined. Or the commitment was not accepted on-chain, or the orchestrator was not able to get the past events."
 		);
 	}
-	
+
 	let encEvent = "";
 
 	try {
@@ -195,7 +196,7 @@ export class DepositErc1155Manager {
 
 	// Write new commitment preimage to db:
 
-	await storeCommitment({
+	const insertedDocument = await storeCommitment({
 		hash: tokenOwners_msgSender_tokenId_newCommitment,
 		name: "tokenOwners",
 		mappingKey: tokenOwners_msgSender_tokenId_stateVarId_key.integer,
@@ -213,6 +214,11 @@ export class DepositErc1155Manager {
 		isNullified: false,
 	});
 
-	return { tx, encEvent };
+	 if (!insertedDocument.acknowledged) {
+		 logger.error(`Commitment not inserted`)
+	 }
+
+	 const [commitment] = await getCommitmentsWhere({ _id: insertedDocument.insertedId })
+	 return { tx, encEvent, commitment };
 }
 }

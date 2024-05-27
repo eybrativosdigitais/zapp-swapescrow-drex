@@ -22,8 +22,8 @@ import {
 	getupdatedNullifierPaths,
 	temporaryUpdateNullifier,
 	updateNullifierTree,
-	getSharedSecretskeys,
-} from "./common/commitment-storage.mjs";
+	getSharedSecretskeys, getCommitmentsWhere,
+} from "./common/commitment-storage.mjs"
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
 import Web3 from "./common/web3.mjs";
@@ -31,6 +31,7 @@ import {
 	decompressStarlightKey,
 	poseidonHash,
 } from "./common/number-theory.mjs";
+import logger from './common/logger.mjs'
 
 const { generalise } = GN;
 const db = "/app/orchestration/common/db/preimage.json";
@@ -40,7 +41,7 @@ export class StartSwapFromErc20ToErc1155Manager {
 	constructor(web3) {
 	  this.web3 = web3;
 	}
-  
+
 	async init() {
 		this.instance = await getContractInstance('SwapShield');
 		this.contractAddr = await getContractAddress('SwapShield');
@@ -93,7 +94,7 @@ export class StartSwapFromErc20ToErc1155Manager {
 
 	let recipientPublicKey = await this.instance.methods.zkpPublicKeys(counterParty.hex(20)).call();
 		recipientPublicKey = generalise(recipientPublicKey);
-	
+
 			if (recipientPublicKey.length === 0) {
 				throw new Error("WARNING: Public key for given  eth address not found.");
 			  }
@@ -496,7 +497,7 @@ console.log('swapProposals_swapIdCounter_1 :', swapProposals_swapIdCounter_1);
 	swapProposals_swapIdCounter_1.swapAmountRecieved = swapProposals_swapIdCounter_1.swapAmountRecieved
 		? swapProposals_swapIdCounter_1.swapAmountRecieved
 		: swapProposals_swapIdCounter_1_prev.swapAmountRecieved;
-	console.log('Here ------->', swapProposals_swapIdCounter_1.swapAmountRecieved )	
+	console.log('Here ------->', swapProposals_swapIdCounter_1.swapAmountRecieved )
 	swapProposals_swapIdCounter_1.swapTokenSentId = swapProposals_swapIdCounter_1.swapTokenSentId
 		? swapProposals_swapIdCounter_1.swapTokenSentId
 		: swapProposals_swapIdCounter_1_prev.swapTokenSentId;
@@ -626,7 +627,7 @@ console.log('swapProposals_swapIdCounter_1 :', swapProposals_swapIdCounter_1);
 		.slice(-16, -2)
 		.map((e) => generalise(e).integer);
 		console.log("swapProposals_swapIdCounter_1_cipherText:", swapProposals_swapIdCounter_1_cipherText);
-	console.log('length:',swapProposals_swapIdCounter_1_cipherText.length);	
+	console.log('length:',swapProposals_swapIdCounter_1_cipherText.length);
 	const swapProposals_swapIdCounter_1_encKey = res.inputs
 		.slice(-2)
 		.map((e) => generalise(e).integer);
@@ -723,7 +724,7 @@ console.log('swapProposals_swapIdCounter_1 :', swapProposals_swapIdCounter_1);
 
 	// Else we always update it in markNullified
 
-	await storeCommitment({
+	const insertedDocument = await storeCommitment({
 		hash: swapProposals_swapIdCounter_1_newCommitment,
 		name: "swapProposals",
 		mappingKey: swapProposals_swapIdCounter_1_stateVarId_key.integer,
@@ -756,6 +757,11 @@ console.log('swapProposals_swapIdCounter_1 :', swapProposals_swapIdCounter_1);
 		isNullified: false,
 	});
 
-	return { tx, encEvent };
+	 if (!insertedDocument.acknowledged) {
+		 logger.error(`Commitment not inserted`)
+	 }
+
+	 const [commitment] = await getCommitmentsWhere({ _id: insertedDocument.insertedId })
+	return { tx, encEvent, commitment };
 }
 }

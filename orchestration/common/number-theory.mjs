@@ -365,10 +365,14 @@ function decrypt(encryptedMessages, secretKey, encPublicKey) {
 	);
 
 	let yBits = sharePublicKeyPoint[1].binary;
-	if (yBits.length >= 253) 
-	yBits = yBits.slice(2);
+	if (yBits.length > 253) 
+	{   
+		yBits = yBits.slice(yBits.length - 253);
+	}
+
 	const xBits = sharePublicKeyPoint[0].binary;
 	const sign = xBits[xBits.length - 1];
+
 	let sharedPublicKey = new GN(sign + yBits.padStart(253, "0"), "binary");
 
 
