@@ -1,0 +1,42 @@
+from "./common/hashes/mimc/altbn254/mimc3.zok" import main as mimc3
+from "utils/pack/bool/nonStrictUnpack256.zok" import main as field_to_bool_256
+from "hashes/poseidon/poseidon.zok" import main as poseidon
+
+def main(\
+	public field erc20Address,\
+	public field amount,\
+	private field  msgSender,\
+	private field balances_msgSender_erc20Address_0_newCommitment_owner_publicKey,\
+	private field balances_msgSender_erc20Address_0_newCommitment_salt,\
+	public field balances_msgSender_erc20Address_0_newCommitment_commitment\
+) -> (bool):
+
+        
+        // We need to hard-code the mappingId's of mappings into the circuit:
+        field balances_mappingId = 9
+
+
+        field balances_msgSender_erc20Address_0_stateVarId_field = mimc3([balances_mappingId,  msgSender,erc20Address])
+
+
+        field balances_msgSender_erc20Address_1_stateVarId_field = mimc3([balances_mappingId,  msgSender,erc20Address])
+
+
+        // prepare secret state 'balances_msgSender_erc20Address_0' for commitment
+
+        field balances_msgSender_erc20Address_0_newCommitment_value_field = amount
+
+        // balances_msgSender_erc20Address_0_newCommitment_commitment - preimage check
+
+        field balances_msgSender_erc20Address_0_newCommitment_commitment_check_field = poseidon([\
+          balances_msgSender_erc20Address_0_stateVarId_field,\
+          balances_msgSender_erc20Address_0_newCommitment_value_field,\
+          balances_msgSender_erc20Address_0_newCommitment_owner_publicKey,\
+          balances_msgSender_erc20Address_0_newCommitment_salt\
+        ])
+
+        assert(\
+          field_to_bool_256(balances_msgSender_erc20Address_0_newCommitment_commitment)[8..256] == field_to_bool_256(balances_msgSender_erc20Address_0_newCommitment_commitment_check_field)[8..256]\
+        )
+
+         return true
