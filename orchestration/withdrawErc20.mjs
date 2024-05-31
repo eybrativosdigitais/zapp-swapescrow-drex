@@ -10,6 +10,10 @@ import {
 	registerKey,
 } from "./common/contract.mjs";
 import {
+	encodeCommitmentData,
+	encryptBackupData
+} from './common/backupData.mjs';
+import {
 	storeCommitment,
 	getCurrentWholeCommitment,
 	getCommitmentsById,
@@ -29,6 +33,8 @@ import Web3 from "./common/web3.mjs";
 import {
 	decompressStarlightKey,
 	poseidonHash,
+	encrypt,
+	decrypt
 } from "./common/number-theory.mjs";
 
 const { generalise } = GN;
@@ -330,6 +336,29 @@ export class WithdrawErc20Manager {
 		.map((coeff) => coeff.integer)
 		.flat(Infinity);
 
+	// TODO: encrypt storeCommitment doc here
+	// const backUpData1 = encrypt(storedCommitment1, ...)
+
+	const commitment = {
+		hash: balances_msgSender_erc20Address_2_newCommitment,
+		name: "balances",
+		mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
+			value: balances_msgSender_erc20Address_change,
+			salt: balances_msgSender_erc20Address_2_newSalt,
+			publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const plainTextCommitments = encodeCommitmentData(commitment);
+
+	const backUpData = encryptBackupData(plainTextCommitments);
 	// Send transaction to the blockchain:
 
 	const txData = await instance.methods
@@ -342,7 +371,8 @@ export class WithdrawErc20Manager {
 			],
 			balances_msgSender_erc20Address_root.integer,
 			[balances_msgSender_erc20Address_2_newCommitment.integer],
-			proof
+			proof,
+			[backUpData]
 		)
 		.encodeABI();
 
@@ -391,23 +421,7 @@ export class WithdrawErc20Manager {
 		secretKey.hex(32)
 	);
 
-	await storeCommitment({
-		hash: balances_msgSender_erc20Address_2_newCommitment,
-		name: "balances",
-		mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
-			value: balances_msgSender_erc20Address_change,
-			salt: balances_msgSender_erc20Address_2_newSalt,
-			publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(commitment);
 
 	return { tx, encEvent };
 }

@@ -9,10 +9,11 @@ import gen from 'general-number';
 import mongo from './mongo.mjs';
 import logger from './logger.mjs';
 import utils from 'zkp-utils';
-import {sharedSecretKey, poseidonHash } from './number-theory.mjs';
+import {sharedSecretKey, poseidonHash, decompressStarlightKey, encrypt } from './number-theory.mjs';
 import { generateProof } from './zokrates.mjs';
 import { SumType, reduceTree, toBinArray, poseidonConcatHash } from './smt_utils.mjs';
 import { hlt } from './hash-lookup.mjs';
+import { encodeCommitmentData } from './backupData.mjs';
 
 const { MONGO_URL, COMMITMENTS_DB, COMMITMENTS_COLLECTION } = config;
 const { generalise } = gen;
@@ -44,13 +45,9 @@ let temp_smt_tree = SMT(hlt[0]); // for temporary updates before proof generatio
 // Gets the hash of a smt_tree (or subtree)
 export const getHash = tree => reduceTree(poseidonConcatHash, tree);
 
-// function to format a commitment for a mongo db and store it
-export async function storeCommitment(commitment) {
-  console.log("commitment :", commitment);
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
-  let data;
-  // we'll also compute and store the nullifier hash.
+
+export function formatCommitment(commitment) {
+  let data
   try {
     const nullifierHash = commitment.secretKey
     ? poseidonHash([
@@ -59,24 +56,36 @@ export async function storeCommitment(commitment) {
         BigInt(commitment.preimage.salt.hex(32)),
       ])
     : '';
-  const preimage = generalise(commitment.preimage).all.hex(32);
-  preimage.value = generalise(commitment.preimage.value).all
-    ? generalise(commitment.preimage.value).all.integer
-    : generalise(commitment.preimage.value).integer;
-   data = {
-    _id: commitment.hash.hex(32),
-    name: commitment.name,
-    mappingKey: commitment.mappingKey ? commitment.mappingKey : null,
-    secretKey: commitment.secretKey ? commitment.secretKey.hex(32) : null,
-    preimage,
-    isNullified: commitment.isNullified,
-    nullifier: commitment.secretKey ? nullifierHash.hex(32) : null,
-  };
-  logger.debug(`Storing commitment ${data._id}`);
-} catch(error){
-       console.error("Error --->", error);
+    const preimage = generalise(commitment.preimage).all.hex(32);
+    preimage.value = generalise(commitment.preimage.value).all
+      ? generalise(commitment.preimage.value).all.integer
+      : generalise(commitment.preimage.value).integer;
+    data = {
+      _id: commitment.hash.hex(32),
+      name: commitment.name,
+      source: commitment.source,
+      mappingKey: commitment.mappingKey ? commitment.mappingKey : null,
+      secretKey: commitment.secretKey ? commitment.secretKey.hex(32) : null,
+      preimage,
+      isNullified: commitment.isNullified,
+      nullifier: commitment.secretKey ? nullifierHash.hex(32) : null,
+    };
+    logger.debug(`Storing commitment ${data._id}`);
+  } catch(error){
+      console.error("Error --->", error);
   }
+  return data
+}
+
+export async function persistCommitment(data) {
+  const connection = await mongo.connection(MONGO_URL);
+  const db = connection.db(COMMITMENTS_DB);
   return db.collection(COMMITMENTS_COLLECTION).insertOne(data);
+}
+// function to format a commitment for a mongo db and store it
+export async function storeCommitment(commitment) {
+  let data = formatCommitment(commitment);
+  return persistCommitment(data);
 }
 
 // function to retrieve commitment with a specified stateVarId
@@ -88,6 +97,7 @@ export async function getCommitmentsById(id) {
     .collection(COMMITMENTS_COLLECTION)
     .find({ 'preimage.stateVarId': generalise(id).hex(32) })
     .toArray();
+
   return commitments;
 }
 
@@ -235,6 +245,20 @@ function insertLeaf(val, tree) {
   return _insertLeaf(val, tree, padBinArr);
 }
 
+export async function markNullifiedMany(nullifiers) {
+  const connection = await mongo.connection(MONGO_URL);
+  const db = connection.db(COMMITMENTS_DB);
+  const query = {
+    nullifier: { $in: nullifiers.map(n => generalise(n).hex(32)) },
+  }
+  const update = {
+    $set: {
+      isNullified: true,
+    }
+  }
+  return db.collection(COMMITMENTS_COLLECTION).updateMany(query, update);
+}
+
 // function to mark a commitment as nullified for a mongo db and update the nullifier tree
 export async function markNullified(commitmentHash, secretKey = null) {
   const connection = await mongo.connection(MONGO_URL);
@@ -265,6 +289,7 @@ export function getInputCommitments(
   commitments,
   isStruct = false,
 ) {
+  console.log('commitments: ', commitments)
   const possibleCommitments = commitments.filter(
     entry => entry.preimage.publicKey === publicKey && !entry.isNullified,
   );
@@ -495,6 +520,32 @@ export async function joinCommitments(
   const proof = generalise(Object.values(res.proof).flat(Infinity))
     .map(coeff => coeff.integer)
     .flat(Infinity);
+
+  const commit = {
+    hash: newCommitment,
+    name: statename,
+    mappingKey: fromID,
+    preimage: {
+      stateVarId: generalise(oldCommitment_stateVarId),
+      value: newCommitment_value,
+      salt: newCommitment_newSalt,
+      publicKey: publicKey,
+    },
+    secretKey: secretKey,
+    isNullified: false,
+  }
+	const backUpData = encrypt(
+		encodeCommitmentData(commit),
+		secretKey.integer,
+		[
+			decompressStarlightKey(
+				publicKey
+			)[0].integer,
+			decompressStarlightKey(
+				publicKey
+			)[1].integer,
+		]
+	)
   // Send transaction to the blockchain:
 
   const txData = await instance.methods
@@ -503,6 +554,7 @@ export async function joinCommitments(
       oldCommitment_root.integer,
       [newCommitment.integer],
       proof,
+      [backUpData]
     )
     .encodeABI();
 
@@ -527,19 +579,7 @@ export async function joinCommitments(
 
   await markNullified(generalise(commitments[0]._id), secretKey.hex(32));
   await markNullified(generalise(commitments[1]._id), secretKey.hex(32));
-  await storeCommitment({
-    hash: newCommitment,
-    name: statename,
-    mappingKey: fromID,
-    preimage: {
-      stateVarId: generalise(oldCommitment_stateVarId),
-      value: newCommitment_value,
-      salt: newCommitment_newSalt,
-      publicKey: publicKey,
-    },
-    secretKey: secretKey,
-    isNullified: false,
-  });
+  await storeCommitment(commit);
 
   return { tx };
 }
@@ -667,6 +707,57 @@ export async function splitCommitments(
   const proof = generalise(Object.values(res.proof).flat(Infinity))
     .map(coeff => coeff.integer)
     .flat(Infinity);
+
+    const commit0 = {
+      hash: newCommitment_0,
+      name: statename,
+      mappingKey: fromID,
+      preimage: {
+        stateVarId: generalise(oldCommitment_stateVarId),
+        value: newCommitment_0_value,
+        salt: newCommitment_0_newSalt,
+        publicKey: publicKey,
+      },
+      secretKey: secretKey,
+      isNullified: false,
+    }
+    const backUpData0 = encrypt(
+      encodeCommitmentData(commit0),
+      secretKey.integer,
+      [
+        decompressStarlightKey(
+          publicKey
+        )[0].integer,
+        decompressStarlightKey(
+          publicKey
+        )[1].integer,
+      ]
+    )
+    const commit1 = {
+      hash: newCommitment_1,
+      name: statename,
+      mappingKey: fromID,
+      preimage: {
+        stateVarId: generalise(oldCommitment_stateVarId),
+        value: newCommitment_1_value,
+        salt: newCommitment_1_newSalt,
+        publicKey: publicKey,
+      },
+      secretKey: secretKey,
+      isNullified: false,
+    }
+    const backUpData1 = encrypt(
+      encodeCommitmentData(commit1),
+      secretKey.integer,
+      [
+        decompressStarlightKey(
+          publicKey
+        )[0].integer,
+        decompressStarlightKey(
+          publicKey
+        )[1].integer,
+      ]
+    )
   // Send transaction to the blockchain:
 
   const txData = await instance.methods
@@ -675,6 +766,7 @@ export async function splitCommitments(
       oldCommitment_root.integer,
       [newCommitment_0.integer, newCommitment_1.integer],
       proof,
+      [backUpData0, backUpData1]
     )
     .encodeABI();
 
@@ -699,33 +791,9 @@ export async function splitCommitments(
 
   await markNullified(generalise(commitment._id), secretKey.hex(32));
 
-  await storeCommitment({
-    hash: newCommitment_0,
-    name: statename,
-    mappingKey: fromID,
-    preimage: {
-      stateVarId: generalise(oldCommitment_stateVarId),
-      value: newCommitment_0_value,
-      salt: newCommitment_0_newSalt,
-      publicKey: publicKey,
-    },
-    secretKey: secretKey,
-    isNullified: false,
-  });
+  await storeCommitment(commit0);
 
-  await storeCommitment({
-    hash: newCommitment_1,
-    name: statename,
-    mappingKey: fromID,
-    preimage: {
-      stateVarId: generalise(oldCommitment_stateVarId),
-      value: newCommitment_1_value,
-      salt: newCommitment_1_newSalt,
-      publicKey: publicKey,
-    },
-    secretKey: secretKey,
-    isNullified: false,
-  });
+  await storeCommitment(commit1);
 
   return { tx };
 }

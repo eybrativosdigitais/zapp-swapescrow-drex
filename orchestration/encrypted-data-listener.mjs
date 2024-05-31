@@ -3,10 +3,27 @@ import utils from 'zkp-utils'
 import config from 'config'
 import { generalise } from 'general-number'
 import { getContractAddress, getContractInstance, registerKey, getContractMetadata } from './common/contract.mjs'
-import { storeCommitment, getSharedSecretskeys,  getCommitmentsByState, markNullified } from './common/commitment-storage.mjs'
-import { decrypt, poseidonHash } from './common/number-theory.mjs'
+import { storeCommitment, getSharedSecretskeys,  getCommitmentsByState, markNullified, markNullifiedMany, formatCommitment, persistCommitment } from './common/commitment-storage.mjs'
+import { decrypt, poseidonHash, decompressStarlightKey } from './common/number-theory.mjs'
+import { decodeCommitmentData } from './common/backupData.mjs'
+import logger from "./common/logger.mjs";
 
 const keyDb = '/app/orchestration/common/db/key.json'
+
+const decryptBackupData = (data, pubKey, secretKey) => {
+  return decrypt(
+    data,
+    secretKey.integer,
+    [
+      decompressStarlightKey(
+        pubKey
+      )[0].integer,
+      decompressStarlightKey(
+        pubKey
+      )[1].integer,
+    ]
+  )
+}
 
 export class EncryptedDataEventListener {
   constructor (web3) {
@@ -22,9 +39,7 @@ export class EncryptedDataEventListener {
       const contractAddr = contractMetadata.address
       console.log('encrypted-data-listener', 'init', 'Contract Address --------->', contractAddr)
 
-      if (!fs.existsSync(keyDb)) {
-        await registerKey(utils.randomHex(31), 'SwapShield', true)
-      }
+      await registerKey(utils.randomHex(31), 'SwapShield', true)
 
       const { secretKey, publicKey, sharedSecretKey, sharedPublicKey } = JSON.parse(
         fs.readFileSync(keyDb)
@@ -39,6 +54,51 @@ export class EncryptedDataEventListener {
       console.error('encrypted-data-listener', 'init', 'Initialization failed:', error)
       throw error
     }
+  }
+
+  async fetchBackupData() {
+    await this.init()
+    const instance = this.instance
+
+    const eventName = 'BackupData'
+    const eventJsonInterface = this.instance._jsonInterface.find(
+      o => o.name === eventName && o.type === 'event'
+    )
+
+    const backupEvents = await instance.getPastEvents('BackupData', {
+      fromBlock: this.contractMetadata.blockNumber || 1,
+      topics: [eventJsonInterface.signature, this.ethAddress.hex(32)]
+    })
+    const nullifierEvents = await instance.getPastEvents('Nullifiers', {
+      fromBlock: this.contractMetadata.blockNumber || 1,
+    })
+
+    const nullifiers = nullifierEvents
+      .flatMap(e => e.returnValues.nullifiers)
+
+    return Promise.all(
+      backupEvents
+        .map(e => decryptBackupData(e.returnValues.cipherText, this.publicKey, this.secretKey))
+        .map(decodeCommitmentData)
+        .map(formatCommitment)
+        .map(c => {
+          c.isNullified = nullifiers.includes(BigInt(c.nullifier).toString())
+          return c
+        })
+    )
+  }
+
+  async saveBackupData (allCommitments) {
+    return allCommitments.map(async commit => {
+      try {
+        await persistCommitment(commit)
+      }
+      catch (e) {
+        if (e.toString().includes('E11000 duplicate key')) {
+          logger.info('Commitment already exists. Thats fine.')
+        }
+      }
+    })
   }
 
   async start () {
@@ -87,20 +147,15 @@ export class EncryptedDataEventListener {
   async processEventData (eventData) {
     await this.init()
     const self = this
-    console.log('processEventData', 'New EncryptedData event detected')
-    console.log('processEventData', `Event Data: ${JSON.stringify(eventData, null, 2)}`)
 
     const cipherText = eventData.returnValues.cipherText
     const ephPublicKey = eventData.returnValues.ephPublicKey
-    console.log(`Cipher Text: ${cipherText}, Ephemeral Public Key: ${ephPublicKey}`)
 
     const decrypted = decrypt(
       cipherText,
       this.secretKey.integer,
       ephPublicKey
     )
-
-    console.log('processEventData', 'Decrypted Data:', decrypted)
 
     if (decrypted.length === 14) {
       // Processing logic for events with length 14
@@ -126,15 +181,11 @@ export class EncryptedDataEventListener {
           'ALT_BN_254'
         )
       )
-      console.log('processEventData', 'swap stateVarId ---->', swap_StateVarId, swapId)
-      console.log('processEventData', 'My Address:', self.ethAddress)
 
       if (stateVarId.integer === swap_StateVarId.integer &&
             swapReciever.integer === self.ethAddress.integer) {
-        console.log('processEventData', 'Event is for us Saving it')
 
           let sendersPublicKey = await self.instance.methods.zkpPublicKeys(swapSender.hex(20)).call()
-          console.log('sender Public key:', sendersPublicKey);
           sendersPublicKey = generalise(sendersPublicKey)
           if (sendersPublicKey.length === 0) {
             throw new Error('WARNING: Public key for given  eth address not found.')
@@ -149,7 +200,6 @@ export class EncryptedDataEventListener {
           self.sharedSecretKey = generalise(keys.sharedSecretKey)
           self.sharedPublicKey = generalise(keys.sharedPublicKey)
 
-        console.log('Shared Public key:', self.sharedPublicKey);
         let newCommitment = poseidonHash([
           BigInt(stateVarId.hex(32)),
           BigInt(swapAmountSent.hex(32)),
@@ -173,6 +223,7 @@ export class EncryptedDataEventListener {
             hash: newCommitment,
             name: 'swapProposals',
             mappingKey: swapId.integer,
+            source: 'encrypted data',
             preimage: {
               stateVarId,
               value: {
@@ -195,7 +246,6 @@ export class EncryptedDataEventListener {
             secretKey: self.sharedSecretKey,
             isNullified: false
           })
-          console.log('Added commitment', newCommitment.hex(32))
         } catch (e) {
           if (e.toString().includes('E11000 duplicate key')) {
             console.log('Commitment already exists')
@@ -260,6 +310,7 @@ export class EncryptedDataEventListener {
           await storeCommitment({
             hash: newCommitment,
             name: 'balances',
+            source: 'encrypted data',
             mappingKey: stateVarId.integer,
             preimage: {
               stateVarId,
@@ -285,6 +336,7 @@ export class EncryptedDataEventListener {
           await storeCommitment({
             hash: newCommitment,
             name: 'tokenOwners',
+            source: 'encrypted data',
             mappingKey: stateVarId.integer,
             preimage: {
               stateVarId,

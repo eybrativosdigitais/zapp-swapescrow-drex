@@ -26,11 +26,12 @@ import {
 } from "./common/commitment-storage.mjs"
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
+import { encodeCommitmentData, encryptBackupData } from "./common/backupData.mjs";
 import Web3 from "./common/web3.mjs";
 import {
-
 	decompressStarlightKey,
 	poseidonHash,
+	encrypt
 } from "./common/number-theory.mjs";
 import logger from './common/logger.mjs'
 
@@ -631,6 +632,68 @@ export class StartSwapFromErc20ToErc20Manager {
 	const swapProposals_swapIdCounter_2_encKey = res.inputs
 		.slice(-2)
 		.map((e) => generalise(e).integer);
+	// TODO: encrypt storeCommitment doc here
+	// const backUpData = encrypt(storedCommitment, ...)
+	const balancesCommitment = {
+		hash: balances_msgSender_erc20AddressSent_2_newCommitment,
+		name: "balances",
+		mappingKey: balances_msgSender_erc20AddressSent_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(balances_msgSender_erc20AddressSent_stateVarId),
+			value: balances_msgSender_erc20AddressSent_change,
+			salt: balances_msgSender_erc20AddressSent_2_newSalt,
+			publicKey: balances_msgSender_erc20AddressSent_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_msgSender_erc20AddressSent_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+
+	const swapProposalsCommitment = {
+		hash: swapProposals_swapIdCounter_2_newCommitment,
+		name: "swapProposals",
+		mappingKey: swapProposals_swapIdCounter_2_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(swapProposals_swapIdCounter_2_stateVarId),
+			value: {
+				swapAmountSent: swapProposals_swapIdCounter_2.swapAmountSent,
+				swapAmountRecieved: swapProposals_swapIdCounter_2.swapAmountRecieved,
+				swapTokenSentId: swapProposals_swapIdCounter_2.swapTokenSentId,
+				swapTokenSentAmount: swapProposals_swapIdCounter_2.swapTokenSentAmount,
+				swapTokenRecievedId: swapProposals_swapIdCounter_2.swapTokenRecievedId,
+				swapTokenRecievedAmount:
+					swapProposals_swapIdCounter_2.swapTokenRecievedAmount,
+				swapId: swapProposals_swapIdCounter_2.swapId,
+				swapSender: swapProposals_swapIdCounter_2.swapSender,
+				swapReciever: swapProposals_swapIdCounter_2.swapReciever,
+				erc20AddressSent: swapProposals_swapIdCounter_2.erc20AddressSent,
+				erc20AddressRecieved:
+					swapProposals_swapIdCounter_2.erc20AddressRecieved,
+				pendingStatus: swapProposals_swapIdCounter_2.pendingStatus,
+			},
+			salt: swapProposals_swapIdCounter_2_newSalt,
+			publicKey: swapProposals_swapIdCounter_2_newOwnerPublicKey,
+		},
+		secretKey:
+			swapProposals_swapIdCounter_2_newOwnerPublicKey.integer ===
+			sharedPublicKey.integer
+				? sharedSecretKey
+				: null,
+		isNullified: false,
+	}
+
+	console.log('swapProposalsCommitment')
+	console.log(swapProposalsCommitment)
+
+	const backUpDataBalances = encryptBackupData(
+		encodeCommitmentData(balancesCommitment)
+	)
+	const backUpDataSwaps = encryptBackupData(
+		encodeCommitmentData(swapProposalsCommitment)
+	)
 
 	// Send transaction to the blockchain:
 
@@ -649,7 +712,8 @@ export class StartSwapFromErc20ToErc20Manager {
 			cipherText: [swapProposals_swapIdCounter_2_cipherText],
 			encKeys: [swapProposals_swapIdCounter_2_encKey],
 			customInputs: [swapIdCounter.integer],},
-			proof
+			proof,
+			[backUpDataBalances, backUpDataSwaps]
 		)
 		.encodeABI();
 
@@ -698,23 +762,7 @@ export class StartSwapFromErc20ToErc20Manager {
 		secretKey.hex(32)
 	);
 
-	await storeCommitment({
-		hash: balances_msgSender_erc20AddressSent_2_newCommitment,
-		name: "balances",
-		mappingKey: balances_msgSender_erc20AddressSent_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(balances_msgSender_erc20AddressSent_stateVarId),
-			value: balances_msgSender_erc20AddressSent_change,
-			salt: balances_msgSender_erc20AddressSent_2_newSalt,
-			publicKey: balances_msgSender_erc20AddressSent_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_msgSender_erc20AddressSent_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(balancesCommitment);
 
 	if (swapProposals_swapIdCounter_2_commitmentExists)
 		await markNullified(
@@ -724,38 +772,7 @@ export class StartSwapFromErc20ToErc20Manager {
 
 	// Else we always update it in markNullified
 
-	 const insertedDocument = await storeCommitment({
-		hash: swapProposals_swapIdCounter_2_newCommitment,
-		name: "swapProposals",
-		mappingKey: swapProposals_swapIdCounter_2_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(swapProposals_swapIdCounter_2_stateVarId),
-			value: {
-				swapAmountSent: swapProposals_swapIdCounter_2.swapAmountSent,
-				swapAmountRecieved: swapProposals_swapIdCounter_2.swapAmountRecieved,
-				swapTokenSentId: swapProposals_swapIdCounter_2.swapTokenSentId,
-				swapTokenSentAmount: swapProposals_swapIdCounter_2.swapTokenSentAmount,
-				swapTokenRecievedId: swapProposals_swapIdCounter_2.swapTokenRecievedId,
-				swapTokenRecievedAmount:
-					swapProposals_swapIdCounter_2.swapTokenRecievedAmount,
-				swapId: swapProposals_swapIdCounter_2.swapId,
-				swapSender: swapProposals_swapIdCounter_2.swapSender,
-				swapReciever: swapProposals_swapIdCounter_2.swapReciever,
-				erc20AddressSent: swapProposals_swapIdCounter_2.erc20AddressSent,
-				erc20AddressRecieved:
-					swapProposals_swapIdCounter_2.erc20AddressRecieved,
-				pendingStatus: swapProposals_swapIdCounter_2.pendingStatus,
-			},
-			salt: swapProposals_swapIdCounter_2_newSalt,
-			publicKey: swapProposals_swapIdCounter_2_newOwnerPublicKey,
-		},
-		secretKey:
-			swapProposals_swapIdCounter_2_newOwnerPublicKey.integer ===
-			sharedPublicKey.integer
-				? sharedSecretKey
-				: null,
-		isNullified: false,
-	});
+	 const insertedDocument = await storeCommitment(swapProposalsCommitment);
 
 	 if (!insertedDocument.acknowledged) {
 		 logger.error(`Commitment not inserted`)

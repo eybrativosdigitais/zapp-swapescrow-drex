@@ -122,11 +122,33 @@ export async function deploy(
 	return deployedContractAddress;
 }
 
-export async function registerKey(
-	_secretKey,
-	contractName,
-	registerWithContract
-) {
+async function registerKeyOnChain(contractName, publicKey, walletAddress) {
+	const instance = await getContractInstance(contractName);
+	const contractAddr = await getContractAddress(contractName);
+	const onChainKey = await instance.methods.zkpPublicKeys(walletAddress)
+		.call({ from: walletAddress });
+	if (onChainKey === '0') {
+		console.log("!onChainKey passed!", generalise(publicKey).integer)
+		const txData = await instance.methods
+			.registerZKPPublicKey(generalise(publicKey).integer)
+			.encodeABI();
+		let txParams = {
+			from: walletAddress,
+			to: contractAddr,
+			gas: config.web3.options.defaultGas,
+			gasPrice: config.web3.options.defaultGasPrice,
+			data: txData,
+			chainId: await web3.eth.net.getId(),
+		};
+		const key = config.web3.key;
+		const signed = await web3.eth.accounts.signTransaction(txParams, key);
+		console.log('tx signed')
+		const tx = await web3.eth.sendSignedTransaction(signed.rawTransaction)
+		console.log('sendSignedTransaction', tx)
+	}
+}
+
+function registerKeyPairDisk(_secretKey) {
 	let secretKey = generalise(_secretKey);
 	let publicKeyPoint = generalise(
 		scalarMult(secretKey.hex(32), config.BABYJUBJUB.GENERATOR)
@@ -140,29 +162,34 @@ export async function registerKey(
 		);
 		publicKey = compressStarlightKey(publicKeyPoint);
 	}
-	if (registerWithContract) {
-		const instance = await getContractInstance(contractName);
-		const contractAddr = await getContractAddress(contractName);
-		const txData = await instance.methods
-			.registerZKPPublicKey(publicKey.integer)
-			.encodeABI();
-		let txParams = {
-			from: config.web3.options.defaultAccount,
-			to: contractAddr,
-			gas: config.web3.options.defaultGas,
-			gasPrice: config.web3.options.defaultGasPrice,
-			data: txData,
-			chainId: await web3.eth.net.getId(),
-		};
-		const key = config.web3.key;
-		const signed = await web3.eth.accounts.signTransaction(txParams, key);
-		const sendTxn = await web3.eth.sendSignedTransaction(signed.rawTransaction);
-	}
 	const keyJson = {
 		secretKey: secretKey.integer,
-		publicKey: publicKey.integer, // not req
+		publicKey: publicKey.integer,
 	};
 	fs.writeFileSync(keyDb, JSON.stringify(keyJson, null, 4));
+	console.log(keyJson)
+	return keyJson
+}
 
-	return publicKey;
+export async function registerKey(
+	_secretKey,
+	contractName,
+	registerWithContract
+) {
+	let keys
+	console.log("started register key")
+	if (!fs.existsSync(keyDb)) {
+		console.log("no keyDb found. creating key pair")
+		keys = registerKeyPairDisk(_secretKey)
+	} else {
+		console.log("keyDb found. reading key pair")
+		keys = JSON.parse(fs.readFileSync(keyDb, "utf8"));
+	}
+	console.log('registerWithContract', registerWithContract)
+	if (registerWithContract) {
+		console.log("registering key pair onchain", keys.publicKey, config.web3.options.defaultAccount)
+		await registerKeyOnChain(contractName, keys.publicKey, config.web3.options.defaultAccount);
+	}
+
+	return generalise(keys.publicKey);
 }

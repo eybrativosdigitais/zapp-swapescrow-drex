@@ -1,7 +1,6 @@
 // const erc20TokenAddress = "0x42114b089B6b561F843D337A40aF9aD882CebaA1";
 // const erc1155TokenAddress = "0x2B1220a1612BE827DA9526a678F2305048f3D3F6";
-const erc20TokenAddress = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707";
-const erc1155TokenAddress = "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE";
+
 const mockCommitments = {
   "commitments": [
     {
@@ -123,12 +122,52 @@ const bankB = "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC";
 const swapSender = window.location.href.includes(":3000") ? bankA : bankB;
 const currentBank = window.location.href.includes(":3000") ? bankA : bankB;
 
-const balanceERC201 = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707";
-const balanceERC20TestAddress = "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e";
+const isBesu = window.location.href.includes(":300") === false;
+const erc20TokenAddress = isBesu === false ? "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707" : "0xe2d3f334DC8b5B694e5Feb5cfbA4A9Fc8f2ba8Bf";
+const erc1155TokenAddress = isBesu === false ? "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE" : "0x5946B4d5320445990bFbD376D92f660a7F55d6b7";
+
+const balanceERC201 = erc20TokenAddress;
+const balanceERC20TestAddress = isBesu ? "0x94e739DB09F76F5Aa80E282eC6c4dD7dDb529ea1" : "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e";
 
 let mode = 'erc20';
+let modeTo = 'ToErc1155';
 let swapsCreatedByMe = [];
 let swapsWaitingApproval = [];
+
+function showHideFields() {
+  const modeCombined = mode + modeTo;
+
+  const fieldConfig = {
+    erc20ToErc20: {
+      hide: ['#tokenIdSentInput', '#tokenIdSentAmountInput', '#tokenIdReceivedInput', '#labelTokenIdReceived', '#labelTokenIdSentAmount', '#labelTokenIdSent'],
+      show: ['#labelErc20AddressReceived', '#labelTokenReceivedAmount', '#tokenReceivedAmountInput', '#erc20AddressReceivedInput', '#swapTokenAddressInput', '#amountSentInput'],
+    },
+    erc20ToErc1155: {
+      hide: ['#tokenIdSentInput', '#tokenIdSentAmountInput', '#labelErc20AddressReceived', '#erc20AddressReceivedInput', '#tokenReceivedAmountInput', '#labelTokenIdSentAmount', '#labelTokenIdSent'],
+      show: ['#tokenIdReceivedInput', '#amountSentInput', '#swapTokenAddressInput', '#tokenReceivedAmountInput', '#labelAmountSent', '#labelTokenIdReceived'],
+    },
+    erc1155ToErc20: {
+      hide: ['#tokenIdSentAmountInput', '#labelTokenIdSentAmount', '#erc20AddressReceivedInput', '#tokenIdReceivedInput', '#labelErc20AddressReceived', '#labelTokenIdReceived'],
+      show: ['#tokenIdSentInput', '#swapTokenAddressInput', '#amountSentInput', '#tokenReceivedAmountInput', '#amountReceivedInput', '#labelTokenIdSent', '#labelAmountSent'],
+    },
+    erc1155ToErc1155: {
+      hide: ['#amountSentInput', '#erc20AddressReceivedInput', '#swapTokenAddressInput', '#labelAmountSent'],
+      show: ['#tokenIdSentInput', '#tokenIdSentAmountInput', '#tokenIdReceivedInput', '#tokenReceivedAmountInput', '#labelTokenIdSent', '#labelTokenIdSentAmount', '#labelTokenIdReceived'],
+    },
+  };
+
+  function applyClasses(fieldArray, action) {
+    fieldArray.forEach(selector => {
+      $(selector)[action]('hidden');
+    });
+  }
+
+  const config = fieldConfig[modeCombined];
+  if (config) {
+    applyClasses(config.hide, 'addClass');
+    applyClasses(config.show, 'removeClass');
+  }
+}
 
 $('#erc20Tab').click(function () {
   $('#tokenAddressDeposit').removeClass('hidden');
@@ -142,7 +181,9 @@ $('#erc20Tab').click(function () {
   $('#erc1155Tab').attr('aria-selected', false);
   $('#tokenIdInput').addClass('hidden');
   $('#tokenIdErc1155').addClass('hidden');
+  $('#labeltokenIdErc1155').addClass('hidden');
   mode = 'erc20';
+  showHideFields();
 });
 $('#erc20Tab').click();
 
@@ -157,8 +198,26 @@ $('#erc1155Tab').click(function () {
   $('#erc1155Tab').attr('aria-selected', true);
   $('#tokenIdInput').removeClass('hidden');
   $('#tokenIdErc1155').removeClass('hidden');
+  $('#labeltokenIdErc1155').removeClass('hidden');
   mode = 'erc1155';
+  showHideFields();
 });
+
+// Event listeners for receiving tabs
+$('#erc20TabTo').click(function () {
+  modeTo = 'ToErc20';
+  $('#erc20TabTo').attr('aria-selected', true);
+  $('#erc1155TabTo').attr('aria-selected', false);
+  showHideFields();
+});
+
+$('#erc1155TabTo').click(function () {
+  modeTo = 'ToErc1155';
+  $('#erc1155TabTo').attr('aria-selected', true);
+  $('#erc20TabTo').attr('aria-selected', false);
+  showHideFields();
+});
+$('#erc1155TabTo').click();
 
 const brlFormatter = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -176,139 +235,6 @@ function setIsLoading(isLoading) {
   $('#isLoading').addClass('hidden');
 }
 
-function fetchExistingSwaps() {
-  // Get swaps created by me
-  $.ajax({
-    type: "GET",
-    url: `/swap?swapSender=${swapSender}`,
-    contentType: "application/json", // Set the content type to JSON
-    success: function (response) {
-      // BRL currency formatter
-      swapsCreatedByMe = response;
-      generateSwapsOpen(response.commitments);
-    },
-    error: function () {
-      console.log('Error get swaps created by me');
-    }
-  });
-
-  // Get swaps waiting approval
-  $.ajax({
-    type: "GET",
-    url: `/swap?swapReceiver=${swapSender}`,
-    contentType: "application/json", // Set the content type to JSON
-    success: function (response) {
-      // BRL currency formatter
-      swapsWaitingApproval = response;
-      generateSwapsSent(response.commitments);
-    },
-    error: function () {
-      console.log('Error get swaps waiting approval');
-    }
-  });
-}
-
-function completeSwapFromErc20ToErc1155(swapId) {
-  setIsLoading(true);
-  $.ajax({
-    type: "POST",
-    url: "/completeSwapFromErc20ToErc1155",
-    data: JSON.stringify({ swapId }),
-    contentType: "application/json",
-    success: function (response) {
-      toastr.success('Swap completed successfully!');
-      console.log(response);
-      setIsLoading(false);
-      refreshBalance(); // Assuming this function updates some UI elements with new balances
-      fetchExistingSwaps();
-    },
-    error: function (xhr) {
-      toastr.error('Error completing swap. ' + xhr.responseText);
-      console.error('Error during swap completion:', xhr);
-      setIsLoading(false);
-      fetchExistingSwaps();
-    }
-  });
-}
-
-function completeSwapFromErc1155ToErc20(swapId) {
-  setIsLoading(true);
-  $.ajax({
-    type: "POST",
-    url: "/completeSwapFromErc1155ToErc20",
-    data: JSON.stringify({ swapId }),
-    contentType: "application/json",
-    success: function (response) {
-      toastr.success('Swap completed successfully!');
-      console.log(response);
-      setIsLoading(false);
-      refreshBalance(); // Assuming this function updates some UI elements with new balances
-      fetchExistingSwaps();
-    },
-    error: function (xhr) {
-      toastr.error('Error completing swap. ' + xhr.responseText);
-      console.error('Error during swap completion:', xhr);
-      setIsLoading(false);
-      fetchExistingSwaps();
-    }
-  });
-}
-
-function generateSwapsOpen(array) {
-  $('#swapsOpen').html('');
-  const cards = array.map((swap) => `
-  <div class="rounded-lg border shadow-sm">
-  <div class="flex flex-col space-y-1.5 p-6">
-    <h3 class="whitespace-nowrap text-1xl font-semibold leading-none "> Swap Proposal</h3>
-  </div>
-  <div class="p-6">
-    <p class="text-gray-500 ">
-      <br />
-      Valor: <span class="font-bold">${brlFormatter.format(swap.preimage.value.swapAmountSent)}</span >
-    <br />
-      Enviado por: <span class="font-bold truncate">${swap.preimage.value.swapSender}</span>
-      <br />
-      Swap ID: <span class="font-bold truncate">${swap.preimage.value.swapId}</span>
-    </p>
-  </div>
-    <div class="flex items-center p-6">
-      <a class="inline-flex h-9 items-center justify-center rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 "
-        onClick="">
-        Cancelar swap
-      </a>
-    </div>
-</div >
-      `).join('');
-  $('#swapsOpen').html(cards);
-}
-
-function generateSwapsSent(array) {
-  $('#swapsSent').html('');
-  const cards = array.map((swap) => `
-  <div class="rounded-lg border shadow-sm">
-  <div class="flex flex-col space-y-1.5 p-6">
-    <h3 class="whitespace-nowrap text-1xl font-semibold leading-none "> Proposta de Swap!</h3>
-  </div>
-  <div class="p-6">
-    <p class="text-gray-500 ">
-      <br />
-      Valor: <span class="font-bold">${brlFormatter.format(swap.preimage.value.swapAmountSent)}</span >
-    <br />
-      Enviado por: <span class="font-bold truncate">${swap.preimage.value.swapSender}</span>
-      <br />
-      Swap ID: <span class="font-bold truncate">${swap.preimage.value.swapId}</span>
-    </p>
-  </div>
-    <div class="flex items-center p-6">
-      <a class="inline-flex h-9 items-center justify-center rounded-md bg-green-500 px-4 py-2 text-sm font-medium text-gray-50 shadow transition-colors hover:bg-gray-900/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 "
-        onClick="">
-        Completar swap
-      </a>
-    </div>
-</div >
-      `).join('');
-  $('#swapsSent').html(cards);
-}
 function humanizeAddress(address) {
   if (typeof address !== 'string' || address.length !== 42) {
     throw new Error('Invalid Ethereum address');
@@ -316,20 +242,8 @@ function humanizeAddress(address) {
   return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
 }
 
-
 function refreshBalance() {
-  // $.ajax({
-  //   type: "GET",
-  //   url: "/getBalance",
-  //   contentType: "application/json", // Set the content type to JSON
-  //   success: function (response) {
-  //     // BRL currency formatter
-  //     $('#erc20ShildedBalance').text(brlFormatter.format(response[" Total Balance"]));
-  //   },
-  //   error: function () {
-  //     console.log('Error get Balance');
-  //   }
-  // });
+
   // TODO: change the hardcoded erc20 addresses and erc1155
   $.ajax({
     type: "GET",
@@ -359,34 +273,11 @@ function refreshBalance() {
           </div>
         `);
       });
-
-      // // Iterate over the swap proposals
-      // const swapProposals = response.balances.swapProposals;
-      // Object.keys(swapProposals).forEach(function (key) {
-      //   const proposal = swapProposals[key];
-      //   $('#swapProposalsContainer').append(`
-      //     <div class="flex justify-between">
-      //       <span>Swap Proposal ID: ${key}</span>
-      //       <span>Swap Amount Sent: ${proposal.swapAmountSent}</span>
-      //       <span>Swap Amount Received: ${proposal.swapAmountReceived}</span>
-      //       <span>Swap Token Sent ID: ${proposal.swapTokenSentId}</span>
-      //       <span>Swap Token Sent Amount: ${proposal.swapTokenSentAmount}</span>
-      //       <span>Swap Token Received ID: ${proposal.swapTokenReceivedId}</span>
-      //       <span>Swap Token Received Amount: ${proposal.swapTokenReceivedAmount}</span>
-      //       <span>Swap Sender: ${proposal.swapSender}</span>
-      //       <span>Swap Receiver: ${proposal.swapReciever}</span>
-      //       <span>ERC20 Address Sent: ${proposal.erc20AddressSent}</span>
-      //       <span>ERC20 Address Received: ${proposal.erc20AddressReceived}</span>
-      //       <span>Pending Status: ${proposal.pendingStatus}</span>
-      //     </div>
-      //   `);
-      // });
     },
     error: function () {
       console.log('Error getting balance');
     }
   });
-
 
   $.ajax({
     type: "GET",
@@ -472,11 +363,45 @@ function toggleAccordion(event) {
 }
 
 $(document).ready(function () {
+  let uniqueData = []; // Store the fetched data
+
   // $('.money').mask('#.##0,00', { reverse: true });
 
   // Default values for testing purposes (to be removed)
   $('#addressDeposit').val(erc20TokenAddress);
 
+  function generateInfoTableRow(key, value) {
+    return `<div class="flex justify-between px-6">
+    <span class="font-bold font-medium">
+      ${key}
+    </span>
+    <span class="text-sm flex items-center justify-center">
+      &nbsp;${value}
+    </span>
+  </div>`;
+  }
+
+  $.ajax({
+    type: "GET",
+    url: `/stats`,
+    contentType: "application/json", // Set the content type to JSON
+    success: function (response) {
+      $('#tokenInfoTable').append(generateInfoTableRow("ERC20 Token: ", response.tokens.ERC20));
+      $('#tokenInfoTable').append(generateInfoTableRow("ERC1155 Token: ", response.tokens.ERC1155));
+      $('#tokenAllowanceTable').append(generateInfoTableRow("ERC20 Token: ", response.allowances.ERC20));
+      $('#tokenAllowanceTable').append(generateInfoTableRow("ERC1155 Token: ", response.allowances.ERC1155));
+      $('#processEnvTable').append(generateInfoTableRow("Own Address: ", response.ownAddress));
+      $('#processEnvTable').append(generateInfoTableRow("RPC URL: ", response.rpcUrl));
+      $('#processEnvTable').append(generateInfoTableRow("Gas Price: ", response.gasPrice));
+      $('#processEnvTable').append(generateInfoTableRow("Gas Limit: ", response.gasLimit));
+      $('#chainInfoTable').append(generateInfoTableRow("Own Public Key: ", response.ownPublicKey));
+      $('#chainInfoTable').append(generateInfoTableRow("Swap ID Counter: ", response.swapIdCounter));
+      $('#chainInfoTable').append(generateInfoTableRow("Latest Root: ", response.latestRoot));
+    },
+    error: function () {
+      console.log('Error get stats');
+    }
+  });
 
   $.ajax({
     type: "GET",
@@ -547,7 +472,6 @@ $(document).ready(function () {
     }
   });
 
-
   function fetchSwapData() {
     const fetchData = (params) => {
       return $.ajax({
@@ -556,26 +480,22 @@ $(document).ready(function () {
         data: params
       });
     };
+
     setIsLoading(true);
     $.when(
       fetchData({ swapSender: swapSender }),
       fetchData({ swapReceiver: swapSender })
     ).done((senderResponse, receiverResponse) => {
       setIsLoading(false);
-      // The actual data is nested inside the response array
-      console.log({ senderResponse, receiverResponse });
       const senderData = senderResponse[0].commitments;
       const receiverData = receiverResponse[0].commitments;
 
-      // Ensure data is in the expected format
       const combinedData = [
         ...senderData,
         ...receiverData,
       ];
-      console.log('combinedData', combinedData);
 
-      // Filter out duplicates, keeping only the "completed" ones if they exist
-      const uniqueData = combinedData.reduce((acc, item) => {
+      uniqueData = combinedData.reduce((acc, item) => {
         const existingItemIndex = acc.findIndex(accItem => accItem.preimage.value.swapId === item.preimage.value.swapId);
         if (existingItemIndex > -1) {
           if (item.preimage.value.pendingStatus === "0") {
@@ -587,98 +507,179 @@ $(document).ready(function () {
         return acc;
       }, []);
 
-      console.log('uniqueData', uniqueData);
-
-      // Clear any existing rows
-      $('#swapTableBody').empty();
-
-      // Iterate over the unique data and append rows to the table
-      uniqueData.forEach(item => {
-        let statusText, statusClass;
-        switch (item.preimage.value.pendingStatus) {
-          case "0":
-            statusText = "Completed";
-            statusClass = "bg-green-200 text-green-800";
-            break;
-          case "1":
-            statusText = "Open";
-            statusClass = "bg-blue-200 text-blue-800";
-            break;
-          case "2":
-            statusText = "Cancelled";
-            statusClass = "bg-red-200 text-red-800";
-            break;
-          default:
-            statusText = "Unknown";
-            statusClass = "bg-gray-200 text-gray-800";
-        }
-        const swapReceiver = item.preimage.value.swapReciever;
-        const swapSender = item.preimage.value.swapSender;
-
-        let actionButton = '';
-        if (statusText !== "Completed") {
-          actionButton = swapReceiver.toLowerCase() === currentBank.toLowerCase() ?
-            `<button class="complete-swap inline-flex items-center justify-center text-sm font-medium bg-green-500 text-white hover:bg-green-700 rounded h-10 px-4 py-2" data-swap-id="${item.preimage.value.swapId}">
-                        Complete Swap
-                    </button>` :
-            `<button class="cancel-swap inline-flex items-center justify-center text-sm font-medium bg-red-500 text-white hover:bg-red-700 rounded h-10 px-4 py-2" data-swap-id="${item.preimage.value.swapId}">
-                        Cancel Swap
-                    </button>`;
-        }
-
-        $('#swapTableBody').append(`
-                <tr class="border-b transition-colors hover:bg-gray-100">
-                    <td class="p-4 align-middle">${item.preimage.value.swapId}</td>
-                    <td class="p-4 align-middle">${humanizeAddress(swapReceiver)}</td>
-                    <td class="p-4 align-middle">${humanizeAddress(swapSender)}</td>
-                    <td class="p-4 align-middle">
-                        <span class="px-2 py-1 ${statusClass} rounded-md">${statusText}</span>
-                    </td>
-                    <td class="p-4 align-middle">
-                        ${actionButton}
-                    </td>
-                </tr>
-            `);
-      });
-
-      // Attach event listeners for the action buttons
-      $('.complete-swap').click(function () {
-        const swapId = $(this).data('swap-id');
-        completeSwapFromErc20ToErc1155(swapId);
-      });
-
-      $('.cancel-swap').click(function () {
-        const swapId = $(this).data('swap-id');
-        cancelSwap(swapId);
-      });
+      renderSwapTable(uniqueData);
     }).fail(function (error) {
       setIsLoading(false);
       console.error('Error fetching swap data:', error);
     });
   }
+  function generateEndpointCompleteSwap(commitment) {
+    const value = commitment.preimage.value;
 
-
-
-  // Fetch data when the document is ready
-  fetchSwapData();
-
-  function generateCard({ counterParty, amountSent, tokenIdReceived, tokenReceivedAmount, swapId }) {
-    return ``;
+    if (value.erc20AddressSent !== "0" && value.erc20AddressRecieved !== "0" &&
+      value.swapTokenSentId === "0" && value.swapTokenRecievedId === "0") {
+      return '/completeSwapFromErc20ToErc20';
+    }
+    if (value.erc20AddressSent !== "0" && value.erc20AddressRecieved === "0" &&
+      value.swapTokenSentId === "0" && value.swapTokenRecievedId !== "0") {
+      return '/completeSwapFromErc20ToErc1155';
+    }
+    if (value.erc20AddressSent === "0" && value.erc20AddressRecieved === "0" &&
+      value.swapTokenSentId !== "0" && value.swapTokenRecievedId !== "0") {
+      return '/completeSwapFromErc1155ToErc1155';
+    }
+    if (value.erc20AddressSent === "0" && value.erc20AddressRecieved !== "0" &&
+      value.swapTokenSentId !== "0" && value.swapTokenRecievedId === "0") {
+      return '/completeSwapFromErc1155ToErc20';
+    }
+    return 'Unknown Scenario';
   }
 
-  // function generateTableRows(commitments) {
-  //   return commitments.filter(({ isNullified, name, preimage }) =>
-  //     !isNullified &&
-  //     name === "swapProposals" &&
-  //     preimage.value.pendingStatus === "1"
-  //   ).map(generateTableRow).join('');
-  // }
+  function renderSwapTable(data) {
+    $('#swapTableBody').empty();
 
-  // $('#table-body-swap').html();
+    const selectedStatus = $('#statusFilter').val();
+    const filteredData = selectedStatus ? data.filter(item => {
+      let statusText;
+      switch (item.preimage.value.pendingStatus) {
+        case "0":
+          statusText = "Completed";
+          break;
+        case "1":
+          statusText = "Open";
+          break;
+        case "2":
+          statusText = "Cancelled";
+          break;
+        default:
+          statusText = "Unknown";
+      }
+      return statusText === selectedStatus;
+    }) : data;
 
+    filteredData.forEach(item => {
+      let statusText, statusClass;
+      switch (item.preimage.value.pendingStatus) {
+        case "0":
+          statusText = "Completed";
+          statusClass = "bg-green-200 text-green-800";
+          break;
+        case "1":
+          statusText = "Open";
+          statusClass = "bg-blue-200 text-blue-800";
+          break;
+        case "2":
+          statusText = "Cancelled";
+          statusClass = "bg-red-200 text-red-800";
+          break;
+        default:
+          statusText = "Unknown";
+          statusClass = "bg-gray-200 text-gray-800";
+      }
+      const swapReceiver = item.preimage.value.swapReciever;
+      const swapSender = item.preimage.value.swapSender;
+      const endpoint = generateEndpointCompleteSwap(item);
+      let actionButton = '';
+      if (statusText !== "Completed") {
+        actionButton = swapReceiver.toLowerCase() === currentBank.toLowerCase() ?
+          `<button class="complete-swap inline-flex items-center justify-center text-[12px] font-medium bg-green-500 text-white hover:bg-green-700 rounded h-10 px-4 py-2" data-swap-id="${item.preimage.value.swapId}" data-endpoint="${endpoint}">
+            Completar Swap
+          </button>` :
+          `<button class="cancel-swap inline-flex items-center justify-center text-[12px] font-medium bg-red-500 text-white hover:bg-red-700 rounded h-10 px-4 py-2" data-swap-id="${item.preimage.value.swapId}"  data-endpoint="${endpoint}">
+            Cancel Swap
+          </button>`;
+      }
+
+      $('#swapTableBody').append(`
+        <tr class="border-b transition-colors hover:bg-gray-100">
+          <td class="p-4 align-middle">${item.preimage.value.swapId}</td>
+          <td class="p-4 align-middle">${humanizeAddress(swapReceiver)}</td>
+          <td class="p-4 align-middle">${humanizeAddress(swapSender)}</td>
+          <td class="p-4 align-middle">
+            <span class="px-2 py-1 ${statusClass} rounded-md">${statusText}</span>
+          </td>
+          <td class="p-4 align-middle">
+            ${actionButton}
+          </td>
+        </tr>
+      `);
+    });
+
+
+    $('.complete-swap').click(function () {
+      const swapId = $(this).data('swap-id');
+      const endpoint = $(this).data('endpoint');
+      completeSwap(endpoint, swapId);
+    });
+
+    $('.cancel-swap').click(function () {
+      const swapId = $(this).data('swap-id');
+      cancelSwap(swapId);
+    });
+  }
+
+  $('#statusFilter').change(function () {
+    renderSwapTable(uniqueData);
+  });
+
+  function cancelSwap(swapId) {
+    setIsLoading(true);
+    toastr.info('Cancelling swap...');
+    $.ajax({
+      type: "POST",
+      url: "/cancelSwap",
+      data: JSON.stringify({ swapId }),
+      contentType: "application/json",
+      success: function (response) {
+        console.log(response);
+        if (response.errors) {
+          toastr.error('Error cancelling swap.', response.errors.join(', '));
+        } else {
+          toastr.success('Swap cancelled successfully!');
+        }
+        setIsLoading(false);
+        fetchSwapData();
+      },
+      error: function (xhr) {
+        toastr.error('Error cancelling swap. ' + xhr.responseText);
+        console.error('Error during swap cancellation:', xhr);
+        setIsLoading(false);
+        fetchSwapData();
+      }
+    });
+  }
+
+
+  function completeSwap(endpoint, swapId) {
+    setIsLoading(true);
+    toastr.info('Completing swap...');
+    $.ajax({
+      type: "POST",
+      url: endpoint,
+      data: JSON.stringify({ swapId }),
+      contentType: "application/json",
+      success: function (response) {
+        console.log(response);
+        if (response.errors) {
+          toastr.error('Error completing swap.', response.errors.join(', '));
+        } else {
+          toastr.success('Swap completed successfully!');
+        }
+        setIsLoading(false);
+        refreshBalance(); // Assuming this function updates some UI elements with new balances
+        fetchSwapData();
+      },
+      error: function (xhr) {
+        toastr.error('Error completing swap. ' + xhr.responseText);
+        console.error('Error during swap completion:', xhr);
+        setIsLoading(false);
+        fetchSwapData();
+      }
+    });
+  }
 
   refreshBalance();
-  fetchExistingSwaps();
+  fetchSwapData();
   // General function to handle form submissions
   function handleFormSubmission(url, dataExtractor) {
     setIsLoading(true);
@@ -735,21 +736,19 @@ $(document).ready(function () {
   });
 
   // Adjust visibility of token ID and amount fields based on the selected mode
-  $('#erc1155Tab').click(function () {
-    $('#tokenIdInputSwap').removeClass('hidden');
-    $('#tokenReceivedAmountInput').removeClass('hidden');
-  });
-
-  $('#erc20Tab').click(function () {
-    $('#tokenIdInputSwap').addClass('hidden');
-    $('#tokenReceivedAmountInput').addClass('hidden');
-  });
   // Handle form submission
   $('#startSwapButton').click(function () {
     toastr.info('Starting swap...');
     setIsLoading(true);
 
-    const data = {
+    const combined = mode + modeTo;
+    let endpoint = {
+      "erc20ToErc20": "/startSwapFromErc20ToErc20",
+      "erc20ToErc1155": "/startSwapFromErc20ToErc1155",
+      "erc1155ToErc20": "/startSwapFromErc1155ToErc20",
+      "erc1155ToErc1155": "/startSwapFromErc1155ToErc1155"
+    }
+    let data = {
       erc20Address: $('#swapTokenAddress').val(),
       counterParty: $('#counterParty').val(),
       amountSent: parseFloat($('#amountSent').val()),
@@ -757,9 +756,35 @@ $(document).ready(function () {
       tokenReceivedAmount: parseFloat($('#tokenReceivedAmount').val()),
     };
 
+    if (combined === 'erc20ToErc20') {
+      data = {
+        "erc20AddressSent": $('#swapTokenAddress').val(),
+        "erc20AddressReceived": $('#erc20AddressReceived').val(),
+        "counterParty": $('#counterParty').val(),
+        "amountSent": parseFloat($('#amountSent').val()),
+        "amountReceived": parseFloat($('#tokenReceivedAmount').val())
+      }
+    } else if (combined === 'erc1155ToErc1155') {
+      data = {
+        "counterParty": $('#counterParty').val(),
+        "tokenIdSent": $('#tokenIdSent').val(),
+        "tokenSentAmount": $('#tokenIdSentAmount').val(),
+        "tokenIdReceived": $('#tokenIdReceived').val(),
+        "tokenReceivedAmount": $('#tokenReceivedAmount').val()
+      }
+    } else if (combined === "erc1155ToErc20") {
+      data = {
+        "erc20Address": $('#swapTokenAddress').val(),
+        "counterParty": $('#counterParty').val(),
+        "amountReceived": parseFloat($('#tokenReceivedAmount').val()),
+        "tokenIdSent": $('#tokenIdSent').val(),
+        "tokenSentAmount": $('#amountSent').val()
+      }
+    }
+
     $.ajax({
       type: "POST",
-      url: mode === 'erc20' ? "/startSwapFromErc20ToErc1155" : "/startSwapFromErc1155ToErc20",
+      url: endpoint[combined],
       data: JSON.stringify(data),
       contentType: "application/json",
       success: function (response) {
@@ -771,7 +796,7 @@ $(document).ready(function () {
         }
         console.log(response);
         refreshBalance(); // Assuming this function updates some UI elements with new balances
-        fetchExistingSwaps();
+        fetchSwapData();
       },
       error: function (xhr) {
         setIsLoading(false);
@@ -809,7 +834,7 @@ $(document).ready(function () {
         }
         console.log(response);
         refreshBalance(); // Assuming this function updates some UI elements with new balances
-        fetchExistingSwaps();
+        fetchSwapData();
       },
       error: function (xhr) {
         setIsLoading(false);

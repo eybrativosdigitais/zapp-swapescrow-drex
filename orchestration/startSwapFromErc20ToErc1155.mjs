@@ -26,10 +26,12 @@ import {
 } from "./common/commitment-storage.mjs"
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
+import { encodeCommitmentData, decodeCommitmentData, encryptBackupData } from "./common/backupData.mjs";
 import Web3 from "./common/web3.mjs";
 import {
 	decompressStarlightKey,
 	poseidonHash,
+	encrypt
 } from "./common/number-theory.mjs";
 import logger from './common/logger.mjs'
 
@@ -93,21 +95,23 @@ export class StartSwapFromErc20ToErc1155Manager {
 	const publicKey = generalise(keys.publicKey);
 
 	let recipientPublicKey = await this.instance.methods.zkpPublicKeys(counterParty.hex(20)).call();
-		recipientPublicKey = generalise(recipientPublicKey);
+	recipientPublicKey = generalise(recipientPublicKey);
 
-			if (recipientPublicKey.length === 0) {
-				throw new Error("WARNING: Public key for given  eth address not found.");
-			  }
-			 let sharedPublicKey =  await getSharedSecretskeys(counterParty, recipientPublicKey);
-			  keys = JSON.parse(
-				fs.readFileSync(keyDb, "utf-8", (err) => {
-					console.log(err);
-				})
-			);
-				let sharedSecretKey = generalise(keys.sharedSecretKey);
-				 sharedPublicKey = generalise(keys.sharedPublicKey);
+	console.log('recipientPublicKey:', counterParty.hex(20), recipientPublicKey);
+	
+	if (recipientPublicKey.length === 0) {
+		throw new Error("WARNING: Public key for given  eth address not found.");
+	}
+	let sharedPublicKey =  await getSharedSecretskeys(counterParty, recipientPublicKey);
+	keys = JSON.parse(
+		fs.readFileSync(keyDb, "utf-8", (err) => {
+			console.log(err);
+		})
+	);
+	let sharedSecretKey = generalise(keys.sharedSecretKey);
+	sharedPublicKey = generalise(keys.sharedPublicKey);
 
-	console.log('recipientPublicKey:', recipientPublicKey);
+	console.log('recipientPublicKey:', recipientPublicKey, 'counterParty:', counterParty);
 	console.log(sharedPublicKey);
 
 	let swapIdCounter = generalise(await instance.methods.swapIdCounter().call());
@@ -632,6 +636,63 @@ console.log('swapProposals_swapIdCounter_1 :', swapProposals_swapIdCounter_1);
 		.slice(-2)
 		.map((e) => generalise(e).integer);
 
+	const balancesCommit = {
+		hash: balances_msgSender_erc20Address_2_newCommitment,
+		name: "balances",
+		mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
+			value: balances_msgSender_erc20Address_change,
+			salt: balances_msgSender_erc20Address_2_newSalt,
+			publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataBalances = encryptBackupData(
+		encodeCommitmentData(balancesCommit)
+	)
+
+	const proposalCommit = {
+		hash: swapProposals_swapIdCounter_1_newCommitment,
+		name: "swapProposals",
+		mappingKey: swapProposals_swapIdCounter_1_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(swapProposals_swapIdCounter_1_stateVarId),
+			value: {
+				swapAmountSent: swapProposals_swapIdCounter_1.swapAmountSent,
+				swapAmountRecieved: swapProposals_swapIdCounter_1.swapAmountRecieved,
+				swapTokenSentId: swapProposals_swapIdCounter_1.swapTokenSentId,
+				swapTokenSentAmount: swapProposals_swapIdCounter_1.swapTokenSentAmount,
+				swapTokenRecievedId: swapProposals_swapIdCounter_1.swapTokenRecievedId,
+				swapTokenRecievedAmount:
+					swapProposals_swapIdCounter_1.swapTokenRecievedAmount,
+				swapId: swapProposals_swapIdCounter_1.swapId,
+				swapSender: swapProposals_swapIdCounter_1.swapSender,
+				swapReciever: swapProposals_swapIdCounter_1.swapReciever,
+				erc20AddressSent: swapProposals_swapIdCounter_1.erc20AddressSent,
+				erc20AddressRecieved:
+					swapProposals_swapIdCounter_1.erc20AddressRecieved,
+				pendingStatus: swapProposals_swapIdCounter_1.pendingStatus,
+			},
+			salt: swapProposals_swapIdCounter_1_newSalt,
+			publicKey: swapProposals_swapIdCounter_1_newOwnerPublicKey,
+		},
+		secretKey:
+			swapProposals_swapIdCounter_1_newOwnerPublicKey.integer ===
+			sharedPublicKey.integer
+				? sharedSecretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataProposal = encryptBackupData(
+		encodeCommitmentData(proposalCommit)
+	)
+
 	// Send transaction to the blockchain:
 
 	const txData = await instance.methods
@@ -649,7 +710,11 @@ console.log('swapProposals_swapIdCounter_1 :', swapProposals_swapIdCounter_1);
 			cipherText: [swapProposals_swapIdCounter_1_cipherText],
 			encKeys: [swapProposals_swapIdCounter_1_encKey],
 			customInputs: [swapIdCounter.integer],},
-			proof
+			proof,
+			[
+				backUpDataBalances,
+				backUpDataProposal
+			]
 		)
 		.encodeABI();
 
@@ -698,23 +763,7 @@ console.log('swapProposals_swapIdCounter_1 :', swapProposals_swapIdCounter_1);
 		secretKey.hex(32)
 	);
 
-	await storeCommitment({
-		hash: balances_msgSender_erc20Address_2_newCommitment,
-		name: "balances",
-		mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
-			value: balances_msgSender_erc20Address_change,
-			salt: balances_msgSender_erc20Address_2_newSalt,
-			publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(balancesCommit);
 
 	if (swapProposals_swapIdCounter_1_commitmentExists)
 		await markNullified(
@@ -724,38 +773,7 @@ console.log('swapProposals_swapIdCounter_1 :', swapProposals_swapIdCounter_1);
 
 	// Else we always update it in markNullified
 
-	const insertedDocument = await storeCommitment({
-		hash: swapProposals_swapIdCounter_1_newCommitment,
-		name: "swapProposals",
-		mappingKey: swapProposals_swapIdCounter_1_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(swapProposals_swapIdCounter_1_stateVarId),
-			value: {
-				swapAmountSent: swapProposals_swapIdCounter_1.swapAmountSent,
-				swapAmountRecieved: swapProposals_swapIdCounter_1.swapAmountRecieved,
-				swapTokenSentId: swapProposals_swapIdCounter_1.swapTokenSentId,
-				swapTokenSentAmount: swapProposals_swapIdCounter_1.swapTokenSentAmount,
-				swapTokenRecievedId: swapProposals_swapIdCounter_1.swapTokenRecievedId,
-				swapTokenRecievedAmount:
-					swapProposals_swapIdCounter_1.swapTokenRecievedAmount,
-				swapId: swapProposals_swapIdCounter_1.swapId,
-				swapSender: swapProposals_swapIdCounter_1.swapSender,
-				swapReciever: swapProposals_swapIdCounter_1.swapReciever,
-				erc20AddressSent: swapProposals_swapIdCounter_1.erc20AddressSent,
-				erc20AddressRecieved:
-					swapProposals_swapIdCounter_1.erc20AddressRecieved,
-				pendingStatus: swapProposals_swapIdCounter_1.pendingStatus,
-			},
-			salt: swapProposals_swapIdCounter_1_newSalt,
-			publicKey: swapProposals_swapIdCounter_1_newOwnerPublicKey,
-		},
-		secretKey:
-			swapProposals_swapIdCounter_1_newOwnerPublicKey.integer ===
-			sharedPublicKey.integer
-				? sharedSecretKey
-				: null,
-		isNullified: false,
-	});
+	const insertedDocument = await storeCommitment(proposalCommit);
 
 	 if (!insertedDocument.acknowledged) {
 		 logger.error(`Commitment not inserted`)

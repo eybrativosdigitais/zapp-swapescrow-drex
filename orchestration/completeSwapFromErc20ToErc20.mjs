@@ -24,12 +24,17 @@ import {
 	updateNullifierTree,
 	getSharedSecretskeys,
 } from "./common/commitment-storage.mjs";
+
+import { encodeCommitmentData, encryptBackupData } from "./common/backupData.mjs";
+
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
 import Web3 from "./common/web3.mjs";
 import {
 	decompressStarlightKey,
 	poseidonHash,
+	encrypt,
+	decrypt
 } from "./common/number-theory.mjs";
 
 const { generalise } = GN;
@@ -690,6 +695,73 @@ const balances_counterParty_erc20AddressSent_encKey = res.inputs
 	.slice(-2)
 	.map((e) => generalise(e).integer);
 
+	const balancesSentCommitment = {
+		hash: balances_counterParty_erc20AddressSent_newCommitment,
+		name: "balances",
+		mappingKey: balances_counterParty_erc20AddressSent_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(balances_counterParty_erc20AddressSent_stateVarId),
+			value: balances_counterParty_erc20AddressSent_newCommitmentValue,
+			salt: balances_counterParty_erc20AddressSent_newSalt,
+			publicKey: balances_counterParty_erc20AddressSent_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_counterParty_erc20AddressSent_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const balancesSentChangeCommitment = {
+		hash: balances_msgSender_erc20AddressSent_2_newCommitment,
+		name: "balances",
+		mappingKey: balances_msgSender_erc20AddressSent_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(balances_msgSender_erc20AddressSent_stateVarId),
+			value: balances_msgSender_erc20AddressSent_change,
+			salt: balances_msgSender_erc20AddressSent_2_newSalt,
+			publicKey: balances_msgSender_erc20AddressSent_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_msgSender_erc20AddressSent_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const balancesRecievedCommitment = {
+		hash: balances_msgSender_erc20AddressRecieved_newCommitment,
+		name: "balances",
+		mappingKey: balances_msgSender_erc20AddressRecieved_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(
+				balances_msgSender_erc20AddressRecieved_stateVarId
+			),
+			value: balances_msgSender_erc20AddressRecieved_newCommitmentValue,
+			salt: balances_msgSender_erc20AddressRecieved_newSalt,
+			publicKey: balances_msgSender_erc20AddressRecieved_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_msgSender_erc20AddressRecieved_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+
+	const encodedBackup1 = encodeCommitmentData(balancesSentCommitment);
+	const encodedBackup2 = encodeCommitmentData(balancesSentChangeCommitment);
+	const encodedBackup3 = encodeCommitmentData(balancesRecievedCommitment);
+
+	const backUpData1 = encryptBackupData(
+		encodedBackup1
+	)
+	const backUpData2 = encryptBackupData(
+		encodedBackup2
+	)
+	const backUpData3 = encryptBackupData(
+		encodedBackup3
+	)
 	// Send transaction to the blockchain:
 
 	const txData = await instance.methods
@@ -709,7 +781,8 @@ const balances_counterParty_erc20AddressSent_encKey = res.inputs
 			cipherText: [balances_counterParty_erc20AddressSent_cipherText],
 			encKeys: [balances_counterParty_erc20AddressSent_encKey],
 		customInputs: []},
-			proof
+			proof,
+			[backUpData1, backUpData2, backUpData3]
 		)
 		.encodeABI();
 
@@ -747,24 +820,7 @@ const balances_counterParty_erc20AddressSent_encKey = res.inputs
 	}
 
 	// Write new commitment preimage to db:
-
-	await storeCommitment({
-		hash: balances_counterParty_erc20AddressSent_newCommitment,
-		name: "balances",
-		mappingKey: balances_counterParty_erc20AddressSent_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(balances_counterParty_erc20AddressSent_stateVarId),
-			value: balances_counterParty_erc20AddressSent_newCommitmentValue,
-			salt: balances_counterParty_erc20AddressSent_newSalt,
-			publicKey: balances_counterParty_erc20AddressSent_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_counterParty_erc20AddressSent_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(balancesSentCommitment);
 
 	await markNullified(
 		generalise(balances_msgSender_erc20AddressSent_0_oldCommitment._id),
@@ -776,43 +832,8 @@ const balances_counterParty_erc20AddressSent_encKey = res.inputs
 		secretKey.hex(32)
 	);
 
-	await storeCommitment({
-		hash: balances_msgSender_erc20AddressSent_2_newCommitment,
-		name: "balances",
-		mappingKey: balances_msgSender_erc20AddressSent_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(balances_msgSender_erc20AddressSent_stateVarId),
-			value: balances_msgSender_erc20AddressSent_change,
-			salt: balances_msgSender_erc20AddressSent_2_newSalt,
-			publicKey: balances_msgSender_erc20AddressSent_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_msgSender_erc20AddressSent_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
-
-	await storeCommitment({
-		hash: balances_msgSender_erc20AddressRecieved_newCommitment,
-		name: "balances",
-		mappingKey: balances_msgSender_erc20AddressRecieved_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(
-				balances_msgSender_erc20AddressRecieved_stateVarId
-			),
-			value: balances_msgSender_erc20AddressRecieved_newCommitmentValue,
-			salt: balances_msgSender_erc20AddressRecieved_newSalt,
-			publicKey: balances_msgSender_erc20AddressRecieved_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_msgSender_erc20AddressRecieved_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(balancesSentChangeCommitment);
+	await storeCommitment(balancesRecievedCommitment);
 
 	if (swapProposals_swapId_commitmentExists)
 		{
@@ -822,39 +843,6 @@ const balances_counterParty_erc20AddressSent_encKey = res.inputs
 			sharedSecretKey.hex(32)
 		);
 }
-
-	// Else we always update it in markNullified
-
-	// await storeCommitment({
-	// 	hash: swapProposals_swapId_newCommitment,
-	// 	name: "swapProposals",
-	// 	mappingKey: swapProposals_swapId_stateVarId_key.integer,
-	// 	preimage: {
-	// 		stateVarId: generalise(swapProposals_swapId_stateVarId),
-	// 		value: {
-	// 			swapAmountSent: swapProposals_swapId.swapAmountSent,
-	// 			swapAmountRecieved: swapProposals_swapId.swapAmountRecieved,
-	// 			swapTokenSentId: swapProposals_swapId.swapTokenSentId,
-	// 			swapTokenSentAmount: swapProposals_swapId.swapTokenSentAmount,
-	// 			swapTokenRecievedId: swapProposals_swapId.swapTokenRecievedId,
-	// 			swapTokenRecievedAmount: swapProposals_swapId.swapTokenRecievedAmount,
-	// 			swapId: swapProposals_swapId.swapId,
-	// 			swapSender: swapProposals_swapId.swapSender,
-	// 			swapReciever: swapProposals_swapId.swapReciever,
-	// 			erc20AddressSent: swapProposals_swapId.erc20AddressSent,
-	// 			erc20AddressRecieved: swapProposals_swapId.erc20AddressRecieved,
-	// 			pendingStatus: swapProposals_swapId.pendingStatus,
-	// 		},
-	// 		salt: swapProposals_swapId_newSalt,
-	// 		publicKey: swapProposals_swapId_newOwnerPublicKey,
-	// 	},
-	// 	secretKey:
-	// 		swapProposals_swapId_newOwnerPublicKey.integer === sharedPublicKey.integer
-	// 			? sharedSecretKey
-	// 			: null,
-	// 	isNullified: false,
-	// });
-
 	return { tx, encEvent };
 }
 }

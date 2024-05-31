@@ -1,7 +1,9 @@
 <html>
 
 <head>
-  <title>SwapEscrow - DREX </title>
+  <title>SwapEscrow - DREX</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"
     integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -66,49 +68,79 @@
     </div> -->
 
     <div class="text-gray-800 flex flex-col justify-between absolute">
-      <div class="p-4 w-screen flex justify-between items-center">
-        <div class="flex w-1/4 items-center justify-start">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-            <path
-              d="M12 1C9.24 1 7 3.24 7 6v4H6c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-1V6c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3v4H9V6c0-1.66 1.34-3 3-3zm-4 9h8v9H8v-9zm4 3c-.55 0-1 .45-1 1v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1z" />
-          </svg>
-          <span>&nbsp;SwapEscrow - DREX</span>
-        </div>
-        <div class="flex-1 flex justify-center items-center">
-          <div class="flex bg-gray-100 rounded-3xl ">
-            <div
-              class="px-4 py-2 m-1 flex items-center text-lg font-semibold cursor-pointer rounded-3xl bg-white shadow-md hover:bg-gray-200">
-              <a href="index.html">Depositar</a>
-            </div>
-            <div
-              class="px-4 py-2 m-1 flex items-center text-lg font-semibold cursor-pointer rounded-3xl shadow-md bg-gray-200">
-              <a href="balances.html">Balanços</a>
-            </div>
-            <div
-              class="px-4 py-2 m-1 flex items-center text-lg font-semibold cursor-pointer rounded-3xl bg-white hover:bg-gray-200">
-              <a href="swap.html">Swap</a>
-            </div>
+      <header class="bg-white shadow rounded-b-xl w-full fixed">
+        <div class="w-full px-6 py-2 flex flex-col md:flex-row items-center justify-between h-22">
+          <div class="flex flex-col md:flex-row  md:w-1/4 items-center md:items-end justify-center md:justify-start ">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <path
+                d="M12 1C9.24 1 7 3.24 7 6v4H6c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-9c0-1.1-.9-2-2-2h-1V6c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3v4H9V6c0-1.66 1.34-3 3-3zm-4 9h8v9H8v-9zm4 3c-.55 0-1 .45-1 1v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1z" />
+            </svg>
+            <span class="">&nbsp;SwapEscrow - DREX</span>
+          </div>
 
-            <div
-              class="px-4 py-2 m-1 flex items-center text-lg font-semibold cursor-pointer rounded-3xl bg-white hover:bg-gray-200">
-              <a href="withdraw.html">Retirar</a>
-            </div>
-
-            <div
-              class="px-4 py-2 m-1 flex items-center text-lg font-semibold cursor-pointer rounded-3xl bg-white hover:bg-gray-200">
-              <a href="commitments.html">Histórico</a>
-            </div>
-            <!-- <div
-              class="px-4 py-2 m-1 flex items-center text-lg font-semibold cursor-pointer rounded-3xl bg-white hover:bg-gray-200">
+          <nav class="flex items-center text-sm font-medium mt-[20px] md:mt-0">
+            <a href="index.html"
+              class="m-3 flex items-center flex-col cursor-pointer bg-white hover:text-blue-500 border-b-2 border-transparent hover:border-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
+              </svg>
+              Depositar
+            </a>
+            <a href="balances.html"
+              class="m-3 flex items-center flex-col cursor-pointer bg-white text-blue-500 border-b-2 border-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+              </svg>
+              Balanços
+            </a>
+            <a href="swap.html"
+              class="m-3 flex items-center flex-col  cursor-pointer bg-white hover:text-blue-500 border-b-2  border-transparent hover:border-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+              </svg>
               Swap
-            </div> -->
+            </a>
 
+            <a href="withdraw.html"
+              class="m-3 flex items-center  flex-col cursor-pointer bg-white hover:text-blue-500 border-b-2  border-transparent hover:border-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
+              </svg>
+              Retirar
+            </a>
+
+            <a href="commitments.html"
+              class="m-3 flex items-center  flex-col cursor-pointer bg-white hover:text-blue-500 border-b-2  border-transparent hover:border-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+              </svg>
+              Commitments
+            </a>
+
+            <a href="info.html"
+              class="m-3 flex items-center  flex-col cursor-pointer bg-white hover:text-blue-500 border-b-2  border-transparent hover:border-blue-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M14.25 9.75 16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+              </svg>
+              Info
+            </a>
+
+          </nav>
+          <div class="flex w-1/4 items-end justify-start">
           </div>
         </div>
-        <div class="flex w-1/4 justify-end items-center">
-        </div>
-      </div>
-      <div class="w-screen flex items-center justify-center mt-[140px]">
+      </header>
+      <div class="w-screen flex items-center justify-center mt-[180px] md:mt-[140px] md:p-0 p-6">
         <div class="bg-white w-[40rem] rounded-2xl p-4 shadow-lg">
           <div class="px-2 flex items-center justify-between font-semibold text-3xl text-gray-900">
             Balanços
@@ -168,8 +200,7 @@
         </div>
 
       </div>
-      <div
-        class="h-full text-gray-800 w-screen flex-1 pt-14 flex items-end justify-end pb-12 overflow-scroll px-8">
+      <div class="h-full text-gray-800 w-screen flex-1 pt-14 flex items-end justify-end pb-12 overflow-scroll px-8">
         <!-- Additional content here -->
       </div>
     </div>

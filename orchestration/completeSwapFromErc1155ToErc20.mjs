@@ -26,6 +26,7 @@ import {
 } from "./common/commitment-storage.mjs";
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
+import { encodeCommitmentData, encryptBackupData } from "./common/backupData.mjs";
 import Web3 from "./common/web3.mjs";
 import {
 	decompressStarlightKey,
@@ -677,27 +678,95 @@ export class CompleteSwapFromErc1155ToErc20Manager {
 		.slice(-2)
 		.map((e) => generalise(e).integer);
 	
+	const balancesCommit1 = {
+		hash: balances_counterParty_erc20Address_newCommitment,
+		name: "balances",
+		mappingKey: balances_counterParty_erc20Address_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(balances_counterParty_erc20Address_stateVarId),
+			value: balances_counterParty_erc20Address_newCommitmentValue,
+			salt: balances_counterParty_erc20Address_newSalt,
+			publicKey: balances_counterParty_erc20Address_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_counterParty_erc20Address_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataBalances1 = encryptBackupData(
+		encodeCommitmentData(balancesCommit1)
+	)
 
+	const balancesCommit2 = {
+		hash: balances_msgSender_erc20Address_2_newCommitment,
+		name: "balances",
+		mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
+			value: balances_msgSender_erc20Address_change,
+			salt: balances_msgSender_erc20Address_2_newSalt,
+			publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataBalances2 = encryptBackupData(
+		encodeCommitmentData(balancesCommit2)
+	)
+
+	const tokensCommit = {
+		hash: tokenOwners_msgSender_tokenIdRecieved_newCommitment,
+		name: "tokenOwners",
+		mappingKey: tokenOwners_msgSender_tokenIdRecieved_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(tokenOwners_msgSender_tokenIdRecieved_stateVarId),
+			value: tokenOwners_msgSender_tokenIdRecieved_newCommitmentValue,
+			salt: tokenOwners_msgSender_tokenIdRecieved_newSalt,
+			publicKey: tokenOwners_msgSender_tokenIdRecieved_newOwnerPublicKey,
+		},
+		secretKey:
+			tokenOwners_msgSender_tokenIdRecieved_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataToken = encryptBackupData(
+		encodeCommitmentData(tokensCommit)
+	)
 	// Send transaction to the blockchain:
 
 	const txData = await instance.methods
 		.completeSwapFromErc1155ToErc20(
-			{newNullifiers: [
-				balances_msgSender_erc20Address_0_nullifier.integer,
-				balances_msgSender_erc20Address_1_nullifier.integer,
-				swapProposals_swapId_nullifier.integer,
-			],
-			commitmentRoot: balances_msgSender_erc20Address_root.integer,
-			newCommitments:[
-				balances_counterParty_erc20Address_newCommitment.integer,
-				balances_msgSender_erc20Address_2_newCommitment.integer,
-				tokenOwners_msgSender_tokenIdRecieved_newCommitment.integer,
-				swapProposals_swapId_newCommitment.integer,
-			],
-			cipherText: [balances_counterParty_erc20Address_cipherText],
-			encKeys: [balances_counterParty_erc20Address_encKey],
-		    customInputs: []},
-			proof
+			{
+				newNullifiers: [
+					balances_msgSender_erc20Address_0_nullifier.integer,
+					balances_msgSender_erc20Address_1_nullifier.integer,
+					swapProposals_swapId_nullifier.integer,
+				],
+				commitmentRoot: balances_msgSender_erc20Address_root.integer,
+				newCommitments:[
+					balances_counterParty_erc20Address_newCommitment.integer,
+					balances_msgSender_erc20Address_2_newCommitment.integer,
+					tokenOwners_msgSender_tokenIdRecieved_newCommitment.integer,
+					swapProposals_swapId_newCommitment.integer,
+				],
+				cipherText: [balances_counterParty_erc20Address_cipherText],
+				encKeys: [balances_counterParty_erc20Address_encKey],
+		    customInputs: []
+			},
+			proof,
+			[
+				backUpDataBalances1,
+				backUpDataBalances2,
+				backUpDataToken
+			]
 		)
 		.encodeABI();
 
@@ -736,23 +805,7 @@ export class CompleteSwapFromErc1155ToErc20Manager {
 
 	// Write new commitment preimage to db:
 
-	await storeCommitment({
-		hash: balances_counterParty_erc20Address_newCommitment,
-		name: "balances",
-		mappingKey: balances_counterParty_erc20Address_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(balances_counterParty_erc20Address_stateVarId),
-			value: balances_counterParty_erc20Address_newCommitmentValue,
-			salt: balances_counterParty_erc20Address_newSalt,
-			publicKey: balances_counterParty_erc20Address_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_counterParty_erc20Address_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(balancesCommit1);
 
 	await markNullified(
 		generalise(balances_msgSender_erc20Address_0_oldCommitment._id),
@@ -764,41 +817,9 @@ export class CompleteSwapFromErc1155ToErc20Manager {
 		secretKey.hex(32)
 	);
 
-	await storeCommitment({
-		hash: balances_msgSender_erc20Address_2_newCommitment,
-		name: "balances",
-		mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
-			value: balances_msgSender_erc20Address_change,
-			salt: balances_msgSender_erc20Address_2_newSalt,
-			publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(balancesCommit2);
 
-	await storeCommitment({
-		hash: tokenOwners_msgSender_tokenIdRecieved_newCommitment,
-		name: "tokenOwners",
-		mappingKey: tokenOwners_msgSender_tokenIdRecieved_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(tokenOwners_msgSender_tokenIdRecieved_stateVarId),
-			value: tokenOwners_msgSender_tokenIdRecieved_newCommitmentValue,
-			salt: tokenOwners_msgSender_tokenIdRecieved_newSalt,
-			publicKey: tokenOwners_msgSender_tokenIdRecieved_newOwnerPublicKey,
-		},
-		secretKey:
-			tokenOwners_msgSender_tokenIdRecieved_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(tokensCommit);
 
 	if (swapProposals_swapId_commitmentExists)
 		{
@@ -808,38 +829,6 @@ export class CompleteSwapFromErc1155ToErc20Manager {
 			sharedSecretKey.hex(32)
 		);
 }
-
-	// Else we always update it in markNullified
-
-	// await storeCommitment({
-	// 	hash: swapProposals_swapId_newCommitment,
-	// 	name: "swapProposals",
-	// 	mappingKey: swapProposals_swapId_stateVarId_key.integer,
-	// 	preimage: {
-	// 		stateVarId: generalise(swapProposals_swapId_stateVarId),
-	// 		value: {
-	// 			swapAmountSent: swapProposals_swapId.swapAmountSent,
-	// 			swapAmountRecieved: swapProposals_swapId.swapAmountRecieved,
-	// 			swapTokenSentId: swapProposals_swapId.swapTokenSentId,
-	// 			swapTokenSentAmount: swapProposals_swapId.swapTokenSentAmount,
-	// 			swapTokenRecievedId: swapProposals_swapId.swapTokenRecievedId,
-	// 			swapTokenRecievedAmount: swapProposals_swapId.swapTokenRecievedAmount,
-	// 			swapId: swapProposals_swapId.swapId,
-	// 			swapSender: swapProposals_swapId.swapSender,
-	// 			swapReciever: swapProposals_swapId.swapReciever,
-	// 			erc20AddressSent: swapProposals_swapId.erc20AddressSent,
-	// 			erc20AddressRecieved: swapProposals_swapId.erc20AddressRecieved,
-	// 			pendingStatus: swapProposals_swapId.pendingStatus,
-	// 		},
-	// 		salt: swapProposals_swapId_newSalt,
-	// 		publicKey: swapProposals_swapId_newOwnerPublicKey,
-	// 	},
-	// 	secretKey:
-	// 		swapProposals_swapId_newOwnerPublicKey.integer === sharedPublicKey.integer
-	// 			? sharedSecretKey
-	// 			: null,
-	// 	isNullified: false,
-	// });
 
 	return { tx, encEvent };
 }

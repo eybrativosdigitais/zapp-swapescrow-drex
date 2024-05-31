@@ -26,9 +26,9 @@ import {
 } from "./common/commitment-storage.mjs";
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
+import { encodeCommitmentData, encryptBackupData } from "./common/backupData.mjs";
 import Web3 from "./common/web3.mjs";
 import {
-	decompressStarlightKey,
 	poseidonHash,
 } from "./common/number-theory.mjs";
 
@@ -436,18 +436,98 @@ let recipientPublicKey = await this.instance.methods.zkpPublicKeys(counterParty.
 		.map((coeff) => coeff.integer)
 		.flat(Infinity);
 
+	const proposalCommit = {
+		hash: swapProposals_swapId_newCommitment,
+		name: "swapProposals",
+		mappingKey: swapProposals_swapId_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(swapProposals_swapId_stateVarId),
+			value: {
+				swapAmountSent: swapProposals_swapId.swapAmountSent,
+				swapAmountRecieved: swapProposals_swapId.swapAmountRecieved,
+				swapTokenSentId: swapProposals_swapId.swapTokenSentId,
+				swapTokenSentAmount: swapProposals_swapId.swapTokenSentAmount,
+				swapTokenRecievedId: swapProposals_swapId.swapTokenRecievedId,
+				swapTokenRecievedAmount: swapProposals_swapId.swapTokenRecievedAmount,
+				swapId: swapProposals_swapId.swapId,
+				swapSender: swapProposals_swapId.swapSender,
+				swapReciever: swapProposals_swapId.swapReciever,
+				erc20AddressSent: swapProposals_swapId.erc20AddressSent,
+				erc20AddressRecieved: swapProposals_swapId.erc20AddressRecieved,
+				pendingStatus: swapProposals_swapId.pendingStatus,
+			},
+			salt: swapProposals_swapId_newSalt,
+			publicKey: swapProposals_swapId_newOwnerPublicKey,
+		},
+		secretKey:
+			swapProposals_swapId_newOwnerPublicKey.integer === sharedPublicKey.integer
+				? sharedSecretKey
+				: null,
+		isNullified: false,
+	}
+
+	const backUpDataProposal = encryptBackupData(
+		encodeCommitmentData(proposalCommit)
+	)
+
+	const tokensCommit = {
+		hash: tokenOwners_msgSender_tokenIdSent_newCommitment,
+		name: "tokenOwners",
+		mappingKey: tokenOwners_msgSender_tokenIdSent_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(tokenOwners_msgSender_tokenIdSent_stateVarId),
+			value: tokenOwners_msgSender_tokenIdSent_newCommitmentValue,
+			salt: tokenOwners_msgSender_tokenIdSent_newSalt,
+			publicKey: tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey,
+		},
+		secretKey:
+			tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataTokens = encryptBackupData(
+		encodeCommitmentData(tokensCommit)
+	)
+
+	const balancesCommit = {
+		hash: balances_msgSender_erc20Address_newCommitment,
+		name: "balances",
+		mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
+			value: balances_msgSender_erc20Address_newCommitmentValue,
+			salt: balances_msgSender_erc20Address_newSalt,
+			publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
+		},
+		secretKey:
+			balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataBalances = encryptBackupData(
+		encodeCommitmentData(balancesCommit)
+	)
 	// Send transaction to the blockchain:
 
 	const txData = await instance.methods
 		.cancelSwap(
-			[swapProposals_swapId_nullifier.integer],
+			[ swapProposals_swapId_nullifier.integer ],
 			swapProposals_swapId_root.integer,
 			[
 				balances_msgSender_erc20Address_newCommitment.integer,
 				tokenOwners_msgSender_tokenIdSent_newCommitment.integer,
 				swapProposals_swapId_newCommitment.integer,
 			],
-			proof
+			proof,
+			[
+				backUpDataBalances,
+				backUpDataTokens,
+				backUpDataProposal
+			]
 		)
 		.encodeABI();
 
@@ -486,41 +566,9 @@ let recipientPublicKey = await this.instance.methods.zkpPublicKeys(counterParty.
 
 	// Write new commitment preimage to db:
 
-	await storeCommitment({
-		hash: balances_msgSender_erc20Address_newCommitment,
-		name: "balances",
-		mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
-			value: balances_msgSender_erc20Address_newCommitmentValue,
-			salt: balances_msgSender_erc20Address_newSalt,
-			publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
-		},
-		secretKey:
-			balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(balancesCommit);
 
-	await storeCommitment({
-		hash: tokenOwners_msgSender_tokenIdSent_newCommitment,
-		name: "tokenOwners",
-		mappingKey: tokenOwners_msgSender_tokenIdSent_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(tokenOwners_msgSender_tokenIdSent_stateVarId),
-			value: tokenOwners_msgSender_tokenIdSent_newCommitmentValue,
-			salt: tokenOwners_msgSender_tokenIdSent_newSalt,
-			publicKey: tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey,
-		},
-		secretKey:
-			tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(tokensCommit);
 
 	if (swapProposals_swapId_commitmentExists)
 		await markNullified(
@@ -530,35 +578,7 @@ let recipientPublicKey = await this.instance.methods.zkpPublicKeys(counterParty.
 
 	// Else we always update it in markNullified
 
-	await storeCommitment({
-		hash: swapProposals_swapId_newCommitment,
-		name: "swapProposals",
-		mappingKey: swapProposals_swapId_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(swapProposals_swapId_stateVarId),
-			value: {
-				swapAmountSent: swapProposals_swapId.swapAmountSent,
-				swapAmountRecieved: swapProposals_swapId.swapAmountRecieved,
-				swapTokenSentId: swapProposals_swapId.swapTokenSentId,
-				swapTokenSentAmount: swapProposals_swapId.swapTokenSentAmount,
-				swapTokenRecievedId: swapProposals_swapId.swapTokenRecievedId,
-				swapTokenRecievedAmount: swapProposals_swapId.swapTokenRecievedAmount,
-				swapId: swapProposals_swapId.swapId,
-				swapSender: swapProposals_swapId.swapSender,
-				swapReciever: swapProposals_swapId.swapReciever,
-				erc20AddressSent: swapProposals_swapId.erc20AddressSent,
-				erc20AddressRecieved: swapProposals_swapId.erc20AddressRecieved,
-				pendingStatus: swapProposals_swapId.pendingStatus,
-			},
-			salt: swapProposals_swapId_newSalt,
-			publicKey: swapProposals_swapId_newOwnerPublicKey,
-		},
-		secretKey:
-			swapProposals_swapId_newOwnerPublicKey.integer === sharedPublicKey.integer
-				? sharedSecretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(proposalCommit);
 
 	return { tx, encEvent };
 }

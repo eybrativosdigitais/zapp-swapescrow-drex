@@ -9,6 +9,11 @@ import {
 	getContractAddress,
 	registerKey,
 } from "./common/contract.mjs";
+
+import {
+	encryptBackupData,
+	encodeCommitmentData
+} from './common/backupData.mjs';
 import {
 	storeCommitment,
 	getCurrentWholeCommitment,
@@ -21,7 +26,8 @@ import {
 	getnullifierMembershipWitness,
 	getupdatedNullifierPaths,
 	temporaryUpdateNullifier,
-	updateNullifierTree, getCommitmentsWhere,
+	updateNullifierTree, 
+	getCommitmentsWhere,
 } from "./common/commitment-storage.mjs"
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
@@ -29,8 +35,6 @@ import Web3 from "./common/web3.mjs";
 import {
 	decompressStarlightKey,
 	poseidonHash,
-	encrypt,
-	decrypt
 } from "./common/number-theory.mjs";
 import logger from './common/logger.mjs'
 
@@ -69,8 +73,7 @@ export class DepositErc20Manager {
 
 		// Read dbs for keys and previous commitment values:
 
-		if (!fs.existsSync(keyDb))
-			await registerKey(utils.randomHex(31), "SwapShield", true);
+		await registerKey(utils.randomHex(31), "SwapShield", true);
 		const keys = JSON.parse(
 			fs.readFileSync(keyDb, "utf-8", (err) => {
 				console.log(err);
@@ -78,6 +81,8 @@ export class DepositErc20Manager {
 		);
 		const secretKey = generalise(keys.secretKey);
 		const publicKey = generalise(keys.publicKey);
+
+		console.log('keys', keys)
 
 		// read preimage for incremented state
 		balances_msgSender_erc20Address_newOwnerPublicKey =
@@ -133,32 +138,29 @@ export class DepositErc20Manager {
 
 		//Encryption Working
 
-		console.log('plaintext:',balances_msgSender_erc20Address_newCommitmentValue.integer);
+		const commitmentDoc = {
+			hash: balances_msgSender_erc20Address_newCommitment,
+			name: "balances",
+			mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
+			preimage: {
+				stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
+				value: balances_msgSender_erc20Address_newCommitmentValue,
+				salt: balances_msgSender_erc20Address_newSalt,
+				publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
+			},
+			secretKey:
+				balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
+				publicKey.integer
+					? secretKey
+					: null,
+			isNullified: false,
+		}
 
-		const encryptedPreimage = encrypt([balances_msgSender_erc20Address_newCommitmentValue.integer], secretKey.integer,
-		[
-			decompressStarlightKey(
-				balances_msgSender_erc20Address_newOwnerPublicKey
-			)[0].integer,
-			decompressStarlightKey(
-				balances_msgSender_erc20Address_newOwnerPublicKey
-			)[1].integer,
-		] )
+		const plainTextCommitments = encodeCommitmentData(commitmentDoc);
 
-		console.log('encryptedPreimage:', encryptedPreimage);
-
-		const decryptMessage = decrypt(encryptedPreimage, secretKey.integer,
-		[
-			decompressStarlightKey(
-				balances_msgSender_erc20Address_newOwnerPublicKey
-			)[0].integer,
-			decompressStarlightKey(
-				balances_msgSender_erc20Address_newOwnerPublicKey
-			)[1].integer,
-		]);
-
-		console.log('decrypted Message:', decryptMessage);
-
+		const backUpData = encryptBackupData(
+			plainTextCommitments
+		)
 
 		// Call Zokrates to generate the proof:
 
@@ -184,7 +186,8 @@ export class DepositErc20Manager {
 				_erc20Address,
 				amount.integer,
 				[balances_msgSender_erc20Address_newCommitment.integer],
-				proof
+				proof,
+				[backUpData]
 			)
 			.encodeABI();
 
@@ -231,23 +234,7 @@ export class DepositErc20Manager {
 
 		// Write new commitment preimage to db:
 
-		const insertedDocument = await storeCommitment({
-			hash: balances_msgSender_erc20Address_newCommitment,
-			name: "balances",
-			mappingKey: balances_msgSender_erc20Address_stateVarId_key.integer,
-			preimage: {
-				stateVarId: generalise(balances_msgSender_erc20Address_stateVarId),
-				value: balances_msgSender_erc20Address_newCommitmentValue,
-				salt: balances_msgSender_erc20Address_newSalt,
-				publicKey: balances_msgSender_erc20Address_newOwnerPublicKey,
-			},
-			secretKey:
-				balances_msgSender_erc20Address_newOwnerPublicKey.integer ===
-				publicKey.integer
-					? secretKey
-					: null,
-			isNullified: false,
-		});
+		const insertedDocument = await storeCommitment(commitmentDoc);
 
 		if (!insertedDocument.acknowledged) {
 			logger.error(`Commitment not inserted`)

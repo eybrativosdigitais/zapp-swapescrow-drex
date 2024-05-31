@@ -26,6 +26,7 @@ import {
 } from "./common/commitment-storage.mjs";
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
+import { encodeCommitmentData, encryptBackupData } from "./common/backupData.mjs";
 import Web3 from "./common/web3.mjs";
 import {
 	decompressStarlightKey,
@@ -684,27 +685,96 @@ export class CompleteSwapFromErc1155ToErc1155Manager {
 		.slice(-2)
 		.map((e) => generalise(e).integer);
 
+	const tokenCommit1 = {
+		hash: tokenOwners_msgSender_tokenIdRecieved_newCommitment,
+		name: "tokenOwners",
+		mappingKey: tokenOwners_msgSender_tokenIdRecieved_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(tokenOwners_msgSender_tokenIdRecieved_stateVarId),
+			value: tokenOwners_msgSender_tokenIdRecieved_newCommitmentValue,
+			salt: tokenOwners_msgSender_tokenIdRecieved_newSalt,
+			publicKey: tokenOwners_msgSender_tokenIdRecieved_newOwnerPublicKey,
+		},
+		secretKey:
+			tokenOwners_msgSender_tokenIdRecieved_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataToken1 = encryptBackupData(
+		encodeCommitmentData(tokenCommit1)
+	)
 
+	const tokenCommit2 = {
+		hash: tokenOwners_msgSender_tokenIdSent_2_newCommitment,
+		name: "tokenOwners",
+		mappingKey: tokenOwners_msgSender_tokenIdSent_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(tokenOwners_msgSender_tokenIdSent_stateVarId),
+			value: tokenOwners_msgSender_tokenIdSent_change,
+			salt: tokenOwners_msgSender_tokenIdSent_2_newSalt,
+			publicKey: tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey,
+		},
+		secretKey:
+			tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataToken2 = encryptBackupData(
+		encodeCommitmentData(tokenCommit2)
+	)
+
+	const tokenCommit3 = {
+		hash: tokenOwners_counterParty_tokenIdSent_newCommitment,
+		name: "tokenOwners",
+		mappingKey: tokenOwners_counterParty_tokenIdSent_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(tokenOwners_counterParty_tokenIdSent_stateVarId),
+			value: tokenOwners_counterParty_tokenIdSent_newCommitmentValue,
+			salt: tokenOwners_counterParty_tokenIdSent_newSalt,
+			publicKey: tokenOwners_counterParty_tokenIdSent_newOwnerPublicKey,
+		},
+		secretKey:
+			tokenOwners_counterParty_tokenIdSent_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const backUpDataToken3 = encryptBackupData(
+		encodeCommitmentData(tokenCommit3)
+	)
 	// Send transaction to the blockchain:
 
 	const txData = await instance.methods
 		.completeSwapFromErc1155ToErc1155(
-			{newNullifiers: [
-				tokenOwners_msgSender_tokenIdSent_0_nullifier.integer,
-				tokenOwners_msgSender_tokenIdSent_1_nullifier.integer,
-				swapProposals_swapId_nullifier.integer,
-			],
-			commitmentRoot:tokenOwners_msgSender_tokenIdSent_root.integer,
-			newCommitments:[
-				tokenOwners_msgSender_tokenIdRecieved_newCommitment.integer,
-				tokenOwners_msgSender_tokenIdSent_2_newCommitment.integer,
-				tokenOwners_counterParty_tokenIdSent_newCommitment.integer,
-				swapProposals_swapId_newCommitment.integer,
-			],
-			cipherText: [tokenOwners_counterParty_tokenIdSent_cipherText],
-			encKeys: [tokenOwners_counterParty_tokenIdSent_encKey],
-		    customInputs: []},
-			proof
+			{
+				newNullifiers: 
+				[
+					tokenOwners_msgSender_tokenIdSent_0_nullifier.integer,
+					tokenOwners_msgSender_tokenIdSent_1_nullifier.integer,
+					swapProposals_swapId_nullifier.integer,
+				],
+				commitmentRoot:tokenOwners_msgSender_tokenIdSent_root.integer,
+				newCommitments:[
+					tokenOwners_msgSender_tokenIdRecieved_newCommitment.integer,
+					tokenOwners_msgSender_tokenIdSent_2_newCommitment.integer,
+					tokenOwners_counterParty_tokenIdSent_newCommitment.integer,
+					swapProposals_swapId_newCommitment.integer,
+				],
+				cipherText: [tokenOwners_counterParty_tokenIdSent_cipherText],
+				encKeys: [tokenOwners_counterParty_tokenIdSent_encKey],
+		    customInputs: []
+			},
+			proof,
+			[
+				backUpDataToken1,
+				backUpDataToken2,
+				backUpDataToken3
+			]
 		)
 		.encodeABI();
 
@@ -743,23 +813,7 @@ export class CompleteSwapFromErc1155ToErc1155Manager {
 
 	// Write new commitment preimage to db:
 
-	await storeCommitment({
-		hash: tokenOwners_msgSender_tokenIdRecieved_newCommitment,
-		name: "tokenOwners",
-		mappingKey: tokenOwners_msgSender_tokenIdRecieved_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(tokenOwners_msgSender_tokenIdRecieved_stateVarId),
-			value: tokenOwners_msgSender_tokenIdRecieved_newCommitmentValue,
-			salt: tokenOwners_msgSender_tokenIdRecieved_newSalt,
-			publicKey: tokenOwners_msgSender_tokenIdRecieved_newOwnerPublicKey,
-		},
-		secretKey:
-			tokenOwners_msgSender_tokenIdRecieved_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(tokenCommit1);
 
 	await markNullified(
 		generalise(tokenOwners_msgSender_tokenIdSent_0_oldCommitment._id),
@@ -771,41 +825,9 @@ export class CompleteSwapFromErc1155ToErc1155Manager {
 		secretKey.hex(32)
 	);
 
-	await storeCommitment({
-		hash: tokenOwners_msgSender_tokenIdSent_2_newCommitment,
-		name: "tokenOwners",
-		mappingKey: tokenOwners_msgSender_tokenIdSent_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(tokenOwners_msgSender_tokenIdSent_stateVarId),
-			value: tokenOwners_msgSender_tokenIdSent_change,
-			salt: tokenOwners_msgSender_tokenIdSent_2_newSalt,
-			publicKey: tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey,
-		},
-		secretKey:
-			tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(tokenCommit2);
 
-	await storeCommitment({
-		hash: tokenOwners_counterParty_tokenIdSent_newCommitment,
-		name: "tokenOwners",
-		mappingKey: tokenOwners_counterParty_tokenIdSent_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(tokenOwners_counterParty_tokenIdSent_stateVarId),
-			value: tokenOwners_counterParty_tokenIdSent_newCommitmentValue,
-			salt: tokenOwners_counterParty_tokenIdSent_newSalt,
-			publicKey: tokenOwners_counterParty_tokenIdSent_newOwnerPublicKey,
-		},
-		secretKey:
-			tokenOwners_counterParty_tokenIdSent_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(tokenCommit3);
 
 	if (swapProposals_swapId_commitmentExists)
 		{
@@ -815,38 +837,6 @@ export class CompleteSwapFromErc1155ToErc1155Manager {
 			sharedSecretKey.hex(32)
 		);
 }
-
-	// Else we always update it in markNullified
-
-	// await storeCommitment({
-	// 	hash: swapProposals_swapId_newCommitment,
-	// 	name: "swapProposals",
-	// 	mappingKey: swapProposals_swapId_stateVarId_key.integer,
-	// 	preimage: {
-	// 		stateVarId: generalise(swapProposals_swapId_stateVarId),
-	// 		value: {
-	// 			swapAmountSent: swapProposals_swapId.swapAmountSent,
-	// 			swapAmountRecieved: swapProposals_swapId.swapAmountRecieved,
-	// 			swapTokenSentId: swapProposals_swapId.swapTokenSentId,
-	// 			swapTokenSentAmount: swapProposals_swapId.swapTokenSentAmount,
-	// 			swapTokenRecievedId: swapProposals_swapId.swapTokenRecievedId,
-	// 			swapTokenRecievedAmount: swapProposals_swapId.swapTokenRecievedAmount,
-	// 			swapId: swapProposals_swapId.swapId,
-	// 			swapSender: swapProposals_swapId.swapSender,
-	// 			swapReciever: swapProposals_swapId.swapReciever,
-	// 			erc20AddressSent: swapProposals_swapId.erc20AddressSent,
-	// 			erc20AddressRecieved: swapProposals_swapId.erc20AddressRecieved,
-	// 			pendingStatus: swapProposals_swapId.pendingStatus,
-	// 		},
-	// 		salt: swapProposals_swapId_newSalt,
-	// 		publicKey: swapProposals_swapId_newOwnerPublicKey,
-	// 	},
-	// 	secretKey:
-	// 		swapProposals_swapId_newOwnerPublicKey.integer === sharedPublicKey.integer
-	// 			? sharedSecretKey
-	// 			: null,
-	// 	isNullified: false,
-	// });
 
 	return { tx, encEvent };
 }

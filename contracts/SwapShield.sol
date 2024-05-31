@@ -36,6 +36,10 @@ contract SwapShield is MerkleTree {
 
     event EncryptedData(uint256[] cipherText, uint256[2] ephPublicKey);
 
+    event BackupData(address indexed sender, uint256[] cipherText);
+
+    event Nullifiers(uint256[] nullifiers);
+
     mapping(uint256 => uint256) public nullifiers;
 
     mapping(uint256 => uint256) public commitmentRoots;
@@ -51,6 +55,13 @@ contract SwapShield is MerkleTree {
         uint256[][] cipherText;
         uint256[2][] encKeys;
         uint256[] customInputs;
+    }
+
+    modifier emitBackupData(uint256[][] memory backupData) {
+        for (uint256 i = 0; i < backupData.length; i++) {
+            emit BackupData(msg.sender, backupData[i]);
+        }
+        _;
     }
 
     IERC20 public erc20;
@@ -327,8 +338,10 @@ contract SwapShield is MerkleTree {
         uint256[] calldata newNullifiers,
         uint256 commitmentRoot,
         uint256[] calldata newCommitments,
-        uint256[] calldata proof
-    ) public {
+        uint256[] calldata proof,
+        uint256[][] calldata backupData
+    ) public emitBackupData(backupData) {
+        emit Nullifiers(newNullifiers);
         Inputs memory inputs;
 
         inputs.customInputs = new uint256[](1);
@@ -344,8 +357,10 @@ contract SwapShield is MerkleTree {
         uint256[] calldata newNullifiers,
         uint256 commitmentRoot,
         uint256[] calldata newCommitments,
-        uint256[] calldata proof
-    ) public {
+        uint256[] calldata proof,
+        uint256[][] calldata backupData
+    ) public emitBackupData(backupData) {
+        emit Nullifiers(newNullifiers);
         Inputs memory inputs;
 
         inputs.customInputs = new uint256[](1);
@@ -378,8 +393,9 @@ contract SwapShield is MerkleTree {
         address erc20Address,
         uint256 amount,
         uint256[] calldata newCommitments,
-        uint256[] calldata proof
-    ) public {
+        uint256[] calldata proof,
+        uint256[][] calldata backupData
+    ) public emitBackupData(backupData) {
         erc20 = IERC20(erc20Address);
         bool transferSuccessful = erc20.transferFrom(msg.sender, address(this), amount);
         if (!transferSuccessful) revert TransferFailed(msg.sender, address(this), amount);
@@ -400,8 +416,9 @@ contract SwapShield is MerkleTree {
         uint256 amount,
         uint256 tokenId,
         uint256[] calldata newCommitments,
-        uint256[] calldata proof
-    ) public {
+        uint256[] calldata proof,
+        uint256[][] calldata backupData
+    ) public emitBackupData(backupData) {
         erc1155 = IERC1155(erc1155Address);
         erc1155.safeTransferFrom(msg.sender, address(this), tokenId, amount, " ");
 
@@ -416,8 +433,9 @@ contract SwapShield is MerkleTree {
         verify(proof, uint256(FunctionNames.depositErc1155), inputs);
     }
 
-    function startSwapFromErc20ToErc1155(Inputs calldata inputs, uint256[] calldata proof) public {
+    function startSwapFromErc20ToErc1155(Inputs calldata inputs, uint256[] calldata proof, uint256[][] calldata backupData) public emitBackupData(backupData) {
         verify(proof, uint256(FunctionNames.startSwapFromErc20ToErc1155), inputs);
+        emit Nullifiers(inputs.newNullifiers);
 
         for (uint256 j = 0; j < inputs.cipherText.length; j++) {
             // this seems silly (it is) but its the only way to get the event to emit properly
@@ -429,7 +447,10 @@ contract SwapShield is MerkleTree {
         swapIdCounter++;
     }
 
-    function startSwapFromErc20ToErc20(Inputs calldata inputs, uint256[] calldata proof) public {
+    function startSwapFromErc20ToErc20(Inputs calldata inputs, uint256[] calldata proof,
+    uint256[][] calldata backupData
+    ) public emitBackupData(backupData) {
+        emit Nullifiers(inputs.newNullifiers);
         verify(proof, uint256(FunctionNames.startSwapFromErc20ToErc20), inputs);
 
         for (uint256 j = 0; j < inputs.cipherText.length; j++) {
@@ -442,8 +463,9 @@ contract SwapShield is MerkleTree {
         swapIdCounter++;
     }
 
-    function startSwapFromErc1155ToErc1155(Inputs calldata inputs, uint256[] calldata proof) public {
+    function startSwapFromErc1155ToErc1155(Inputs calldata inputs, uint256[] calldata proof, uint256[][] calldata backupData) public emitBackupData(backupData) {
         verify(proof, uint256(FunctionNames.startSwapFromErc1155ToErc1155), inputs);
+        emit Nullifiers(inputs.newNullifiers);
 
         for (uint256 j = 0; j < inputs.cipherText.length; j++) {
             // this seems silly (it is) but its the only way to get the event to emit properly
@@ -455,8 +477,9 @@ contract SwapShield is MerkleTree {
         swapIdCounter++;
     }
 
-    function startSwapFromErc1155ToErc20(Inputs calldata inputs, uint256[] calldata proof) public {
+    function startSwapFromErc1155ToErc20(Inputs calldata inputs, uint256[] calldata proof, uint256[][] calldata backupData) public emitBackupData(backupData) {
         verify(proof, uint256(FunctionNames.startSwapFromErc1155ToErc20), inputs);
+        emit Nullifiers(inputs.newNullifiers);
 
         for (uint256 j = 0; j < inputs.cipherText.length; j++) {
             // this seems silly (it is) but its the only way to get the event to emit properly
@@ -468,8 +491,9 @@ contract SwapShield is MerkleTree {
         swapIdCounter++;
     }
 
-    function completeSwapFromErc20ToErc1155(Inputs calldata inputs, uint256[] calldata proof) public {
+    function completeSwapFromErc20ToErc1155(Inputs calldata inputs, uint256[] calldata proof, uint256[][] calldata backupData) public emitBackupData(backupData) {
         verify(proof, uint256(FunctionNames.completeSwapFromErc20ToErc1155), inputs);
+        emit Nullifiers(inputs.newNullifiers);
 
         for (uint256 j = 0; j < inputs.cipherText.length; j++) {
             // this seems silly (it is) but its the only way to get the event to emit properly
@@ -479,8 +503,9 @@ contract SwapShield is MerkleTree {
         }
     }
 
-    function completeSwapFromErc1155ToErc20(Inputs calldata inputs, uint256[] calldata proof) public {
+    function completeSwapFromErc1155ToErc20(Inputs calldata inputs, uint256[] calldata proof, uint256[][] calldata backupData) public emitBackupData(backupData) {
         verify(proof, uint256(FunctionNames.completeSwapFromErc1155ToErc20), inputs);
+        emit Nullifiers(inputs.newNullifiers);
 
         for (uint256 j = 0; j < inputs.cipherText.length; j++) {
             // this seems silly (it is) but its the only way to get the event to emit properly
@@ -490,8 +515,12 @@ contract SwapShield is MerkleTree {
         }
     }
 
-    function completeSwapFromErc20ToErc20(Inputs calldata inputs, uint256[] calldata proof) public {
+    function completeSwapFromErc20ToErc20(Inputs calldata inputs, uint256[] calldata proof,
+    uint256[][] calldata backupData
+    ) public emitBackupData(backupData)
+    {
         verify(proof, uint256(FunctionNames.completeSwapFromErc20ToErc20), inputs);
+        emit Nullifiers(inputs.newNullifiers);
 
         for (uint256 j = 0; j < inputs.cipherText.length; j++) {
             // this seems silly (it is) but its the only way to get the event to emit properly
@@ -501,8 +530,9 @@ contract SwapShield is MerkleTree {
         }
     }
 
-    function completeSwapFromErc1155ToErc1155(Inputs calldata inputs, uint256[] calldata proof) public {
+    function completeSwapFromErc1155ToErc1155(Inputs calldata inputs, uint256[] calldata proof, uint256[][] calldata backupData) public emitBackupData(backupData) {
         verify(proof, uint256(FunctionNames.completeSwapFromErc1155ToErc1155), inputs);
+        emit Nullifiers(inputs.newNullifiers);
 
         for (uint256 j = 0; j < inputs.cipherText.length; j++) {
             // this seems silly (it is) but its the only way to get the event to emit properly
@@ -516,9 +546,11 @@ contract SwapShield is MerkleTree {
         uint256[] calldata newNullifiers,
         uint256 commitmentRoot,
         uint256[] calldata newCommitments,
-        uint256[] calldata proof
-    ) public {
+        uint256[] calldata proof,
+        uint256[][] calldata backupData
+    ) public emitBackupData(backupData) {
         Inputs memory inputs;
+        emit Nullifiers(newNullifiers);
 
         inputs.customInputs = new uint256[](1);
         inputs.customInputs[0] = 1;
@@ -535,8 +567,10 @@ contract SwapShield is MerkleTree {
         uint256[] calldata newNullifiers,
         uint256 commitmentRoot,
         uint256[] calldata newCommitments,
-        uint256[] calldata proof
-    ) public {
+        uint256[] calldata proof,
+        uint256[][] calldata backupData
+    ) public emitBackupData(backupData) {
+        emit Nullifiers(newNullifiers);
         Inputs memory inputs;
 
         inputs.customInputs = new uint256[](3);
@@ -560,21 +594,24 @@ contract SwapShield is MerkleTree {
         uint256[] calldata newNullifiers,
         uint256 commitmentRoot,
         uint256[] calldata newCommitments,
-        uint256[] calldata proof
-    ) public {
-        Inputs memory inputs;
+        uint256[] calldata proof,
+        uint256[][] calldata backupData
+    ) public emitBackupData(backupData) {
+        emit Nullifiers(newNullifiers);
+        {
+            Inputs memory inputs;
+            inputs.customInputs = new uint256[](3);
+            inputs.customInputs[0] = tokenId;
+            inputs.customInputs[1] = amount;
+            inputs.customInputs[2] = 1;
+            inputs.newNullifiers = newNullifiers;
+            inputs.commitmentRoot = commitmentRoot;
+            inputs.newCommitments = newCommitments;
 
-        inputs.customInputs = new uint256[](3);
-        inputs.customInputs[0] = tokenId;
-        inputs.customInputs[1] = amount;
-        inputs.customInputs[2] = 1;
-        inputs.newNullifiers = newNullifiers;
-        inputs.commitmentRoot = commitmentRoot;
-        inputs.newCommitments = newCommitments;
-
-        verify(proof, uint256(FunctionNames.withdrawErc1155), inputs);
-
+            verify(proof, uint256(FunctionNames.withdrawErc1155), inputs);
+        }
         erc1155.safeTransferFrom(address(this), msg.sender, tokenId, amount, "");
+        
     }
 
     function onERC1155Received(address, address, uint256, uint256, bytes memory) external pure returns (bytes4) {

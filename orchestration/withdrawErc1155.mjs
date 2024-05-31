@@ -23,11 +23,15 @@ import {
 	temporaryUpdateNullifier,
 	updateNullifierTree,
 } from "./common/commitment-storage.mjs";
+import {
+	decodeCommitmentData,
+	encodeCommitmentData,
+	encryptBackupData
+} from './common/backupData.mjs';
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
 import Web3 from "./common/web3.mjs";
 import {
-	decompressStarlightKey,
 	poseidonHash,
 } from "./common/number-theory.mjs";
 
@@ -331,6 +335,30 @@ export class WithdrawErc1155Manager {
 		.map((coeff) => coeff.integer)
 		.flat(Infinity);
 
+	// TODO: encrypt storeCommitment doc here
+	// const backUpData1 = encrypt(storedCommitment1, ...)
+
+	const commitment = {
+		hash: tokenOwners_msgSender_tokenId_2_newCommitment,
+		name: "tokenOwners",
+		mappingKey: tokenOwners_msgSender_tokenId_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(tokenOwners_msgSender_tokenId_stateVarId),
+			value: tokenOwners_msgSender_tokenId_change,
+			salt: tokenOwners_msgSender_tokenId_2_newSalt,
+			publicKey: tokenOwners_msgSender_tokenId_newOwnerPublicKey,
+		},
+		secretKey:
+			tokenOwners_msgSender_tokenId_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+	const plainTextCommitments = encodeCommitmentData(commitment);
+
+	const backUpData = encryptBackupData(plainTextCommitments)
+
 	// Send transaction to the blockchain:
 
 	const txData = await instance.methods
@@ -343,7 +371,8 @@ export class WithdrawErc1155Manager {
 			],
 			tokenOwners_msgSender_tokenId_root.integer,
 			[tokenOwners_msgSender_tokenId_2_newCommitment.integer],
-			proof
+			proof,
+			[backUpData]
 		)
 		.encodeABI();
 
@@ -392,23 +421,7 @@ export class WithdrawErc1155Manager {
 		secretKey.hex(32)
 	);
 
-	await storeCommitment({
-		hash: tokenOwners_msgSender_tokenId_2_newCommitment,
-		name: "tokenOwners",
-		mappingKey: tokenOwners_msgSender_tokenId_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(tokenOwners_msgSender_tokenId_stateVarId),
-			value: tokenOwners_msgSender_tokenId_change,
-			salt: tokenOwners_msgSender_tokenId_2_newSalt,
-			publicKey: tokenOwners_msgSender_tokenId_newOwnerPublicKey,
-		},
-		secretKey:
-			tokenOwners_msgSender_tokenId_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	await storeCommitment(commitment);
 
 	return { tx, encEvent };
 }

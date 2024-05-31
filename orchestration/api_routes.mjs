@@ -9,9 +9,10 @@ import {
 	service_getSharedKeys,
 	service_timberProxy,
 	service_getZKPPublicKey,
+	service_backupData,
 	service_verify,
 	service_balanceOfToken,
-	service_getSwaps, service_shieldedBalance, service_getParsedCommitments,
+	service_getSwaps, service_shieldedBalance, service_getParsedCommitments, service_stats,
 } from "./api_services.mjs"
 
 import express from "express";
@@ -95,12 +96,14 @@ router.get("/getSharedKeys", service_getSharedKeys);
 
 		// Debugging utils
 		router.use("/timber", service_timberProxy);
+		router.get("/backupData", service_backupData);
 		router.get("/getZKPPublicKey/:address", service_getZKPPublicKey);
 		router.get("/parsedCommitment", service_getParsedCommitments);
 		router.post("/verify", service_verify);
 		router.get("/token-balance", service_balanceOfToken);
 		router.get("/shielded-balance", service_shieldedBalance);
 		router.get('/swap', service_getSwaps)
+		router.get('/stats', service_stats)
 
 		return router;
 	  }

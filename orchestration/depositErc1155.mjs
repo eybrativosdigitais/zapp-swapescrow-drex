@@ -11,6 +11,7 @@ import {
 } from "./common/contract.mjs";
 import {
 	storeCommitment,
+	getCommitmentsWhere,
 	getCurrentWholeCommitment,
 	getCommitmentsById,
 	getAllCommitments,
@@ -21,13 +22,16 @@ import {
 	getnullifierMembershipWitness,
 	getupdatedNullifierPaths,
 	temporaryUpdateNullifier,
-	updateNullifierTree, getCommitmentsWhere,
-} from "./common/commitment-storage.mjs"
+	updateNullifierTree,
+} from "./common/commitment-storage.mjs";
+import {
+	encodeCommitmentData,
+	encryptBackupData
+} from './common/backupData.mjs';
 import { generateProof } from "./common/zokrates.mjs";
 import { getMembershipWitness, getRoot } from "./common/timber.mjs";
 import Web3 from "./common/web3.mjs";
 import {
-	decompressStarlightKey,
 	poseidonHash,
 } from "./common/number-theory.mjs";
 import logger from './common/logger.mjs'
@@ -67,8 +71,7 @@ export class DepositErc1155Manager {
 
 	// Read dbs for keys and previous commitment values:
 
-	if (!fs.existsSync(keyDb))
-		await registerKey(utils.randomHex(31), "SwapShield", true);
+	await registerKey(utils.randomHex(31), "SwapShield", true);
 	const keys = JSON.parse(
 		fs.readFileSync(keyDb, "utf-8", (err) => {
 			console.log(err);
@@ -125,6 +128,28 @@ export class DepositErc1155Manager {
 		tokenOwners_msgSender_tokenId_newCommitment.hex(32)
 	); // truncate
 
+	const commitmentDoc = {
+		hash: tokenOwners_msgSender_tokenId_newCommitment,
+		name: "tokenOwners",
+		mappingKey: tokenOwners_msgSender_tokenId_stateVarId_key.integer,
+		preimage: {
+			stateVarId: generalise(tokenOwners_msgSender_tokenId_stateVarId),
+			value: tokenOwners_msgSender_tokenId_newCommitmentValue,
+			salt: tokenOwners_msgSender_tokenId_newSalt,
+			publicKey: tokenOwners_msgSender_tokenId_newOwnerPublicKey,
+		},
+		secretKey:
+			tokenOwners_msgSender_tokenId_newOwnerPublicKey.integer ===
+			publicKey.integer
+				? secretKey
+				: null,
+		isNullified: false,
+	}
+
+	const plainTextCommitments = encodeCommitmentData(commitmentDoc);
+
+	const backUpData = encryptBackupData(plainTextCommitments)
+
 	// Call Zokrates to generate the proof:
 
 	const allInputs = [
@@ -148,7 +173,8 @@ export class DepositErc1155Manager {
 			amount.integer,
 			tokenId.integer,
 			[tokenOwners_msgSender_tokenId_newCommitment.integer],
-			proof
+			proof,
+			[backUpData]
 		)
 		.encodeABI();
 
@@ -196,23 +222,7 @@ export class DepositErc1155Manager {
 
 	// Write new commitment preimage to db:
 
-	const insertedDocument = await storeCommitment({
-		hash: tokenOwners_msgSender_tokenId_newCommitment,
-		name: "tokenOwners",
-		mappingKey: tokenOwners_msgSender_tokenId_stateVarId_key.integer,
-		preimage: {
-			stateVarId: generalise(tokenOwners_msgSender_tokenId_stateVarId),
-			value: tokenOwners_msgSender_tokenId_newCommitmentValue,
-			salt: tokenOwners_msgSender_tokenId_newSalt,
-			publicKey: tokenOwners_msgSender_tokenId_newOwnerPublicKey,
-		},
-		secretKey:
-			tokenOwners_msgSender_tokenId_newOwnerPublicKey.integer ===
-			publicKey.integer
-				? secretKey
-				: null,
-		isNullified: false,
-	});
+	const insertedDocument = await storeCommitment(commitmentDoc);
 
 	 if (!insertedDocument.acknowledged) {
 		 logger.error(`Commitment not inserted`)
