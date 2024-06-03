@@ -1,0 +1,47 @@
+name: s3-upload
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
+  id-token: write
+
+env:
+  AWS_REGION: sa-east-1
+  AWS_IAM_ROLE: "arn:aws:iam::452675509495:role/github-actions-admin"
+  S3_BUCKET_NAME: eybrativosdigitais-swapescrow-3159132979
+
+jobs:
+  build:
+    name: S3 Upload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_IAM_ROLE }}
+
+      - name: Zip and upload to S3
+        env:
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+          # Branch or tag
+          GIT_REF: ${{ github.ref_name }}
+        run: |
+          export S3_OBJECT_PATH="${{ env.REPOSITORY_NAME }}/${{ env.REPOSITORY_NAME }}-${{ env.GIT_REF }}.zip"
+          echo "S3_OBJECT_PATH=${S3_OBJECT_PATH}" >> "$GITHUB_ENV"
+          cd ..
+          zip -r ${REPOSITORY_NAME}.zip ${REPOSITORY_NAME} -x ".git/*" ".github/*"
+          aws s3 cp "${REPOSITORY_NAME}.zip" "s3://${S3_BUCKET_NAME}/${S3_OBJECT_PATH}" --acl "public-read"
+
+      - name: Summary
+        run: |
+          echo "### Upload Completed :green_circle:" >> $GITHUB_STEP_SUMMARY
+          echo "- Public URL: <https://${{ env.S3_BUCKET_NAME }}.s3.sa-east-1.amazonaws.com/${{ env.S3_OBJECT_PATH }}>" >> $GITHUB_STEP_SUMMARY
