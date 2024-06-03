@@ -13,7 +13,7 @@ permissions:
 env:
   AWS_REGION: sa-east-1
   AWS_IAM_ROLE: "arn:aws:iam::452675509495:role/github-actions-admin"
-  S3_BUCKET_NAME: eyblockchain-swapescrow-20240531230814480600000001
+  S3_BUCKET_NAME: eybrativosdigitais-swapescrow-3159132979
 
 jobs:
   build:
