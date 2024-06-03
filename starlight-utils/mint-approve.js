@@ -7,10 +7,10 @@ const ERC20_ABI = require('./ierc20.abi.json')
 const ERC1155_ABI = require('./erc1155.abi.json')
 const SWAPSHIELD_ABI = require('./swapshield.abi.json')
 
-const swapShieldAddress = '0xc5a5C42992dECbae36851359345FE25997F5C42d'
-const erc20Address = '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707'
-const erc20TestAddress = '0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e'
-const erc1155Address = '0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE'
+const swapShieldAddress = process.env.STARLIGHT_ESCROWSHIELD_ADDRESS
+const erc20Address = process.env.STARLIGHT_ERC20X_ADDRESS
+const erc20TestAddress = process.env.STARLIGHT_ERC20Y_ADDRESS
+const erc1155Address = process.env.STARLIGHT_ERC1155_ADDRESS
 const envPrivateKeys = [
   process.env.BANKA_PRIVATE_KEY,
   process.env.BANKB_PRIVATE_KEY,
@@ -68,13 +68,15 @@ program
       console.log(`${verticalRuler}\nAccount: ${user.address}\nBalance: ${ethers.formatEther(userBalance)} ETH\n${verticalRuler}`)
 
       // Transfer ETH
-      console.log(`Transferring ${ethers.formatEther(transferETHAmount)} ETH to ${user.address}`)
-      transactionResponse = await signer.sendTransaction({
-        to: user.address,
-        value: transferETHAmount,
-        data: '0x'
-      })
-      await transactionResponse.wait(wait)
+      if (process.env.STARLIGHT_RPC_URL.includes('localhost') || process.env.STARLIGHT_RPC_URL.includes('ganache')) {
+        console.log(`Transferring ${ethers.formatEther(transferETHAmount)} ETH to ${user.address}`)
+        transactionResponse = await signer.sendTransaction({
+          to: user.address,
+          value: transferETHAmount,
+          data: '0x'
+        })
+        await transactionResponse.wait(wait)
+      }
 
       // Minting tokens
       console.log(`Minting ${await amountFormattedERC20(mintERC20Amount, ERC20X)} to ${user.address}`)

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "536afa1b-c10f-4e87-93c5-77f386624848",
+		"_postman_id": "6a7c51f6-efdc-4105-a96d-cde40531431d",
 		"name": "SwapEscrow",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "12508102"
@@ -143,10 +143,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://{{endpoint}}/timber/root?contractName=SwapShield&contractAddress={{swapShieldAddress}}",
-							"protocol": "http",
+							"raw": "{{bank_a_zapp}}/timber/root?contractName=SwapShield&contractAddress={{swapShieldAddress}}",
 							"host": [
-								"{{endpoint}}"
+								"{{bank_a_zapp}}"
 							],
 							"path": [
 								"timber",
@@ -909,12 +908,12 @@
 	"variable": [
 		{
 			"key": "bank_a_zapp",
-			"value": "localhost:3000",
+			"value": "http://localhost:3000",
 			"type": "string"
 		},
 		{
 			"key": "bank_b_zapp",
-			"value": "localhost:3003",
+			"value": "http://localhost:3003",
 			"type": "string"
 		},
 		{
@@ -924,12 +923,12 @@
 		},
 		{
 			"key": "bank_a_timber",
-			"value": "localhost:3100",
+			"value": "http://localhost:3100",
 			"type": "string"
 		},
 		{
 			"key": "bank_b_timber",
-			"value": "localhost:3101",
+			"value": "http://localhost:3101",
 			"type": "string"
 		},
 		{

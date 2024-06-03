@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "e40f175b-5a5b-4857-b701-398cb1cea6eb",
+		"_postman_id": "f668c741-f37a-4e44-8bfd-7879f5ffb58e",
 		"name": "SwapEscrow Step by Step",
 		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
 		"_exporter_id": "12508102"
@@ -207,7 +207,7 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "http://{{bank_a_zapp}}/getAllCommitments"
+						"url": "{{bank_a_zapp}}/getAllCommitments"
 					},
 					"response": []
 				},
@@ -634,7 +634,7 @@
 			"name": "20 -> 20, Bank A -> Bank B",
 			"item": [
 				{
-					"name": "Bank A - Deposit erc20",
+					"name": "Bank A - Deposit Erc20",
 					"event": [
 						{
 							"listen": "test",
@@ -1183,7 +1183,7 @@
 					"response": []
 				},
 				{
-					"name": "Bank B - Withdraw Erc1155 Copy",
+					"name": "Bank B - Withdraw Erc1155",
 					"event": [
 						{
 							"listen": "test",
@@ -1280,7 +1280,7 @@
 	"variable": [
 		{
 			"key": "bank_a_zapp",
-			"value": "localhost:3000",
+			"value": "http://localhost:3000",
 			"type": "string"
 		},
 		{
