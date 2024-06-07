@@ -1,5 +1,5 @@
-const utils = require("zkp-utils") ;
-const generalise = require("general-number").generalise;
+const utils = require('zkp-utils')
+const generalise = require('general-number').generalise
 
 const erc20BalancesVarId = 9
 const erc1155BalancesVarId = 15 // this is tokenOwners
@@ -21,32 +21,31 @@ const parseCommitments = (userAddress, erc20Addresses, tokenIds) => commitments 
   const mappingKeysForTokenOwners = {}
 
   erc20Addresses.map((erc20Address) => {
-    const mappingKey =	generalise(
+    const mappingKey = generalise(
       utils.mimcHash(
         [
           generalise(erc20BalancesVarId).bigInt,
           generalise(userAddress).bigInt,
-          generalise(erc20Address).bigInt,
+          generalise(erc20Address).bigInt
         ],
-        "ALT_BN_254"
+        'ALT_BN_254'
       )
-    ).hex(32);
+    ).hex(32)
     mappingKeysForBalances[mappingKey] = erc20Address
   })
   tokenIds.map((tokenId) => {
-    const mappingKey =	generalise(
+    const mappingKey = generalise(
       utils.mimcHash(
         [
           generalise(erc1155BalancesVarId).bigInt,
           generalise(userAddress).bigInt,
-          generalise(tokenId).bigInt,
+          generalise(tokenId).bigInt
         ],
-        "ALT_BN_254"
+        'ALT_BN_254'
       )
-    ).hex(32);
+    ).hex(32)
     mappingKeysForTokenOwners[mappingKey] = tokenId
   })
-
 
   commitments
     .filter(commitment => commitment.isNullified === false)
@@ -54,7 +53,7 @@ const parseCommitments = (userAddress, erc20Addresses, tokenIds) => commitments 
       if (commitment.name === 'balances' && mappingKeysForBalances[commitment.preimage.stateVarId]) {
         const tokenAddress = mappingKeysForBalances[commitment.preimage.stateVarId]
 
-        if(state.balances[tokenAddress] == null) {
+        if (state.balances[tokenAddress] == null) {
           state.balances[tokenAddress] = parseInt(commitment.preimage.value)
         } else {
           state.balances[tokenAddress] += parseInt(commitment.preimage.value)
@@ -62,7 +61,7 @@ const parseCommitments = (userAddress, erc20Addresses, tokenIds) => commitments 
       } else if (commitment.name === 'tokenOwners' && mappingKeysForTokenOwners[commitment.preimage.stateVarId]) {
         const tokenId = mappingKeysForTokenOwners[commitment.preimage.stateVarId]
 
-        if(state.tokenOwners[tokenId] == null) {
+        if (state.tokenOwners[tokenId] == null) {
           state.tokenOwners[tokenId] = parseInt(commitment.preimage.value)
         } else {
           state.tokenOwners[tokenId] += parseInt(commitment.preimage.value)

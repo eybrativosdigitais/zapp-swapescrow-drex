@@ -3,63 +3,62 @@
 /**
 Logic for storing and retrieving commitments from a mongo DB.
 */
-import config from 'config';
-import fs from 'fs';
-import gen from 'general-number';
-import mongo from './mongo.mjs';
-import logger from './logger.mjs';
-import utils from 'zkp-utils';
-import {sharedSecretKey, poseidonHash, decompressStarlightKey, encrypt } from './number-theory.mjs';
-import { generateProof } from './zokrates.mjs';
-import { SumType, reduceTree, toBinArray, poseidonConcatHash } from './smt_utils.mjs';
-import { hlt } from './hash-lookup.mjs';
-import { encodeCommitmentData } from './backupData.mjs';
+import config from 'config'
+import fs from 'fs'
+import gen from 'general-number'
+import mongo from './mongo.mjs'
+import logger from './logger.mjs'
+import utils from 'zkp-utils'
+import { sharedSecretKey, poseidonHash, decompressStarlightKey, encrypt } from './number-theory.mjs'
+import { generateProof } from './zokrates.mjs'
+import { SumType, reduceTree, toBinArray, poseidonConcatHash } from './smt_utils.mjs'
+import { hlt } from './hash-lookup.mjs'
+import { encodeCommitmentData } from './backupData.mjs'
 
-const { MONGO_URL, COMMITMENTS_DB, COMMITMENTS_COLLECTION } = config;
-const { generalise } = gen;
+const { MONGO_URL, COMMITMENTS_DB, COMMITMENTS_COLLECTION } = config
+const { generalise } = gen
 
-const keyDb = '/app/orchestration/common/db/key.json';
+const keyDb = '/app/orchestration/common/db/key.json'
 
-const TRUNC_LENGTH = 32; // Just for testing so we don't make more than 32 deep smt trees.
-const WHOLE_STATES = ['swapProposals_swapIdCounter_1', 'swapProposals_swapIdCounter_2', 'swapProposals_swapIdCounter_3', 'swapProposals_swapIdCounter_4', 'swapProposals_swapId'];
+const TRUNC_LENGTH = 32 // Just for testing so we don't make more than 32 deep smt trees.
+const WHOLE_STATES = ['swapProposals_swapIdCounter_1', 'swapProposals_swapIdCounter_2', 'swapProposals_swapIdCounter_3', 'swapProposals_swapIdCounter_4', 'swapProposals_swapId']
 // structure for SMT
 const Branch = (leftTree, rightTree) => ({
   tag: 'branch',
   left: leftTree,
-  right: rightTree,
-});
+  right: rightTree
+})
 const Leaf = val => ({
   tag: 'leaf',
-  val: val,
-});
+  val
+})
 
 const SMT = SumType([Branch, Leaf], () => {
-  throw new TypeError('Invalid data structure provided');
-});
+  throw new TypeError('Invalid data structure provided')
+})
 
 // eslint-disable-next-line camelcase
-let smt_tree = SMT(hlt[0]);
+let smt_tree = SMT(hlt[0])
 // eslint-disable-next-line camelcase
-let temp_smt_tree = SMT(hlt[0]); // for temporary updates before proof generation
+let temp_smt_tree = SMT(hlt[0]) // for temporary updates before proof generation
 
 // Gets the hash of a smt_tree (or subtree)
-export const getHash = tree => reduceTree(poseidonConcatHash, tree);
+export const getHash = tree => reduceTree(poseidonConcatHash, tree)
 
-
-export function formatCommitment(commitment) {
+export function formatCommitment (commitment) {
   let data
   try {
     const nullifierHash = commitment.secretKey
-    ? poseidonHash([
+      ? poseidonHash([
         BigInt(commitment.preimage.stateVarId.hex(32)),
         BigInt(commitment.secretKey.hex(32)),
-        BigInt(commitment.preimage.salt.hex(32)),
+        BigInt(commitment.preimage.salt.hex(32))
       ])
-    : '';
-    const preimage = generalise(commitment.preimage).all.hex(32);
+      : ''
+    const preimage = generalise(commitment.preimage).all.hex(32)
     preimage.value = generalise(commitment.preimage.value).all
       ? generalise(commitment.preimage.value).all.integer
-      : generalise(commitment.preimage.value).integer;
+      : generalise(commitment.preimage.value).integer
     data = {
       _id: commitment.hash.hex(32),
       name: commitment.name,
@@ -68,340 +67,338 @@ export function formatCommitment(commitment) {
       secretKey: commitment.secretKey ? commitment.secretKey.hex(32) : null,
       preimage,
       isNullified: commitment.isNullified,
-      nullifier: commitment.secretKey ? nullifierHash.hex(32) : null,
-    };
-    logger.debug(`Storing commitment ${data._id}`);
-  } catch(error){
-      console.error("Error --->", error);
+      nullifier: commitment.secretKey ? nullifierHash.hex(32) : null
+    }
+    logger.debug(`Storing commitment ${data._id}`)
+  } catch (error) {
+    console.error('Error --->', error)
   }
   return data
 }
 
-export async function persistCommitment(data) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
-  return db.collection(COMMITMENTS_COLLECTION).insertOne(data);
+export async function persistCommitment (data) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
+  return db.collection(COMMITMENTS_COLLECTION).insertOne(data)
 }
 // function to format a commitment for a mongo db and store it
-export async function storeCommitment(commitment) {
-  let data = formatCommitment(commitment);
-  return persistCommitment(data);
+export async function storeCommitment (commitment) {
+  const data = formatCommitment(commitment)
+  return persistCommitment(data)
 }
 
 // function to retrieve commitment with a specified stateVarId
-export async function getCommitmentsById(id) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
+export async function getCommitmentsById (id) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
   console.log('getCommitmentsById: searching for commitment with id:', generalise(id).hex(32))
   const commitments = await db
     .collection(COMMITMENTS_COLLECTION)
     .find({ 'preimage.stateVarId': generalise(id).hex(32) })
-    .toArray();
+    .toArray()
 
-  return commitments;
+  return commitments
 }
 
 // function to retrieve commitment with a specified stateVarId
-export async function getCurrentWholeCommitment(id) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
+export async function getCurrentWholeCommitment (id) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
   const commitment = await db.collection(COMMITMENTS_COLLECTION).findOne({
     'preimage.stateVarId': generalise(id).hex(32),
-    isNullified: false,
-  });
-  return commitment;
+    isNullified: false
+  })
+  return commitment
 }
 
 // function to retrieve commitment with a specified stateName
-export async function getCommitmentsByState(name, mappingKey = null) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
-  const query = { name: name };
-  if (mappingKey) query['mappingKey'] = generalise(mappingKey).integer;
+export async function getCommitmentsByState (name, mappingKey = null) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
+  const query = { name }
+  if (mappingKey) query.mappingKey = generalise(mappingKey).integer
   const commitments = await db
     .collection(COMMITMENTS_COLLECTION)
     .find(query)
-    .toArray();
-  return commitments;
+    .toArray()
+  return commitments
 }
 
 // function to retrieve all known nullified commitments
-export async function getNullifiedCommitments() {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
+export async function getNullifiedCommitments () {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
   const commitments = await db
     .collection(COMMITMENTS_COLLECTION)
     .find({ isNullified: true })
-    .toArray();
-  return commitments;
+    .toArray()
+  return commitments
 }
 
 /**
  * @returns {Promise<number>} The sum of the values ​​of all non-nullified commitments
  */
-export async function getBalance() {
-    const connection = await mongo.connection(MONGO_URL);
-    const db = connection.db(COMMITMENTS_DB);
-    const commitments = await db
-        .collection(COMMITMENTS_COLLECTION)
-        .find({ isNullified: false }) //  no nullified
-        .toArray();
+export async function getBalance () {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
+  const commitments = await db
+    .collection(COMMITMENTS_COLLECTION)
+    .find({ isNullified: false }) //  no nullified
+    .toArray()
 
-    let sumOfValues = 0;
-    commitments.forEach(commitment => {
-        sumOfValues += parseInt(commitment.preimage.value, 10);
-    });
-    return sumOfValues;
+  let sumOfValues = 0
+  commitments.forEach(commitment => {
+    sumOfValues += parseInt(commitment.preimage.value, 10)
+  })
+  return sumOfValues
 }
 
-export async function getBalanceByState(name, mappingKey = null) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
-  const query = { name: name };
-  if (mappingKey) query['mappingKey'] = generalise(mappingKey).integer;
+export async function getBalanceByState (name, mappingKey = null) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
+  const query = { name }
+  if (mappingKey) query.mappingKey = generalise(mappingKey).integer
   const commitments = await db
     .collection(COMMITMENTS_COLLECTION)
     .find(query)
-    .toArray();
-	let sumOfValues = 0;
-	commitments.forEach(commitment => {
-	  sumOfValues += commitment.isNullified ? 0 :  parseInt(commitment.preimage.value, 10);
-	});
-  return sumOfValues;
+    .toArray()
+  let sumOfValues = 0
+  commitments.forEach(commitment => {
+    sumOfValues += commitment.isNullified ? 0 : parseInt(commitment.preimage.value, 10)
+  })
+  return sumOfValues
 }
 
 /**
  * @returns all the commitments existent in this database.
  */
- export async function getAllCommitments() {
-	const connection = await mongo.connection(MONGO_URL);
-	const db = connection.db(COMMITMENTS_DB);
-	const allCommitments = await db.collection(COMMITMENTS_COLLECTION).find().toArray();
-	return allCommitments;
- }
+export async function getAllCommitments () {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
+  const allCommitments = await db.collection(COMMITMENTS_COLLECTION).find().toArray()
+  return allCommitments
+}
 
-export async function getCommitmentsWhere(conditions = {}) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
+export async function getCommitmentsWhere (conditions = {}) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
   const commitments = await db
     .collection(COMMITMENTS_COLLECTION)
     .find(conditions)
-    .toArray();
-  return commitments;
+    .toArray()
+  return commitments
 }
 
-
 // function to update an existing commitment
-export async function updateCommitment(commitment, updates) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
-  const query = { _id: commitment._id };
-  const update = { $set: updates };
-  return db.collection(COMMITMENTS_COLLECTION).updateOne(query, update);
+export async function updateCommitment (commitment, updates) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
+  const query = { _id: commitment._id }
+  const update = { $set: updates }
+  return db.collection(COMMITMENTS_COLLECTION).updateOne(query, update)
 }
 
 // This is a helper function to insertLeaf in smt that calls the recursion
-function _insertLeaf(val, tree, binArr) {
+function _insertLeaf (val, tree, binArr) {
   if (binArr.length > 0) {
     switch (tree.tag) {
       case 'branch': // Recursively enter developed subtree
         return binArr[0] === '0'
           ? Branch(_insertLeaf(val, tree.left, binArr.slice(1)), tree.right)
-          : Branch(tree.left, _insertLeaf(val, tree.right, binArr.slice(1)));
+          : Branch(tree.left, _insertLeaf(val, tree.right, binArr.slice(1)))
 
       case 'leaf': // Open undeveloped subtree
         return binArr[0] === '0'
           ? Branch(
-              _insertLeaf(
-                val,
-                Leaf(hlt[TRUNC_LENGTH - (binArr.length - 1)]),
-                binArr.slice(1),
-              ),
+            _insertLeaf(
+              val,
               Leaf(hlt[TRUNC_LENGTH - (binArr.length - 1)]),
-            )
+              binArr.slice(1)
+            ),
+            Leaf(hlt[TRUNC_LENGTH - (binArr.length - 1)])
+          )
           : Branch(
+            Leaf(hlt[TRUNC_LENGTH - (binArr.length - 1)]),
+            _insertLeaf(
+              val,
               Leaf(hlt[TRUNC_LENGTH - (binArr.length - 1)]),
-              _insertLeaf(
-                val,
-                Leaf(hlt[TRUNC_LENGTH - (binArr.length - 1)]),
-                binArr.slice(1),
-              ),
-            );
+              binArr.slice(1)
+            )
+          )
 
       default: {
-        return tree;
+        return tree
       }
     }
-  } else return Leaf(val);
+  } else return Leaf(val)
 }
 
 // This inserts a value into the smt as a leaf
-function insertLeaf(val, tree) {
-  const binArr = toBinArray(generalise(val));
+function insertLeaf (val, tree) {
+  const binArr = toBinArray(generalise(val))
   const padBinArr = Array(254 - binArr.length)
     .fill('0')
     .concat(...binArr)
-    .slice(0, TRUNC_LENGTH);
-  return _insertLeaf(val, tree, padBinArr);
+    .slice(0, TRUNC_LENGTH)
+  return _insertLeaf(val, tree, padBinArr)
 }
 
-export async function markNullifiedMany(nullifiers) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
+export async function markNullifiedMany (nullifiers) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
   const query = {
-    nullifier: { $in: nullifiers.map(n => generalise(n).hex(32)) },
+    nullifier: { $in: nullifiers.map(n => generalise(n).hex(32)) }
   }
   const update = {
     $set: {
-      isNullified: true,
+      isNullified: true
     }
   }
-  return db.collection(COMMITMENTS_COLLECTION).updateMany(query, update);
+  return db.collection(COMMITMENTS_COLLECTION).updateMany(query, update)
 }
 
 // function to mark a commitment as nullified for a mongo db and update the nullifier tree
-export async function markNullified(commitmentHash, secretKey = null) {
-  const connection = await mongo.connection(MONGO_URL);
-  const db = connection.db(COMMITMENTS_DB);
-  const query = { _id: commitmentHash.hex(32) };
-  const commitment = await db.collection(COMMITMENTS_COLLECTION).findOne(query);
+export async function markNullified (commitmentHash, secretKey = null) {
+  const connection = await mongo.connection(MONGO_URL)
+  const db = connection.db(COMMITMENTS_DB)
+  const query = { _id: commitmentHash.hex(32) }
+  const commitment = await db.collection(COMMITMENTS_COLLECTION).findOne(query)
   const nullifier = poseidonHash([
     BigInt(commitment.preimage.stateVarId),
     BigInt(commitment.secretKey || secretKey),
-    BigInt(commitment.preimage.salt),
-  ]);
+    BigInt(commitment.preimage.salt)
+  ])
   const update = {
     $set: {
       isNullified: true,
-      nullifier: generalise(nullifier).hex(32),
-    },
-  };
+      nullifier: generalise(nullifier).hex(32)
+    }
+  }
   // updating the original tree
   // eslint-disable-next-line camelcase
-  smt_tree = temp_smt_tree;
+  smt_tree = temp_smt_tree
 
-  return db.collection(COMMITMENTS_COLLECTION).updateOne(query, update);
+  return db.collection(COMMITMENTS_COLLECTION).updateOne(query, update)
 }
 
-export function getInputCommitments(
+export function getInputCommitments (
   publicKey,
   value,
   commitments,
-  isStruct = false,
+  isStruct = false
 ) {
   console.log('commitments: ', commitments)
   const possibleCommitments = commitments.filter(
-    entry => entry.preimage.publicKey === publicKey && !entry.isNullified,
-  );
+    entry => entry.preimage.publicKey === publicKey && !entry.isNullified
+  )
 
   if (possibleCommitments.length === 0) {
-    console.error('getInputCommitments', 'No Commitments exist for this public key:', publicKey);
-    return [null, null, null];
+    console.error('getInputCommitments', 'No Commitments exist for this public key:', publicKey)
+    return [null, null, null]
   }
 
-  let commitmentsSum = 0;
+  let commitmentsSum = 0
   possibleCommitments.forEach(commit => {
-    commitmentsSum += parseInt(commit.preimage.value, 10);
-  });
+    commitmentsSum += parseInt(commit.preimage.value, 10)
+  })
   if (isStruct) {
     const possibleCommitmentsProp = getStructInputCommitments(
       value,
-      possibleCommitments,
-    );
-    if (possibleCommitmentsProp.length > 0)
+      possibleCommitments
+    )
+    if (possibleCommitmentsProp.length > 0) {
       return [
         true,
         possibleCommitmentsProp[0][0],
-        possibleCommitmentsProp[0][1],
-      ];
-    return null;
+        possibleCommitmentsProp[0][1]
+      ]
+    }
+    return null
   }
   if (
     possibleCommitments.length === 1 &&
     commitmentsSum >= parseInt(value, 10)
   ) {
-    return [true, possibleCommitments[0], null];
+    return [true, possibleCommitments[0], null]
   }
   possibleCommitments.sort(
     (commitA, commitB) =>
       parseInt(commitB.preimage.value, 10) -
-      parseInt(commitA.preimage.value, 10),
-  );
+      parseInt(commitA.preimage.value, 10)
+  )
 
   if (
     parseInt(possibleCommitments[0].preimage.value, 10) +
       parseInt(possibleCommitments[1].preimage.value, 10) >=
     parseInt(value, 10)
   ) {
-    return [true, possibleCommitments[0], possibleCommitments[1]];
+    return [true, possibleCommitments[0], possibleCommitments[1]]
   }
-  if (commitmentsSum >= parseInt(value, 10))
-    return [false, possibleCommitments[0], possibleCommitments[1]];
-  return null;
+  if (commitmentsSum >= parseInt(value, 10)) { return [false, possibleCommitments[0], possibleCommitments[1]] }
+  return null
 }
 
-function getStructInputCommitments(value, possibleCommitments) {
+function getStructInputCommitments (value, possibleCommitments) {
   if (possibleCommitments.length < 2) {
-    logger.warn('Enough Commitments dont exists to use.');
-    return null;
+    logger.warn('Enough Commitments dont exists to use.')
+    return null
   }
-  let possibleCommitmentsProp = [];
+  let possibleCommitmentsProp = []
   value.forEach((propValue, i) => {
-    let possibleCommitmentsTemp = [];
+    const possibleCommitmentsTemp = []
     possibleCommitments.sort(
       (commitA, commitB) =>
         parseInt(Object.values(commitB.preimage.value)[i], 10) -
-        parseInt(Object.values(commitA.preimage.value)[i], 10),
-    );
+        parseInt(Object.values(commitA.preimage.value)[i], 10)
+    )
     if (!possibleCommitmentsProp.length) {
       if (
         parseInt(Object.values(possibleCommitments[0].preimage.value)[i], 10) +
           parseInt(
             Object.values(possibleCommitments[1].preimage.value)[i],
-            10,
+            10
           ) >=
         parseInt(propValue, 10)
       ) {
         possibleCommitmentsProp.push([
           possibleCommitments[0],
-          possibleCommitments[1],
-        ]);
+          possibleCommitments[1]
+        ])
       } else {
-        possibleCommitments.splice(0, 2);
+        possibleCommitments.splice(0, 2)
         possibleCommitmentsProp = getStructInputCommitments(
           value,
-          possibleCommitments,
-        );
+          possibleCommitments
+        )
       }
     } else {
       possibleCommitments.forEach(possibleCommit => {
-        if (possibleCommitmentsProp.includes(possibleCommit))
-          possibleCommitmentsTemp.push(possibleCommit);
-      });
+        if (possibleCommitmentsProp.includes(possibleCommit)) { possibleCommitmentsTemp.push(possibleCommit) }
+      })
       if (
         possibleCommitmentsTemp.length > 1 &&
         parseInt(
           Object.values(possibleCommitmentsTemp[0].preimage.value)[i],
-          10,
+          10
         ) +
           parseInt(
             Object.values(possibleCommitmentsTemp[1].preimage.value)[i],
-            10,
+            10
           ) <
           parseInt(propValue, 10)
       ) {
-        possibleCommitments.splice(0, 2);
+        possibleCommitments.splice(0, 2)
         possibleCommitmentsProp = getStructInputCommitments(
           value,
-          possibleCommitments,
-        );
+          possibleCommitments
+        )
       }
     }
-  });
-  return possibleCommitmentsProp;
+  })
+  return possibleCommitmentsProp
 }
 
-export async function joinCommitments(
+export async function joinCommitments (
   contractName,
   statename,
   secretKey,
@@ -411,84 +408,83 @@ export async function joinCommitments(
   witnesses,
   instance,
   contractAddr,
-  web3,
+  web3
 ) {
   logger.warn(
-    'Existing Commitments are not appropriate and we need to call Join Commitment Circuit. It will generate proof to join commitments, this will require an on-chain verification',
-  );
+    'Existing Commitments are not appropriate and we need to call Join Commitment Circuit. It will generate proof to join commitments, this will require an on-chain verification'
+  )
 
-  const oldCommitment_0_prevSalt = generalise(commitments[0].preimage.salt);
-  const oldCommitment_1_prevSalt = generalise(commitments[1].preimage.salt);
-  const oldCommitment_0_prev = generalise(commitments[0].preimage.value);
-  const oldCommitment_1_prev = generalise(commitments[1].preimage.value);
+  const oldCommitment_0_prevSalt = generalise(commitments[0].preimage.salt)
+  const oldCommitment_1_prevSalt = generalise(commitments[1].preimage.salt)
+  const oldCommitment_0_prev = generalise(commitments[0].preimage.value)
+  const oldCommitment_1_prev = generalise(commitments[1].preimage.value)
 
   // Extract set membership witness:
 
-  const oldCommitment_0_witness = witnesses[0];
-  const oldCommitment_1_witness = witnesses[1];
+  const oldCommitment_0_witness = witnesses[0]
+  const oldCommitment_1_witness = witnesses[1]
 
-  const oldCommitment_0_index = generalise(oldCommitment_0_witness.index);
-  const oldCommitment_1_index = generalise(oldCommitment_1_witness.index);
-  const oldCommitment_root = generalise(oldCommitment_0_witness.root);
-  const oldCommitment_0_path = generalise(oldCommitment_0_witness.path).all;
-  const oldCommitment_1_path = generalise(oldCommitment_1_witness.path).all;
+  const oldCommitment_0_index = generalise(oldCommitment_0_witness.index)
+  const oldCommitment_1_index = generalise(oldCommitment_1_witness.index)
+  const oldCommitment_root = generalise(oldCommitment_0_witness.root)
+  const oldCommitment_0_path = generalise(oldCommitment_0_witness.path).all
+  const oldCommitment_1_path = generalise(oldCommitment_1_witness.path).all
 
   // increment would go here but has been filtered out
 
   // Calculate nullifier(s):
 
-  let oldCommitment_stateVarId = stateVarId[0];
+  let oldCommitment_stateVarId = stateVarId[0]
   if (stateVarId.length > 1) {
     oldCommitment_stateVarId = generalise(
       utils.mimcHash(
         [generalise(stateVarId[0]).bigInt, generalise(stateVarId[1]).bigInt, generalise(stateVarId[2]).bigInt],
-        'ALT_BN_254',
-      ),
-    ).hex(32);
+        'ALT_BN_254'
+      )
+    ).hex(32)
   }
 
   let oldCommitment_0_nullifier = poseidonHash([
     BigInt(oldCommitment_stateVarId),
     BigInt(secretKey.hex(32)),
-    BigInt(oldCommitment_0_prevSalt.hex(32)),
-  ]);
+    BigInt(oldCommitment_0_prevSalt.hex(32))
+  ])
   let oldCommitment_1_nullifier = poseidonHash([
     BigInt(oldCommitment_stateVarId),
     BigInt(secretKey.hex(32)),
-    BigInt(oldCommitment_1_prevSalt.hex(32)),
-  ]);
-  oldCommitment_0_nullifier = generalise(oldCommitment_0_nullifier.hex(32)); // truncate
-  oldCommitment_1_nullifier = generalise(oldCommitment_1_nullifier.hex(32)); // truncate
-
+    BigInt(oldCommitment_1_prevSalt.hex(32))
+  ])
+  oldCommitment_0_nullifier = generalise(oldCommitment_0_nullifier.hex(32)) // truncate
+  oldCommitment_1_nullifier = generalise(oldCommitment_1_nullifier.hex(32)) // truncate
 
   // Calculate commitment(s):
 
-  const newCommitment_newSalt = generalise(utils.randomHex(31));
+  const newCommitment_newSalt = generalise(utils.randomHex(31))
 
   let newCommitment_value =
     parseInt(oldCommitment_0_prev.integer, 10) +
-    parseInt(oldCommitment_1_prev.integer, 10);
+    parseInt(oldCommitment_1_prev.integer, 10)
 
-  newCommitment_value = generalise(newCommitment_value);
+  newCommitment_value = generalise(newCommitment_value)
 
   let newCommitment = poseidonHash([
     BigInt(oldCommitment_stateVarId),
     BigInt(newCommitment_value.hex(32)),
     BigInt(publicKey.hex(32)),
-    BigInt(newCommitment_newSalt.hex(32)),
-  ]);
+    BigInt(newCommitment_newSalt.hex(32))
+  ])
 
-  newCommitment = generalise(newCommitment.hex(32)); // truncate
+  newCommitment = generalise(newCommitment.hex(32)) // truncate
 
-  let stateVarID = parseInt(oldCommitment_stateVarId, 16);
-  let fromID = 0;
-  let isMapping = 0;
+  let stateVarID = parseInt(oldCommitment_stateVarId, 16)
+  let fromID = 0
+  let isMapping = 0
   let valueId = 0
   if (stateVarId.length > 1) {
-    stateVarID = stateVarId[0];
-    fromID = stateVarId[1].integer;
-    valueId = stateVarId[2].integer;
-    isMapping = 1;
+    stateVarID = stateVarId[0]
+    fromID = stateVarId[1].integer
+    valueId = stateVarId[2].integer
+    isMapping = 1
   }
 
   // Call Zokrates to generate the proof:
@@ -513,13 +509,13 @@ export async function joinCommitments(
     oldCommitment_1_path.integer,
     publicKey.integer,
     newCommitment_newSalt.integer,
-    newCommitment.integer,
-  ].flat(Infinity);
+    newCommitment.integer
+  ].flat(Infinity)
 
-  const res = await generateProof('joinCommitments', allInputs);
+  const res = await generateProof('joinCommitments', allInputs)
   const proof = generalise(Object.values(res.proof).flat(Infinity))
     .map(coeff => coeff.integer)
-    .flat(Infinity);
+    .flat(Infinity)
 
   const commit = {
     hash: newCommitment,
@@ -529,23 +525,23 @@ export async function joinCommitments(
       stateVarId: generalise(oldCommitment_stateVarId),
       value: newCommitment_value,
       salt: newCommitment_newSalt,
-      publicKey: publicKey,
+      publicKey
     },
-    secretKey: secretKey,
-    isNullified: false,
+    secretKey,
+    isNullified: false
   }
-	const backUpData = encrypt(
-		encodeCommitmentData(commit),
-		secretKey.integer,
-		[
-			decompressStarlightKey(
-				publicKey
-			)[0].integer,
-			decompressStarlightKey(
-				publicKey
-			)[1].integer,
-		]
-	)
+  const backUpData = encrypt(
+    encodeCommitmentData(commit),
+    secretKey.integer,
+    [
+      decompressStarlightKey(
+        publicKey
+      )[0].integer,
+      decompressStarlightKey(
+        publicKey
+      )[1].integer
+    ]
+  )
   // Send transaction to the blockchain:
 
   const txData = await instance.methods
@@ -556,35 +552,35 @@ export async function joinCommitments(
       proof,
       [backUpData]
     )
-    .encodeABI();
+    .encodeABI()
 
-  let txParams = {
+  const txParams = {
     from: config.web3.options.defaultAccount,
     to: contractAddr,
     gas: config.web3.options.defaultGas,
     gasPrice: config.web3.options.defaultGasPrice,
     data: txData,
-    chainId: await web3.eth.net.getId(),
-  };
+    chainId: await web3.eth.net.getId()
+  }
 
-  const key = config.web3.key;
+  const key = config.web3.key
 
-  const signed = await web3.eth.accounts.signTransaction(txParams, key);
+  const signed = await web3.eth.accounts.signTransaction(txParams, key)
 
-  const sendTxn = await web3.eth.sendSignedTransaction(signed.rawTransaction);
+  const sendTxn = await web3.eth.sendSignedTransaction(signed.rawTransaction)
 
-  let tx = await instance.getPastEvents('allEvents');
+  let tx = await instance.getPastEvents('allEvents')
 
-  tx = tx[0];
+  tx = tx[0]
 
-  await markNullified(generalise(commitments[0]._id), secretKey.hex(32));
-  await markNullified(generalise(commitments[1]._id), secretKey.hex(32));
-  await storeCommitment(commit);
+  await markNullified(generalise(commitments[0]._id), secretKey.hex(32))
+  await markNullified(generalise(commitments[1]._id), secretKey.hex(32))
+  await storeCommitment(commit)
 
-  return { tx };
+  return { tx }
 }
 
-export async function splitCommitments(
+export async function splitCommitments (
   contractName,
   statename,
   value,
@@ -595,92 +591,92 @@ export async function splitCommitments(
   witness,
   instance,
   contractAddr,
-  web3,
+  web3
 ) {
   logger.warn(
-    'Only one commitment exists, but it is enough to use. Calling Split Commitment circuit. It will generate proof to split commitments, this will require an on-chain verification',
-  );
+    'Only one commitment exists, but it is enough to use. Calling Split Commitment circuit. It will generate proof to split commitments, this will require an on-chain verification'
+  )
 
-  const oldCommitment_0_prevSalt = generalise(commitment.preimage.salt);
-  const oldCommitment_0_prev = generalise(commitment.preimage.value);
+  const oldCommitment_0_prevSalt = generalise(commitment.preimage.salt)
+  const oldCommitment_0_prev = generalise(commitment.preimage.value)
 
   // Extract set membership witness:
 
-  const oldCommitment_0_witness = witness;
+  const oldCommitment_0_witness = witness
 
-  const oldCommitment_0_index = generalise(oldCommitment_0_witness.index);
-  const oldCommitment_root = generalise(oldCommitment_0_witness.root);
-  const oldCommitment_0_path = generalise(oldCommitment_0_witness.path).all;
+  const oldCommitment_0_index = generalise(oldCommitment_0_witness.index)
+  const oldCommitment_root = generalise(oldCommitment_0_witness.root)
+  const oldCommitment_0_path = generalise(oldCommitment_0_witness.path).all
 
   // increment would go here but has been filtered out
 
   // Calculate nullifier(s):
 
-  let oldCommitment_stateVarId = stateVarId[0];
+  let oldCommitment_stateVarId = stateVarId[0]
   if (stateVarId.length > 1) {
     oldCommitment_stateVarId = generalise(
       utils.mimcHash(
         [generalise(stateVarId[0]).bigInt, generalise(stateVarId[1]).bigInt, generalise(stateVarId[2]).bigInt],
-        'ALT_BN_254',
-      ),
-    ).hex(32);
+        'ALT_BN_254'
+      )
+    ).hex(32)
   }
 
   let oldCommitment_0_nullifier = poseidonHash([
     BigInt(oldCommitment_stateVarId),
     BigInt(secretKey.hex(32)),
-    BigInt(oldCommitment_0_prevSalt.hex(32)),
-  ]);
+    BigInt(oldCommitment_0_prevSalt.hex(32))
+  ])
 
-  oldCommitment_0_nullifier = generalise(oldCommitment_0_nullifier.hex(32)); // truncate
+  oldCommitment_0_nullifier = generalise(oldCommitment_0_nullifier.hex(32)) // truncate
 
   // Calculate commitment(s):
 
-  const newCommitment_0_newSalt = generalise(utils.randomHex(31));
+  const newCommitment_0_newSalt = generalise(utils.randomHex(31))
 
-  let newCommitment_0_value = parseInt(value.integer, 10);
+  let newCommitment_0_value = parseInt(value.integer, 10)
 
-  newCommitment_0_value = generalise(newCommitment_0_value);
+  newCommitment_0_value = generalise(newCommitment_0_value)
 
   let newCommitment_0 = poseidonHash([
     BigInt(oldCommitment_stateVarId),
     BigInt(newCommitment_0_value.hex(32)),
     BigInt(publicKey.hex(32)),
-    BigInt(newCommitment_0_newSalt.hex(32)),
-  ]);
+    BigInt(newCommitment_0_newSalt.hex(32))
+  ])
 
-  newCommitment_0 = generalise(newCommitment_0.hex(32)); // truncate
+  newCommitment_0 = generalise(newCommitment_0.hex(32)) // truncate
 
-  const newCommitment_1_newSalt = generalise(utils.randomHex(31));
+  const newCommitment_1_newSalt = generalise(utils.randomHex(31))
 
   let newCommitment_1_value =
-    parseInt(oldCommitment_0_prev.integer, 10) - parseInt(value.integer, 10);
+    parseInt(oldCommitment_0_prev.integer, 10) - parseInt(value.integer, 10)
 
-  newCommitment_1_value = generalise(newCommitment_1_value);
+  newCommitment_1_value = generalise(newCommitment_1_value)
 
   let newCommitment_1 = poseidonHash([
     BigInt(oldCommitment_stateVarId),
     BigInt(newCommitment_1_value.hex(32)),
     BigInt(publicKey.hex(32)),
-    BigInt(newCommitment_1_newSalt.hex(32)),
-  ]);
+    BigInt(newCommitment_1_newSalt.hex(32))
+  ])
 
-  newCommitment_1 = generalise(newCommitment_1.hex(32)); // truncate
+  newCommitment_1 = generalise(newCommitment_1.hex(32)) // truncate
 
-  let stateVarID = parseInt(oldCommitment_stateVarId, 16);
-  let fromID = 0;
-  let isMapping = 0;
-  let valueKey = 0;
+  let stateVarID = parseInt(oldCommitment_stateVarId, 16)
+  let fromID = 0
+  let isMapping = 0
+  let valueKey = 0
   if (stateVarId.length > 1) {
-    stateVarID = stateVarId[0];
-    fromID = stateVarId[1].integer;
-    valueKey = stateVarId[2].integer;
-    isMapping = 1;
+    stateVarID = stateVarId[0]
+    fromID = stateVarId[1].integer
+    valueKey = stateVarId[2].integer
+    isMapping = 1
   }
 
   // Call Zokrates to generate the proof:
   const allInputs = [
-	value.integer,
+    value.integer,
     fromID,
     valueKey,
     stateVarID,
@@ -698,66 +694,66 @@ export async function splitCommitments(
     newCommitment_0.integer,
     publicKey.integer,
     newCommitment_1_newSalt.integer,
-    newCommitment_1.integer,
-  ].flat(Infinity);
+    newCommitment_1.integer
+  ].flat(Infinity)
 
-  console.log(allInputs.join(' '));
+  console.log(allInputs.join(' '))
 
-  const res = await generateProof('splitCommitments', allInputs);
+  const res = await generateProof('splitCommitments', allInputs)
   const proof = generalise(Object.values(res.proof).flat(Infinity))
     .map(coeff => coeff.integer)
-    .flat(Infinity);
+    .flat(Infinity)
 
-    const commit0 = {
-      hash: newCommitment_0,
-      name: statename,
-      mappingKey: fromID,
-      preimage: {
-        stateVarId: generalise(oldCommitment_stateVarId),
-        value: newCommitment_0_value,
-        salt: newCommitment_0_newSalt,
-        publicKey: publicKey,
-      },
-      secretKey: secretKey,
-      isNullified: false,
-    }
-    const backUpData0 = encrypt(
-      encodeCommitmentData(commit0),
-      secretKey.integer,
-      [
-        decompressStarlightKey(
-          publicKey
-        )[0].integer,
-        decompressStarlightKey(
-          publicKey
-        )[1].integer,
-      ]
-    )
-    const commit1 = {
-      hash: newCommitment_1,
-      name: statename,
-      mappingKey: fromID,
-      preimage: {
-        stateVarId: generalise(oldCommitment_stateVarId),
-        value: newCommitment_1_value,
-        salt: newCommitment_1_newSalt,
-        publicKey: publicKey,
-      },
-      secretKey: secretKey,
-      isNullified: false,
-    }
-    const backUpData1 = encrypt(
-      encodeCommitmentData(commit1),
-      secretKey.integer,
-      [
-        decompressStarlightKey(
-          publicKey
-        )[0].integer,
-        decompressStarlightKey(
-          publicKey
-        )[1].integer,
-      ]
-    )
+  const commit0 = {
+    hash: newCommitment_0,
+    name: statename,
+    mappingKey: fromID,
+    preimage: {
+      stateVarId: generalise(oldCommitment_stateVarId),
+      value: newCommitment_0_value,
+      salt: newCommitment_0_newSalt,
+      publicKey
+    },
+    secretKey,
+    isNullified: false
+  }
+  const backUpData0 = encrypt(
+    encodeCommitmentData(commit0),
+    secretKey.integer,
+    [
+      decompressStarlightKey(
+        publicKey
+      )[0].integer,
+      decompressStarlightKey(
+        publicKey
+      )[1].integer
+    ]
+  )
+  const commit1 = {
+    hash: newCommitment_1,
+    name: statename,
+    mappingKey: fromID,
+    preimage: {
+      stateVarId: generalise(oldCommitment_stateVarId),
+      value: newCommitment_1_value,
+      salt: newCommitment_1_newSalt,
+      publicKey
+    },
+    secretKey,
+    isNullified: false
+  }
+  const backUpData1 = encrypt(
+    encodeCommitmentData(commit1),
+    secretKey.integer,
+    [
+      decompressStarlightKey(
+        publicKey
+      )[0].integer,
+      decompressStarlightKey(
+        publicKey
+      )[1].integer
+    ]
+  )
   // Send transaction to the blockchain:
 
   const txData = await instance.methods
@@ -768,34 +764,34 @@ export async function splitCommitments(
       proof,
       [backUpData0, backUpData1]
     )
-    .encodeABI();
+    .encodeABI()
 
-  let txParams = {
+  const txParams = {
     from: config.web3.options.defaultAccount,
     to: contractAddr,
     gas: config.web3.options.defaultGas,
     gasPrice: config.web3.options.defaultGasPrice,
     data: txData,
-    chainId: await web3.eth.net.getId(),
-  };
+    chainId: await web3.eth.net.getId()
+  }
 
-  const key = config.web3.key;
+  const key = config.web3.key
 
-  const signed = await web3.eth.accounts.signTransaction(txParams, key);
+  const signed = await web3.eth.accounts.signTransaction(txParams, key)
 
-  const sendTxn = await web3.eth.sendSignedTransaction(signed.rawTransaction);
+  const sendTxn = await web3.eth.sendSignedTransaction(signed.rawTransaction)
 
-  let tx = await instance.getPastEvents('allEvents');
+  let tx = await instance.getPastEvents('allEvents')
 
-  tx = tx[0];
+  tx = tx[0]
 
-  await markNullified(generalise(commitment._id), secretKey.hex(32));
+  await markNullified(generalise(commitment._id), secretKey.hex(32))
 
-  await storeCommitment(commit0);
+  await storeCommitment(commit0)
 
-  await storeCommitment(commit1);
+  await storeCommitment(commit1)
 
-  return { tx };
+  return { tx }
 }
 
 // This is a helper function for checkMembership
@@ -804,145 +800,141 @@ const _getnullifierMembershipWitness = (binArr, element, tree, acc) => {
     case 'branch':
       return binArr[0] === '0'
         ? _getnullifierMembershipWitness(
-            binArr.slice(1),
-            element,
-            tree.left,
-            [getHash(tree.right)].concat(acc),
-          )
+          binArr.slice(1),
+          element,
+          tree.left,
+          [getHash(tree.right)].concat(acc)
+        )
         : _getnullifierMembershipWitness(
-            binArr.slice(1),
-            element,
-            tree.right,
-            [getHash(tree.left)].concat(acc),
-          );
+          binArr.slice(1),
+          element,
+          tree.right,
+          [getHash(tree.left)].concat(acc)
+        )
     case 'leaf': {
       if (binArr.length > 0) {
         while (binArr.length > 0) {
           binArr[0] === '0'
             ? (acc = [hlt[TRUNC_LENGTH - (binArr.length - 1)]].concat(acc))
-            : (acc = [hlt[TRUNC_LENGTH - (binArr.length - 1)]].concat(acc));
-          binArr = binArr.slice(1);
+            : (acc = [hlt[TRUNC_LENGTH - (binArr.length - 1)]].concat(acc))
+          binArr = binArr.slice(1)
         }
-        return { isMember: false, path: acc };
+        return { isMember: false, path: acc }
       } else {
         return tree.val !== element
           ? { isMember: false, path: acc }
-          : { isMember: true, path: acc };
+          : { isMember: true, path: acc }
       }
     }
     default:
-      return tree;
+      return tree
   }
-};
-
-export async function updateNullifierTree() {
-  smt_tree = temp_smt_tree;
 }
 
-export function getnullifierMembershipWitness(nullifier) {
-  const binArr = toBinArray(generalise(nullifier));
+export async function updateNullifierTree () {
+  smt_tree = temp_smt_tree
+}
+
+export function getnullifierMembershipWitness (nullifier) {
+  const binArr = toBinArray(generalise(nullifier))
   const padBinArr = Array(254 - binArr.length)
     .fill('0')
     .concat(...binArr)
-    .slice(0, TRUNC_LENGTH);
+    .slice(0, TRUNC_LENGTH)
   const membershipPath = _getnullifierMembershipWitness(
     padBinArr,
     nullifier,
     smt_tree,
-    [],
-  );
-  const root = getHash(smt_tree);
-  const witness = { path: membershipPath.path, root: root };
-  return witness;
+    []
+  )
+  const root = getHash(smt_tree)
+  const witness = { path: membershipPath.path, root }
+  return witness
 }
 
-export async function temporaryUpdateNullifier(nullifier) {
-  temp_smt_tree = insertLeaf(generalise(nullifier).hex(32), temp_smt_tree);
+export async function temporaryUpdateNullifier (nullifier) {
+  temp_smt_tree = insertLeaf(generalise(nullifier).hex(32), temp_smt_tree)
 }
 
-export async function reinstateNullifiers() {
-  const initialised = [];
-  const nullifiedCommitments = await getNullifiedCommitments();
+export async function reinstateNullifiers () {
+  const initialised = []
+  const nullifiedCommitments = await getNullifiedCommitments()
   if (!nullifiedCommitments) {
-    logger.info('No nullifiers to add to the tree');
-    return;
+    logger.info('No nullifiers to add to the tree')
+    return
   }
   logger.warn(
-    'Reinstatiating nullifiers - NOTE that any nullifiers added from another client may not be known here, so the tree will be out of sync.',
-  );
+    'Reinstatiating nullifiers - NOTE that any nullifiers added from another client may not be known here, so the tree will be out of sync.'
+  )
   for (const c of nullifiedCommitments) {
     if (
       WHOLE_STATES.includes(c.name) &&
       !initialised.includes(c.preimage.stateVarId)
     ) {
-      logger.debug(`initialising state ${c.name}`);
+      logger.debug(`initialising state ${c.name}`)
       smt_tree = insertLeaf(
         poseidonHash([BigInt(c.preimage.stateVarId), BigInt(0), BigInt(0)]).hex(
-          32,
+          32
         ),
-        smt_tree,
-      );
-      initialised.push(c.preimage.stateVarId);
+        smt_tree
+      )
+      initialised.push(c.preimage.stateVarId)
     }
-    logger.debug(`nullifying state ${c.name}: ${c.nullifier}`);
-    smt_tree = insertLeaf(c.nullifier, smt_tree);
+    logger.debug(`nullifying state ${c.name}: ${c.nullifier}`)
+    smt_tree = insertLeaf(c.nullifier, smt_tree)
   }
-  temp_smt_tree = smt_tree;
+  temp_smt_tree = smt_tree
 }
 
-export function getupdatedNullifierPaths(nullifier) {
-  const binArr = toBinArray(generalise(nullifier));
+export function getupdatedNullifierPaths (nullifier) {
+  const binArr = toBinArray(generalise(nullifier))
   const padBinArr = Array(254 - binArr.length)
     .fill('0')
     .concat(...binArr)
-    .slice(0, TRUNC_LENGTH);
+    .slice(0, TRUNC_LENGTH)
   const membershipPath = _getnullifierMembershipWitness(
     padBinArr,
     nullifier,
     temp_smt_tree,
-    [],
-  );
-  const root = getHash(temp_smt_tree);
-  const witness = { path: membershipPath.path, root: root };
-  return witness;
+    []
+  )
+  const root = getHash(temp_smt_tree)
+  const witness = { path: membershipPath.path, root }
+  return witness
 }
 
-export async function getSharedSecretskeys(
+export async function getSharedSecretskeys (
   _recipientAddress,
-	_recipientPublicKey = 0
+  _recipientPublicKey = 0
 ) {
+  const keys = JSON.parse(
+    fs.readFileSync(keyDb, 'utf-8', (err) => {
+      console.log(err)
+    })
+  )
+  const secretKey = generalise(keys.secretKey)
+  const publicKey = generalise(keys.publicKey)
+  let recipientPublicKey = generalise(_recipientPublicKey)
+  const recipientAddress = generalise(_recipientAddress)
+  if (_recipientPublicKey === 0) {
+    recipientPublicKey = await this.instance.methods.zkpPublicKeys(recipientAddress.hex(20)).call()
+    recipientPublicKey = generalise(recipientPublicKey)
 
-	const keys = JSON.parse(
-		fs.readFileSync(keyDb, "utf-8", (err) => {
-			console.log(err);
-		})
-	);
-	const secretKey = generalise(keys.secretKey);
-	const publicKey = generalise(keys.publicKey);
-  let recipientPublicKey = generalise(_recipientPublicKey);
-  const recipientAddress = generalise(_recipientAddress);
-  if(_recipientPublicKey === 0) {
-    recipientPublicKey = await this.instance.methods.zkpPublicKeys(recipientAddress.hex(20)).call();
-		recipientPublicKey = generalise(recipientPublicKey);
-
-		if (recipientPublicKey.length === 0) {
-		  throw new Error("WARNING: Public key for given  eth address not found.");
-		}
-
+    if (recipientPublicKey.length === 0) {
+      throw new Error('WARNING: Public key for given  eth address not found.')
+    }
   }
 
-	let sharedKey  = sharedSecretKey(secretKey, recipientPublicKey);
-  console.log('sharedKey:', sharedKey);
-  console.log('sharedKey:', sharedKey[1]);
-	const keyJson = {
-		secretKey: secretKey.integer,
-		publicKey: publicKey.integer,
-		sharedSecretKey: sharedKey[0].integer,
-		sharedPublicKey: sharedKey[1].integer, // not req
-	};
-	fs.writeFileSync(keyDb, JSON.stringify(keyJson, null, 4));
+  const sharedKey = sharedSecretKey(secretKey, recipientPublicKey)
+  console.log('sharedKey:', sharedKey)
+  console.log('sharedKey:', sharedKey[1])
+  const keyJson = {
+    secretKey: secretKey.integer,
+    publicKey: publicKey.integer,
+    sharedSecretKey: sharedKey[0].integer,
+    sharedPublicKey: sharedKey[1].integer // not req
+  }
+  fs.writeFileSync(keyDb, JSON.stringify(keyJson, null, 4))
 
-
-	return sharedKey[1];
+  return sharedKey[1]
 }
-

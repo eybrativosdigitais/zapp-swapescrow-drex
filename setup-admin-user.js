@@ -7,6 +7,6 @@ this.db.createUser({
     { role: 'readWrite', db: 'merkle_tree' },
     { role: 'userAdmin', db: 'zapp_db' },
     { role: 'dbAdmin', db: 'zapp_db' },
-    { role: 'readWrite', db: 'zapp_db' },
-  ],
-});
+    { role: 'readWrite', db: 'zapp_db' }
+  ]
+})

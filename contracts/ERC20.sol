@@ -29,10 +29,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * allowances. See {IERC20-approve}.
  */
 contract ERC20 is IERC20 {
+    mapping(address => uint256) private _balances;
 
-    mapping (address => uint256) private _balances;
-
-    mapping (address => mapping (address => uint256)) private _allowances;
+    mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
 
@@ -49,7 +48,7 @@ contract ERC20 is IERC20 {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor (string memory name, string memory symbol) {
+    constructor(string memory name, string memory symbol) {
         _name = name;
         _symbol = symbol;
         _decimals = 18;
@@ -105,14 +104,14 @@ contract ERC20 is IERC20 {
      * @dev WARNING - for demo purposes only; infinite supply.
      */
     function mint(address _account, uint256 _amount) public {
-      _mint(_account, _amount);
+        _mint(_account, _amount);
     }
 
     /**
      * @dev WARNING - for demo purposes only; infinite supply.
      */
     function burn(address _account, uint256 _amount) public {
-      _burn(_account, _amount);
+        _burn(_account, _amount);
     }
 
     /**
@@ -226,7 +225,8 @@ contract ERC20 is IERC20 {
         emit Transfer(sender, recipient, amount);
     }
 
-    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
+    /**
+     * @dev Creates `amount` tokens and assigns them to `account`, increasing
      * the total supply.
      *
      * Emits a {Transfer} event with `from` set to the zero address.
@@ -312,5 +312,5 @@ contract ERC20 is IERC20 {
      *
      * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual { }
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {}
 }

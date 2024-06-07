@@ -3,10 +3,10 @@ import utils from 'zkp-utils'
 import config from 'config'
 import { generalise } from 'general-number'
 import { getContractAddress, getContractInstance, registerKey, getContractMetadata } from './common/contract.mjs'
-import { storeCommitment, getSharedSecretskeys,  getCommitmentsByState, markNullified, markNullifiedMany, formatCommitment, persistCommitment } from './common/commitment-storage.mjs'
+import { storeCommitment, getSharedSecretskeys, getCommitmentsByState, markNullified, markNullifiedMany, formatCommitment, persistCommitment } from './common/commitment-storage.mjs'
 import { decrypt, poseidonHash, decompressStarlightKey } from './common/number-theory.mjs'
 import { decodeCommitmentData } from './common/backupData.mjs'
-import logger from "./common/logger.mjs";
+import logger from './common/logger.mjs'
 
 const keyDb = '/app/orchestration/common/db/key.json'
 
@@ -20,7 +20,7 @@ const decryptBackupData = (data, pubKey, secretKey) => {
       )[0].integer,
       decompressStarlightKey(
         pubKey
-      )[1].integer,
+      )[1].integer
     ]
   )
 }
@@ -56,7 +56,7 @@ export class EncryptedDataEventListener {
     }
   }
 
-  async fetchBackupData() {
+  async fetchBackupData () {
     await this.init()
     const instance = this.instance
 
@@ -64,13 +64,14 @@ export class EncryptedDataEventListener {
     const eventJsonInterface = this.instance._jsonInterface.find(
       o => o.name === eventName && o.type === 'event'
     )
-
+    console.log('Getting data from past events. This can take a while...')
     const backupEvents = await instance.getPastEvents('BackupData', {
       fromBlock: this.contractMetadata.blockNumber || 1,
       topics: [eventJsonInterface.signature, this.ethAddress.hex(32)]
     })
+    console.log('Getting nullifiers. This can take a while...')
     const nullifierEvents = await instance.getPastEvents('Nullifiers', {
-      fromBlock: this.contractMetadata.blockNumber || 1,
+      fromBlock: this.contractMetadata.blockNumber || 1
     })
 
     const nullifiers = nullifierEvents
@@ -80,6 +81,7 @@ export class EncryptedDataEventListener {
       backupEvents
         .map(e => decryptBackupData(e.returnValues.cipherText, this.publicKey, this.secretKey))
         .map(decodeCommitmentData)
+        .filter(c => c)
         .map(formatCommitment)
         .map(c => {
           c.isNullified = nullifiers.includes(BigInt(c.nullifier).toString())
@@ -92,8 +94,7 @@ export class EncryptedDataEventListener {
     return allCommitments.map(async commit => {
       try {
         await persistCommitment(commit)
-      }
-      catch (e) {
+      } catch (e) {
         if (e.toString().includes('E11000 duplicate key')) {
           logger.info('Commitment already exists. Thats fine.')
         }
@@ -184,21 +185,20 @@ export class EncryptedDataEventListener {
 
       if (stateVarId.integer === swap_StateVarId.integer &&
             swapReciever.integer === self.ethAddress.integer) {
+        let sendersPublicKey = await self.instance.methods.zkpPublicKeys(swapSender.hex(20)).call()
+        sendersPublicKey = generalise(sendersPublicKey)
+        if (sendersPublicKey.length === 0) {
+          throw new Error('WARNING: Public key for given  eth address not found.')
+        }
 
-          let sendersPublicKey = await self.instance.methods.zkpPublicKeys(swapSender.hex(20)).call()
-          sendersPublicKey = generalise(sendersPublicKey)
-          if (sendersPublicKey.length === 0) {
-            throw new Error('WARNING: Public key for given  eth address not found.')
-          }
-
-          self.sharedPublicKey = await getSharedSecretskeys(swapSender, sendersPublicKey)
-          const keys = JSON.parse(
-            fs.readFileSync(keyDb, 'utf-8', (err) => {
-              console.log(err)
-            })
-          )
-          self.sharedSecretKey = generalise(keys.sharedSecretKey)
-          self.sharedPublicKey = generalise(keys.sharedPublicKey)
+        self.sharedPublicKey = await getSharedSecretskeys(swapSender, sendersPublicKey)
+        const keys = JSON.parse(
+          fs.readFileSync(keyDb, 'utf-8', (err) => {
+            console.log(err)
+          })
+        )
+        self.sharedSecretKey = generalise(keys.sharedSecretKey)
+        self.sharedPublicKey = generalise(keys.sharedPublicKey)
 
         let newCommitment = poseidonHash([
           BigInt(stateVarId.hex(32)),
@@ -273,25 +273,24 @@ export class EncryptedDataEventListener {
       )
 
       let sendersPublicKey = await self.instance.methods.zkpPublicKeys(counterParty.hex(20)).call()
-          sendersPublicKey = generalise(sendersPublicKey)
-          if (sendersPublicKey.length === 0) {
-            throw new Error('WARNING: Public key for given  eth address not found.')
-          }
+      sendersPublicKey = generalise(sendersPublicKey)
+      if (sendersPublicKey.length === 0) {
+        throw new Error('WARNING: Public key for given  eth address not found.')
+      }
 
-          self.sharedPublicKey = await getSharedSecretskeys(counterParty, sendersPublicKey)
-          const keys = JSON.parse(
-            fs.readFileSync(keyDb, 'utf-8', (err) => {
-              console.log(err)
-            })
-          )
-          self.sharedSecretKey = generalise(keys.sharedSecretKey)
-          self.sharedPublicKey = generalise(keys.sharedPublicKey)
-      const swapProposals_swapId_prev = await getCommitmentsByState('swapProposals', swapId.integer);
-      console.log('commitments --------->', swapProposals_swapId_prev);
-      if(swapProposals_swapId_prev.length > 0)
-      {
+      self.sharedPublicKey = await getSharedSecretskeys(counterParty, sendersPublicKey)
+      const keys = JSON.parse(
+        fs.readFileSync(keyDb, 'utf-8', (err) => {
+          console.log(err)
+        })
+      )
+      self.sharedSecretKey = generalise(keys.sharedSecretKey)
+      self.sharedPublicKey = generalise(keys.sharedPublicKey)
+      const swapProposals_swapId_prev = await getCommitmentsByState('swapProposals', swapId.integer)
+      console.log('commitments --------->', swapProposals_swapId_prev)
+      if (swapProposals_swapId_prev.length > 0) {
         await markNullified(generalise(swapProposals_swapId_prev[0]._id),
-        self.sharedSecretKey.hex(32))
+          self.sharedSecretKey.hex(32))
       }
 
       const value = generalise(decrypted[1])

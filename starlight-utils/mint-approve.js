@@ -19,19 +19,19 @@ const envPrivateKeys = [
   process.env.BANKE_PRIVATE_KEY,
   process.env.BANKF_PRIVATE_KEY,
   process.env.BANKG_PRIVATE_KEY,
-  process.env.BANKH_PRIVATE_KEY,
+  process.env.BANKH_PRIVATE_KEY
 ]
 
 program
   .name('mint-approve')
   .description('Setup an initial balance for the given accounts')
-  .option('--privatekeys <private_keys>', "An optional comma separated list of private keys, by default it uses the private keys in the .env file")
+  .option('--privatekeys <private_keys>', 'An optional comma separated list of private keys, by default it uses the private keys in the .env file')
   .option('--swapshield <address>', 'Optional Swapshield address')
   .option('--erc20x <address>', 'Optional ERC20X address')
-  .option("--erc20y <address>", "Optional ERC20Y address")
-  .option("--erc1155 <address>", "Optional ERC1155 address")
-  .option("--rpc <url>", "Optional RPC URL")
-  .option("--wait <confirming_blocks>", "Optional amount of block confirmations to wait")
+  .option('--erc20y <address>', 'Optional ERC20Y address')
+  .option('--erc1155 <address>', 'Optional ERC1155 address')
+  .option('--rpc <url>', 'Optional RPC URL')
+  .option('--wait <confirming_blocks>', 'Optional amount of block confirmations to wait')
   .action(async ({ privatekeys, swapshield, erc20x, erc20y, erc1155, rpc, wait = 1 }) => {
     const provider = new ethers.JsonRpcProvider(rpc || process.env.STARLIGHT_RPC_URL)
 
@@ -119,7 +119,7 @@ program
       console.log(`\nDone! User ${user.address} is set to go!`)
     }
 
-    console.log(`\nDone! All users are ready.\n`)
+    console.log('\nDone! All users are ready.\n')
   })
   .parse()
 
@@ -131,7 +131,7 @@ async function amountFormattedERC20 (amount, token) {
 
 function isPrivateKey (key) {
   try {
-    if (typeof key === 'string' && !key.startsWith("0x")) {
+    if (typeof key === 'string' && !key.startsWith('0x')) {
       key = '0x' + key
     }
 

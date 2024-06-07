@@ -1,66 +1,66 @@
-import GN from "general-number";
+import GN from 'general-number'
 import fs from 'fs'
-import { encrypt, decrypt, decompressStarlightKey } from "./number-theory.mjs";
+import { encrypt, decrypt, decompressStarlightKey } from './number-theory.mjs'
 import config from 'config'
 
-const { generalise } = GN;
+const { generalise } = GN
 
 const dictName = {
-  0: "balances",
-  1: "tokenOwners",
-  2: "swapProposals",
-  "balances": 0,
-  "tokenOwners": 1,
-  "swapProposals": 2,
-};
+  0: 'balances',
+  1: 'tokenOwners',
+  2: 'swapProposals',
+  balances: 0,
+  tokenOwners: 1,
+  swapProposals: 2
+}
 
-function getKeys() {
-  const keyDb = "/app/orchestration/common/db/key.json";
+function getKeys () {
+  const keyDb = '/app/orchestration/common/db/key.json'
   const keys = JSON.parse(
-    fs.readFileSync(keyDb, "utf-8", (err) => {
-      console.log(err);
+    fs.readFileSync(keyDb, 'utf-8', (err) => {
+      console.log(err)
     })
-  );
-  const secretKey = generalise(keys.secretKey);
-  const publicKey = generalise(keys.publicKey);
+  )
+  const secretKey = generalise(keys.secretKey)
+  const publicKey = generalise(keys.publicKey)
   return { secretKey, publicKey }
 }
 
-function encryptBackupData(data) {
+function encryptBackupData (data) {
   const { secretKey, publicKey } = getKeys()
   console.log({
-    secretKey: secretKey,
-    publicKey: publicKey,
+    secretKey,
+    publicKey,
     action: 'encryptBackupData'
   })
-	const backUpData = encrypt(data, secretKey.integer,
+  const backUpData = encrypt(data, secretKey.integer,
     [
       decompressStarlightKey(
         publicKey
       )[0].integer,
       decompressStarlightKey(
         publicKey
-      )[1].integer,
-    ] 
+      )[1].integer
+    ]
   )
   return backUpData
 }
 
-function decryptBackupData(data) {
-	const backUpData = decrypt(data, generalise(config.web3.key).integer,
+function decryptBackupData (data) {
+  const backUpData = decrypt(data, generalise(config.web3.key).integer,
     [
       decompressStarlightKey(
         config.options.defaultAccount
       )[0].integer,
       decompressStarlightKey(
         config.options.defaultAccount
-      )[1].integer,
-    ] 
+      )[1].integer
+    ]
   )
   return backUpData
 }
 
-function decodeCommitmentData(data) {
+function decodeCommitmentData (data) {
   const [
     hash,
     nameEnum,
@@ -74,7 +74,10 @@ function decodeCommitmentData(data) {
   ] = data
   const isNullified = isNullifiedNumber === 1
   const name = dictName[nameEnum]
-  if (!name) throw new Error('Decoding unexpected values. Decrypt probably didnt work.')
+  if (!name) {
+    console.log('Decoding unexpected values. Decrypt probably didnt work.')
+    return null
+  }
   if (name === "balances" || name === "tokenOwners") {
     const [value] = tail
     const res = generalise({
@@ -83,9 +86,9 @@ function decodeCommitmentData(data) {
         stateVarId,
         value,
         salt,
-        publicKey,
+        publicKey
       },
-      secretKey,
+      secretKey
     })
     res.name = name
     res.mappingKey = generalise(mappingKey).integer
@@ -104,7 +107,7 @@ function decodeCommitmentData(data) {
     swapReciever,
     erc20AddressSent,
     erc20AddressRecieved,
-    pendingStatus,
+    pendingStatus
   ] = tail
   const res = generalise({
     hash,
@@ -122,12 +125,12 @@ function decodeCommitmentData(data) {
         swapReciever,
         erc20AddressSent,
         erc20AddressRecieved,
-        pendingStatus,
+        pendingStatus
       },
       salt,
-      publicKey,
+      publicKey
     },
-    secretKey,
+    secretKey
   })
   res.name = name
   res.mappingKey = generalise(mappingKey).integer
@@ -135,8 +138,8 @@ function decodeCommitmentData(data) {
   return res
 }
 
-function encodeCommitmentData(commitment) {
-  console.log('commitment:',commitment)
+function encodeCommitmentData (commitment) {
+  console.log('commitment:', commitment)
   const {
     hash,
     name,
@@ -153,10 +156,10 @@ function encodeCommitmentData(commitment) {
     isNullified ? 1 : 0,
     preimage.stateVarId.integer,
     preimage.salt.integer,
-    preimage.publicKey.integer,
+    preimage.publicKey.integer
   ]
 
-  if (name === "balances" || name === "tokenOwners") {
+  if (name === 'balances' || name === 'tokenOwners') {
     plainData.push(preimage.value.integer)
   } else {
     const {
@@ -171,7 +174,7 @@ function encodeCommitmentData(commitment) {
       swapReciever,
       erc20AddressSent,
       erc20AddressRecieved,
-      pendingStatus,
+      pendingStatus
     } = commitment.preimage.value
     plainData.push(
       swapAmountSent.integer,
@@ -188,7 +191,7 @@ function encodeCommitmentData(commitment) {
       pendingStatus.integer
     )
   }
-  console.log('plainData:',plainData)
+  console.log('plainData:', plainData)
   return plainData
 }
 

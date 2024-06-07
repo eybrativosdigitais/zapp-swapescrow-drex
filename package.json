@@ -6,7 +6,8 @@
     "retest": "docker-compose -f docker-compose.zapp.yml run zapp npx mocha --exit --require @babel/register 'orchestration/test.mjs'",
     "start": "./bin/startup && docker-compose -f docker-compose.zapp.yml run --name apiservice -p 3000:3000 zapp node orchestration/api.mjs",
     "restart": "docker rm apiservice && docker-compose -f docker-compose.zapp.yml run --name apiservice -p 3000:3000 zapp node orchestration/api.mjs",
-    "apitest": "./bin/setup && ./bin/startup && docker-compose -f docker-compose.zapp.yml run --name apiservice -d -p 3000:3000 zapp node orchestration/api.mjs"
+    "apitest": "./bin/setup && ./bin/startup && docker-compose -f docker-compose.zapp.yml run --name apiservice -d -p 3000:3000 zapp node orchestration/api.mjs",
+    "prepare": "husky"
   },
   "keywords": [
     "private contract",
@@ -39,9 +40,24 @@
   },
   "devDependencies": {
     "eslint": "^7.19.0",
-    "husky": "^4.2.5",
+    "husky": "9.0.11",
+    "lint-staged": "15.2.5",
     "mocha": "10.4.0",
-    "prettier": "^2.2.1",
-    "prettier-plugin-solidity": "^1.0.0-alpha.54"
+    "standard": "17.1.0"
+  },
+  "lint-staged": {
+    "*.{jsx,js,mjs}": "standard --fix"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it",
+      "test",
+      "before",
+      "beforeAll",
+      "after",
+      "afterAll",
+      "hre"
+    ]
   }
 }

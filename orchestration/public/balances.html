@@ -141,8 +141,8 @@
         </div>
       </header>
       <div class="w-screen flex items-center justify-center mt-[180px] md:mt-[140px] md:p-0 p-6">
-        <div class="bg-white w-[40rem] rounded-2xl p-4 shadow-lg">
-          <div class="px-2 flex items-center justify-between font-semibold text-3xl text-gray-900">
+        <div class="bg-white w-[50rem] rounded-2xl p-4 shadow-lg">
+          <div class="px-2 flex items-center justify-between font-semibold text-xl text-gray-900">
             Balanços
             <!-- <div class="flex justify-center">
               <nav
@@ -162,35 +162,39 @@
             </div> -->
           </div>
 
-          <!-- Switch component for ERC20 and ERC1155 -->
           <br /><br />
-          <span class="text-xl font-semibold">🔒 Balanços privados</span>
-          <div class="flex flex-col gap-4 text-xl" id="erc20ShildedBalanceContainer">
-            <br />
-            <!-- <div class="flex justify-between">
-              <span>Itau BRL</span>
-              <span id="erc20ShildedBalance1">0,00</span>
+          <div class="flex flex-col items-center">
+            <div class="mb-4 w-full flex rounded-lg">
+              <input type="text" class="bg-transparent border p-4 rounded-lg outline-none w-full text-1xl text-gray-900"
+                placeholder="Endereço do token" id="tokenAddressInput">
+              <button id="addTokenAddress" class="bg-blue-500 text-white px-4 py-2 ml-2 rounded-lg">Adicionar</button>
             </div>
-            <div class="flex justify-between">
-              <span>Caixa BRL</span>
-              <span id="erc20ShildedBalance2">0,00</span>
-            </div> -->
+
           </div>
           <br />
-          <hr /><br />
-          <span class="text-xl font-semibold">Balanços publicos</span>
-          <div class="flex flex-col gap-4 text-xl" id="erc20BalanceContainer">
-            <br />
-            <!-- <div class="flex justify-between">
-              <span>Itau BRL</span>
-              <span id="erc20Balance1">0,00</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Caixa BRL</span>
-              <span id="erc20Balance2">0,00</span>
-            </div> -->
-          </div>
-          <br /><br />
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th scope="col"
+                  class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Endereço token
+                </th>
+                <th scope="col"
+                  class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  🔒 Balanço Privado
+                </th>
+                <th scope="col"
+                  class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Balanço Público
+                </th>
+                <th scope="col" class="px-6 py-3 bg-gray-50"></th>
+              </tr>
+            </thead>
+            <tbody id="tokenAddressList" class="bg-white divide-y divide-gray-200">
+              <!-- Token addresses and balances will be appended here -->
+            </tbody>
+          </table>
+          <br />
           <div
             class="bg-blue-500 my-2 rounded-2xl py-6 mt-16 px-8 text-xl font-semibold flex items-center justify-center cursor-pointer text-white"
             onclick="window.location.href='index.html'">
