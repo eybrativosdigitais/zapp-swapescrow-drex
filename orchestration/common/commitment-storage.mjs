@@ -287,7 +287,6 @@ export function getInputCommitments (
   commitments,
   isStruct = false
 ) {
-  console.log('commitments: ', commitments)
   const possibleCommitments = commitments.filter(
     entry => entry.preimage.publicKey === publicKey && !entry.isNullified
   )
@@ -926,8 +925,6 @@ export async function getSharedSecretskeys (
   }
 
   const sharedKey = sharedSecretKey(secretKey, recipientPublicKey)
-  console.log('sharedKey:', sharedKey)
-  console.log('sharedKey:', sharedKey[1])
   const keyJson = {
     secretKey: secretKey.integer,
     publicKey: publicKey.integer,

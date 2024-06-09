@@ -7,7 +7,6 @@ import {
   service_getSharedKeys,
   service_timberProxy,
   service_getZKPPublicKey,
-  service_backupData,
   service_verify,
   service_publicBalance,
   service_getSwaps, service_shieldedBalance, service_getParsedCommitments, service_stats
@@ -84,6 +83,10 @@ export class Router {
 
     // eslint-disable-next-line func-names
     router.post('/withdrawErc1155', this.serviceMgr.service_withdrawErc1155.bind(this.serviceMgr))
+    
+    router.get('/backupData', this.serviceMgr.service_ReadBackupData.bind(this.serviceMgr))
+    router.post('/backupData', this.serviceMgr.service_BackupData.bind(this.serviceMgr))
+
 
     // commitment getter routes
     router.get('/getAllCommitments', service_allCommitments)
@@ -94,7 +97,6 @@ export class Router {
 
     // Debugging utils
     router.use('/timber', service_timberProxy)
-    router.get('/backupData', service_backupData)
     router.get('/getZKPPublicKey/:address', service_getZKPPublicKey)
     router.get('/parsedCommitment', service_getParsedCommitments)
     router.post('/verify', service_verify)
@@ -102,6 +104,7 @@ export class Router {
     router.get('/shielded-balance', service_shieldedBalance)
     router.get('/swap', service_getSwaps)
     router.get('/stats', service_stats)
+    router.get('/healthcheck', service_stats)
 
     return router
   }

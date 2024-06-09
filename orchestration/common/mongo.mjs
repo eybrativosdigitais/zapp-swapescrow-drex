@@ -8,19 +8,27 @@ Mongo database functions
 import mongo from 'mongodb'
 
 const { MongoClient } = mongo
-const connection = {}
+var CacheMongoConnection = null
 
 export default {
   async connection (url) {
-    console.log(`connecting to mongo: ${url}`)
-    if (connection[url]) return connection[url]
+    if (CacheMongoConnection) {
+      try {
+        // Try to use the connection to check if it's still alive
+        await CacheMongoConnection.db().command({ ping: 1 });
+        return CacheMongoConnection;
+      } catch (error) {
+        console.log('MongoDB connection lost, reconnecting...');
+      }
+    }
+    console.log(`creating new connection to mongo: ${url}`)
     // Check if we are connecting to MongoDb or DocumentDb
     const { MONGO_CONNECTION_STRING = '' } = process.env
     if (MONGO_CONNECTION_STRING !== '') {
       const client = await new MongoClient(`${MONGO_CONNECTION_STRING}`, {
         useUnifiedTopology: true
       })
-      connection[url] = await client.connect()
+      CacheMongoConnection = await client.connect()
     } else {
       const client = await new MongoClient(url, {
         useUnifiedTopology: true,
@@ -29,12 +37,11 @@ export default {
         // serverSelectionTimeoutMS: 30000,
         // socketTimeoutMS: 360000,
       })
-      connection[url] = await client.connect()
+      CacheMongoConnection = await client.connect()
     }
-    return connection[url]
+    return CacheMongoConnection
   },
   async disconnect (url) {
-    connection[url].close()
-    delete connection[url]
+    CacheMongoConnection.close()
   }
 }

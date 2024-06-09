@@ -5,6 +5,8 @@ import { WithdrawErc20Manager } from './withdrawErc20.mjs'
 
 import { CancelSwapManager } from './cancelSwap.mjs'
 
+import { BackupService } from './backup-service.mjs'
+
 import { CompleteSwapFromErc1155ToErc1155Manager } from './completeSwapFromErc1155ToErc1155.mjs'
 
 import { CompleteSwapFromErc20ToErc20Manager } from './completeSwapFromErc20ToErc20.mjs'
@@ -64,6 +66,7 @@ export class ServiceManager {
     this.completeSwapFromErc20ToErc1155 = new CompleteSwapFromErc20ToErc1155Manager(web3)
     this.completeSwapFromErc20ToErc20 = new CompleteSwapFromErc20ToErc20Manager(web3)
     this.cancelSwap = new CancelSwapManager(web3)
+    this.backupData = new BackupService()
   }
 
   async init () {
@@ -80,6 +83,7 @@ export class ServiceManager {
     await this.completeSwapFromErc20ToErc1155.init()
     await this.completeSwapFromErc20ToErc20.init()
     await this.cancelSwap.init()
+    await this.backupData.init()
   }
 
   /**
@@ -101,8 +105,6 @@ export class ServiceManager {
         amount,
         balances_msgSender_erc20Address_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent, commitment })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -139,8 +141,6 @@ export class ServiceManager {
         tokenId,
         tokenOwners_msgSender_tokenId_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent, commitment })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -184,8 +184,6 @@ export class ServiceManager {
         balances_msgSender_erc20Address_newOwnerPublicKey,
         swapProposals_swapIdCounter_1_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent, commitment })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -229,8 +227,6 @@ export class ServiceManager {
         balances_msgSender_erc20AddressSent_newOwnerPublicKey,
         swapProposals_swapIdCounter_2_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent, commitment })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -274,8 +270,6 @@ export class ServiceManager {
         tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey,
         swapProposals_swapIdCounter_3_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent, commitment })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -319,8 +313,6 @@ export class ServiceManager {
         tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey,
         swapProposals_swapIdCounter_4_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent, commitment })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -362,8 +354,6 @@ export class ServiceManager {
         tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey,
         swapProposals_swapId_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -405,8 +395,6 @@ export class ServiceManager {
         tokenOwners_msgSender_tokenIdReceived_newOwnerPublicKey,
         swapProposals_swapId_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -448,8 +436,6 @@ export class ServiceManager {
         balances_msgSender_erc20AddressReceived_newOwnerPublicKey,
         swapProposals_swapId_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -491,8 +477,6 @@ export class ServiceManager {
         tokenOwners_counterParty_tokenIdSent_newOwnerPublicKey,
         swapProposals_swapId_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -531,8 +515,6 @@ export class ServiceManager {
         tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey,
         swapProposals_swapId_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -567,8 +549,6 @@ export class ServiceManager {
         amount,
         balances_msgSender_erc20Address_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -605,8 +585,6 @@ export class ServiceManager {
         amount,
         tokenOwners_msgSender_tokenId_newOwnerPublicKey
       )
-      // prints the tx
-      console.log(tx)
       res.send({ tx, encEvent })
       // reassigns leafIndex to the index of the first commitment added by this function
       if (tx.event) {
@@ -624,6 +602,28 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
+      res.send({ errors: [err.message] })
+    }
+  }
+
+  async service_BackupData (req, res, next) {
+    try {
+      await startEventFilter('SwapShield')
+      res.send({ status: 'backup service will start. please check the backend logs for more details' })
+      await this.backupData.performBackup()
+    } catch (err) {
+      logger.error('service_BackupData', err)
+      res.send({ errors: [err.message] })
+    }
+  }
+
+  async service_ReadBackupData (req, res, next) {
+    try {
+      await startEventFilter('SwapShield')
+      const backupData = await this.backupData.fetchBackupData()
+      res.send(backupData)
+    } catch (err) {
+      logger.error('service_ReadBackupData', err)
       res.send({ errors: [err.message] })
     }
   }
@@ -853,8 +853,12 @@ export async function service_publicBalance (req, res, next) {
     }
 
     for (const token of erc20Address) {
-      const Token = await getContractInstance('ERC20', token)
-      balances.balances[token] = await Token.methods.balanceOf(owner).call()
+      try {
+        const Token = await getContractInstance('ERC20', token)
+        balances.balances[token] = await Token.methods.balanceOf(owner).call()
+      } catch {
+        balances.balances[token] = '-1'
+      }
     }
 
     const ERC1155Token = await getContractInstance('ERC1155Token')

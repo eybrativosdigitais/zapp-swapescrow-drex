@@ -14,25 +14,26 @@ const dictName = {
   swapProposals: 2
 }
 
+var CacheBackupKeysSecretKey = null
+var CacheBackupKeysPublicKey = null
+
 function getKeys () {
+  if (CacheBackupKeysPublicKey) {
+    return { secretKey: CacheBackupKeysSecretKey, publicKey: CacheBackupKeysPublicKey }
+  }
   const keyDb = '/app/orchestration/common/db/key.json'
   const keys = JSON.parse(
     fs.readFileSync(keyDb, 'utf-8', (err) => {
       console.log(err)
     })
   )
-  const secretKey = generalise(keys.secretKey)
-  const publicKey = generalise(keys.publicKey)
-  return { secretKey, publicKey }
+  CacheBackupKeysSecretKey = generalise(keys.secretKey)
+  CacheBackupKeysPublicKey = generalise(keys.publicKey)
+  return { secretKey: CacheBackupKeysSecretKey, publicKey: CacheBackupKeysPublicKey }
 }
 
 function encryptBackupData (data) {
-  const { secretKey, publicKey } = getKeys()
-  console.log({
-    secretKey,
-    publicKey,
-    action: 'encryptBackupData'
-  })
+  const { secretKey, publicKey } = getKeys()  
   const backUpData = encrypt(data, secretKey.integer,
     [
       decompressStarlightKey(
@@ -58,6 +59,21 @@ function decryptBackupData (data) {
     ]
   )
   return backUpData
+}
+
+function decryptBackupDataWithKeys(data, pubKey, secretKey) {
+  return decrypt(
+    data,
+    secretKey.integer,
+    [
+      decompressStarlightKey(
+        pubKey
+      )[0].integer,
+      decompressStarlightKey(
+        pubKey
+      )[1].integer
+    ]
+  )
 }
 
 function decodeCommitmentData (data) {
@@ -139,7 +155,6 @@ function decodeCommitmentData (data) {
 }
 
 function encodeCommitmentData (commitment) {
-  console.log('commitment:', commitment)
   const {
     hash,
     name,
@@ -191,7 +206,6 @@ function encodeCommitmentData (commitment) {
       pendingStatus.integer
     )
   }
-  console.log('plainData:', plainData)
   return plainData
 }
 
@@ -199,5 +213,6 @@ export {
   encodeCommitmentData,
   decodeCommitmentData,
   encryptBackupData,
-  decryptBackupData
+  decryptBackupData,
+  decryptBackupDataWithKeys
 }

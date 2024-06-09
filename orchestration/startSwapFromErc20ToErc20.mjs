@@ -83,7 +83,6 @@ export class StartSwapFromErc20ToErc20Manager {
     )
 
     // Read dbs for keys and previous commitment values:
-
     if (!fs.existsSync(keyDb)) { await registerKey(utils.randomHex(31), 'SwapShield', true) }
     let keys = JSON.parse(
       fs.readFileSync(keyDb, 'utf-8', (err) => {

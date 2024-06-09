@@ -1,6 +1,6 @@
 import axios from 'axios'
 import config from 'config'
-import { getContractAddress } from './contract.mjs'
+import { getContractMetadata, getContractAddress } from './contract.mjs'
 import logger from './logger.mjs'
 // rough draft of timber service - we may not need treeids but kept in just in case
 const { url } = config.merkleTree
@@ -8,8 +8,12 @@ export const startEventFilter = async (contractName, address) => {
   try {
     // const treeId = functionName;
     let contractAddress = address
+    let block = 1
+    let metadata = null
     if (!contractAddress) {
-      contractAddress = await getContractAddress(contractName)
+      metadata = await getContractMetadata(contractName)
+      contractAddress = metadata.address
+      block = metadata.block
     }
     logger.http(
       `\nCalling /start for '${contractName}' tree and address '${contractAddress}'`
@@ -18,7 +22,8 @@ export const startEventFilter = async (contractName, address) => {
       `${url}/start`,
       {
         contractAddress,
-        contractName
+        contractName,
+        block
         // treeId,
       },
       {

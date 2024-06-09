@@ -10,21 +10,6 @@ import logger from './common/logger.mjs'
 
 const keyDb = '/app/orchestration/common/db/key.json'
 
-const decryptBackupData = (data, pubKey, secretKey) => {
-  return decrypt(
-    data,
-    secretKey.integer,
-    [
-      decompressStarlightKey(
-        pubKey
-      )[0].integer,
-      decompressStarlightKey(
-        pubKey
-      )[1].integer
-    ]
-  )
-}
-
 export class EncryptedDataEventListener {
   constructor (web3) {
     this.web3 = web3
@@ -39,7 +24,7 @@ export class EncryptedDataEventListener {
       const contractAddr = contractMetadata.address
       console.log('encrypted-data-listener', 'init', 'Contract Address --------->', contractAddr)
 
-      await registerKey(utils.randomHex(31), 'SwapShield', true)
+      if (!fs.existsSync(keyDb)) { await registerKey(utils.randomHex(31), 'SwapShield', true) }
 
       const { secretKey, publicKey, sharedSecretKey, sharedPublicKey } = JSON.parse(
         fs.readFileSync(keyDb)
@@ -56,51 +41,7 @@ export class EncryptedDataEventListener {
     }
   }
 
-  async fetchBackupData () {
-    await this.init()
-    const instance = this.instance
-
-    const eventName = 'BackupData'
-    const eventJsonInterface = this.instance._jsonInterface.find(
-      o => o.name === eventName && o.type === 'event'
-    )
-    console.log('Getting data from past events. This can take a while...')
-    const backupEvents = await instance.getPastEvents('BackupData', {
-      fromBlock: this.contractMetadata.blockNumber || 1,
-      topics: [eventJsonInterface.signature, this.ethAddress.hex(32)]
-    })
-    console.log('Getting nullifiers. This can take a while...')
-    const nullifierEvents = await instance.getPastEvents('Nullifiers', {
-      fromBlock: this.contractMetadata.blockNumber || 1
-    })
-
-    const nullifiers = nullifierEvents
-      .flatMap(e => e.returnValues.nullifiers)
-
-    return Promise.all(
-      backupEvents
-        .map(e => decryptBackupData(e.returnValues.cipherText, this.publicKey, this.secretKey))
-        .map(decodeCommitmentData)
-        .filter(c => c)
-        .map(formatCommitment)
-        .map(c => {
-          c.isNullified = nullifiers.includes(BigInt(c.nullifier).toString())
-          return c
-        })
-    )
-  }
-
-  async saveBackupData (allCommitments) {
-    return allCommitments.map(async commit => {
-      try {
-        await persistCommitment(commit)
-      } catch (e) {
-        if (e.toString().includes('E11000 duplicate key')) {
-          logger.info('Commitment already exists. Thats fine.')
-        }
-      }
-    })
-  }
+  
 
   async start () {
     try {
@@ -146,7 +87,6 @@ export class EncryptedDataEventListener {
   }
 
   async processEventData (eventData) {
-    await this.init()
     const self = this
 
     const cipherText = eventData.returnValues.cipherText
@@ -248,12 +188,15 @@ export class EncryptedDataEventListener {
           })
         } catch (e) {
           if (e.toString().includes('E11000 duplicate key')) {
-            console.log('Commitment already exists')
+            console.log(
+              'encrypted-data-listener -', 
+              'receiving EncryptedData event with swapProposals.', 
+              'This swapProposal already exists. Ignore it.')
           }
         }
       }
     } else if (decrypted.length === 6) {
-      // Processing logic for events with length 4
+      // Processing logic for events with length 6
       const stateVarId = generalise(decrypted[0])
       const extraPram = generalise(decrypted[3])
       const swapId = generalise(decrypted[4])
@@ -287,7 +230,6 @@ export class EncryptedDataEventListener {
       self.sharedSecretKey = generalise(keys.sharedSecretKey)
       self.sharedPublicKey = generalise(keys.sharedPublicKey)
       const swapProposals_swapId_prev = await getCommitmentsByState('swapProposals', swapId.integer)
-      console.log('commitments --------->', swapProposals_swapId_prev)
       if (swapProposals_swapId_prev.length > 0) {
         await markNullified(generalise(swapProposals_swapId_prev[0]._id),
           self.sharedSecretKey.hex(32))
@@ -326,7 +268,10 @@ export class EncryptedDataEventListener {
           )
         } catch (e) {
           if (e.toString().includes('E11000 duplicate key')) {
-            console.log('Commitment already exists')
+            console.log(
+              'encrypted-data-listener -', 
+              'receiving EncryptedData event with balances.', 
+              'This balance already exists. Ignore it.')
           }
         }
       }
@@ -352,7 +297,10 @@ export class EncryptedDataEventListener {
           )
         } catch (e) {
           if (e.toString().includes('E11000 duplicate key')) {
-            console.log('encrypted-data-listener', 'processEventData', 'Commitment already exists. Expected behaviour.')
+            console.log(
+              'encrypted-data-listener -', 
+              'receiving EncryptedData event with tokenOwners.', 
+              'This tokenOwners already exists. Ignore it.')
           }
         }
       }

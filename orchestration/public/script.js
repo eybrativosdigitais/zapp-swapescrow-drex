@@ -13,16 +13,12 @@ const removeIconSVG = `
 `
 
 let tokenAddresses = []
-
-const saveTokenAddressesToLocalStorage = () => {
-  localStorage.setItem('tokenAddresses', JSON.stringify(tokenAddresses))
-}
+localStorage.setItem('tokenAddresses', null);
 
 const initializeTokenAddresses = (addresses) => {
   tokenAddresses = addresses
   updateTokenAddressList()
   fetchBalances()
-  saveTokenAddressesToLocalStorage()
 }
 
 const generateTokenAddressHTML = (address, type, balance = 'Loading...', publicBalance = 'Loading...') => `
@@ -78,6 +74,13 @@ const fetchBalances = () => {
   const updateShieldedBalances = (response) => {
     // Update ERC20 shielded balances
     erc20Addresses.forEach(address => {
+      if (response.balances.balances[address] === "-1") {
+        // remove this element
+        console.log('errror', 'token nao existe', address);
+        window.alert(`Token informado ${address} não existe`);
+        $(`.shielded-balance[data-address='${address}']`).parent().remove()
+        return
+      }
       const balance = parseFloat(response.balances.balances[address] || 0).toFixed(2)
       $(`.shielded-balance[data-address='${address}']`).text(balance)
     })
@@ -86,14 +89,25 @@ const fetchBalances = () => {
     const erc1155Balances = response.balances.tokenOwners
     Object.keys(erc1155Balances).forEach((key) => {
       const balance = parseFloat(erc1155Balances[key]).toFixed(2)
-      $('#tokenAddressList').append(generateTokenAddressHTML(key, 'erc1155', balance, '-'))
+      if ($(`.shielded-balance[data-address='${key}']`).length === 0) {
+        $('#tokenAddressList').append(generateTokenAddressHTML(key, 'erc1155', balance, '-'))
+      } else {
+        $(`.shielded-balance[data-address='${key}']`).text(balance)
+      }
     })
   }
 
   const updatePublicBalances = (response) => {
     // Update ERC20 public balances
     erc20Addresses.forEach(address => {
-      const balance = ethers.utils.formatUnits(response.balances[address] || 0, 2)
+      if (response.balances.balances[address] === "-1") {
+        // remove this element
+        console.log('errror', 'token nao existe', address);
+        window.alert(`Token informado ${address} não existe`);
+        $(`.public-balance[data-address='${address}']`).parent().remove()
+        return
+      }
+      const balance = ethers.utils.formatUnits(response.balances.balances[address] || 0, 2)
       $(`.public-balance[data-address='${address}']`).text(balance)
     })
 
@@ -101,7 +115,11 @@ const fetchBalances = () => {
     const erc1155Balances = response.balances.tokenOwners
     Object.keys(erc1155Balances).forEach((key) => {
       const balance = parseFloat(erc1155Balances[key]).toFixed(2)
-      $('#tokenAddressList').append(generateTokenAddressHTML(key, 'erc1155', balance, '-'))
+      if ($(`.public-balance[data-address='${key}']`).length === 0) {
+        $('#tokenAddressList').append(generateTokenAddressHTML(key, 'erc1155', '-', balance))
+      } else {
+        $(`.public-balance[data-address='${key}']`).text(balance)
+      }
     })
   }
 
@@ -127,7 +145,6 @@ $(document).on('click', '#addTokenAddress', () => {
     tokenAddresses.push({ address, type: 'erc20' })
     updateTokenAddressList()
     fetchBalances()
-    saveTokenAddressesToLocalStorage()
   }
 })
 
@@ -137,7 +154,6 @@ $(document).on('click', '.removeTokenAddress', function () {
   tokenAddresses = tokenAddresses.filter(addr => addr.address !== address)
   updateTokenAddressList()
   fetchBalances()
-  saveTokenAddressesToLocalStorage()
 })
 
 const initializeEnvironment = async () => {
@@ -178,35 +194,18 @@ const generateInfoTableRow = (key, value) => `
   const currentBank = response.ownAddress
 
   const isBesu = !window.location.href.includes(':300')
-  const balanceERC20TestAddress = isBesu ? '0x94e739DB09F76F5Aa80E282eC6c4dD7dDb529ea1' : '0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e'
 
   let mode = 'erc20'
   let modeTo = 'ToErc1155'
 
   const initialAddresses = [
     { address: response.tokens.ERC20, type: 'erc20' },
-    { address: balanceERC20TestAddress, type: 'erc20' },
     { address: response.tokens.ERC1155, type: 'erc1155' }
   ]
 
-  // Load token addresses from local storage
-  const storedAddresses = localStorage.getItem('tokenAddresses')
-  if (storedAddresses) {
-    const storedArray = JSON.parse(storedAddresses)
-    // Merge the initial addresses with the stored addresses, ensuring no duplicates
-    const addressMap = new Map()
-    // Add initial addresses to the map
-    initialAddresses.forEach(addr => addressMap.set(addr.address, addr))
-    // Add stored addresses to the map, overriding duplicates
-    storedArray.forEach(addr => addressMap.set(addr.address, addr))
-    // Convert the map back to an array
-    const allAddresses = Array.from(addressMap.values())
-    initializeTokenAddresses(allAddresses)
-  } else {
-    initializeTokenAddresses(initialAddresses)
-  }
+  initializeTokenAddresses(initialAddresses)
 
-  function showHideFields () {
+  function showHideFields() {
     const modeCombined = mode + modeTo
 
     const fieldConfig = {
@@ -228,7 +227,7 @@ const generateInfoTableRow = (key, value) => `
       }
     }
 
-    function applyClasses (fieldArray, action) {
+    function applyClasses(fieldArray, action) {
       fieldArray.forEach(selector => {
         $(selector)[action]('hidden')
       })
@@ -287,7 +286,7 @@ const generateInfoTableRow = (key, value) => `
 
     $.ajax({
       type: 'GET',
-      url: `/parsedCommitment?erc20Address[]=${response.tokens.ERC20}&erc20Address[]=${balanceERC20TestAddress}&erc1155TokenIds[]=1&erc1155TokenIds[]=2`,
+      url: `/parsedCommitment?erc20Address[]=${response.tokens.ERC20}&erc1155TokenIds[]=1&erc1155TokenIds[]=2`,
       contentType: 'application/json',
       success: function (response) {
         $('#commitmentsTable').empty()
@@ -576,7 +575,7 @@ const generateInfoTableRow = (key, value) => `
         amountSent: parseFloat($('#amountSent').val()),
         tokenIdReceived: parseFloat
 
-        ($('#tokenIdReceived').val()),
+          ($('#tokenIdReceived').val()),
         tokenReceivedAmount: parseFloat($('#tokenReceivedAmount').val())
       }
 

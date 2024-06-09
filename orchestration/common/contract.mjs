@@ -15,6 +15,11 @@ const web3 = Web3.connection()
 const { generalise } = GN
 const keyDb = '/app/orchestration/common/db/key.json'
 
+var CacheContractInterface = new Map()
+var CacheContractAddress = new Map()
+var CacheContractMetadata = new Map()
+var CacheContractInstance = new Map()
+
 export const contractPath = (contractName) => {
   return `/app/build/contracts/${contractName}.json`
 }
@@ -22,23 +27,33 @@ export const contractPath = (contractName) => {
 const { options } = config.web3
 
 export async function getContractInterface (contractName) {
+  if (CacheContractInterface.has(contractName)) {
+    return CacheContractInterface.get(contractName)
+  }
   const path = contractPath(contractName)
   const contractInterface = JSON.parse(fs.readFileSync(path, 'utf8'))
   // logger.debug('\ncontractInterface:', contractInterface);
+  CacheContractInterface.set(contractName, contractInterface)
   return contractInterface
 }
 
 export async function getContractAddress (contractName) {
+  if (CacheContractAddress.has(contractName)) {
+    return CacheContractAddress.get(contractName)
+  }
   const contractMetadata = await getContractMetadata(contractName)
-
   logger.silly('deployed address:', contractMetadata.address)
+  CacheContractAddress.set(contractName, contractMetadata.address)
   return contractMetadata.address
 }
 
 export async function getContractMetadata (contractName) {
+  if (CacheContractMetadata.has(contractName)) {
+    return CacheContractMetadata.get(contractName)
+  }
   let contractMetadata
   let errorCount = 0
-  console.log('contract', 'getContractAddress', 'trying to get the contract:', contractName, ' address')
+  console.log('contract', 'getContractMetadata', 'trying to get the contract:', contractName, ' address')
 
   if (!contractMetadata) {
     while (errorCount < 25) {
@@ -59,17 +74,21 @@ export async function getContractMetadata (contractName) {
         if (contractMetadata) break
       } catch (err) {
         errorCount++
-        console.error('contract', 'getContractAddress', 'Unable to get a contract address: ', err.message)
-        logger.warn('contract', 'getContractAddress', 'Orchestrator will try again in 5 seconds')
+        console.error('contract', 'getContractMetadata', 'Unable to get a contract address: ', err.message)
+        logger.warn('contract', 'getContractMetadata', 'Orchestrator will try again in 5 seconds')
         await new Promise((resolve) => setTimeout(() => resolve(), 5000))
       }
     }
   }
+  CacheContractMetadata.set(contractName, contractMetadata)
   return contractMetadata
 }
 
 // returns a web3 contract instance
 export async function getContractInstance (contractName, deployedAddress) {
+  if (CacheContractInstance.has(contractName)) {
+    return CacheContractInstance.get(contractName)
+  }
   const contractInterface = await getContractInterface(contractName)
   if (!deployedAddress) {
     // eslint-disable-next-line no-param-reassign
@@ -81,45 +100,8 @@ export async function getContractInstance (contractName, deployedAddress) {
     : new web3.eth.Contract(contractInterface.abi, null, options)
   // logger.silly('\ncontractInstance:', contractInstance);
   logger.info(`${contractName} Address: ${deployedAddress}`)
-
+  CacheContractInstance.set(contractName, contractInstance)
   return contractInstance
-}
-
-export async function getContractBytecode (contractName) {
-  const contractInterface = await getContractInterface(contractName)
-  return contractInterface.evm.bytecode.object
-}
-
-export async function deploy (
-  userAddress,
-  userAddressPassword,
-  contractName,
-  constructorParams
-) {
-  logger.info(`\nUnlocking account ${userAddress}...`)
-  await web3.eth.personal.unlockAccount(userAddress, userAddressPassword, 1)
-
-  const contractInstance = await getContractInstance(contractName) // get a web3 contract instance of the contract
-  const bytecode = await getContractBytecode(contractName)
-
-  const deployedContractAddress = await contractInstance
-    .deploy({ data: `0x${bytecode}`, arguments: constructorParams })
-    .send({
-      from: userAddress,
-      gas: config.web3.options.defaultGas
-    })
-    .on('error', (err) => {
-      throw new Error(err)
-    })
-    .then((deployedContractInstance) => {
-      // logger.silly('deployed contract instance:', deployedContractInstance);
-      logger.info(
-        `${contractName} contract deployed at address ${deployedContractInstance.options.address}`
-      ) // instance with the new contract address
-
-      return deployedContractInstance.options.address
-    })
-  return deployedContractAddress
 }
 
 async function registerKeyOnChain (contractName, publicKey, walletAddress) {

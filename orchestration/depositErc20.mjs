@@ -71,9 +71,8 @@ export class DepositErc20Manager {
     )
 
     // Read dbs for keys and previous commitment values:
-
-    await registerKey(utils.randomHex(31), 'SwapShield', true)
-    const keys = JSON.parse(
+    if (!fs.existsSync(keyDb)) { await registerKey(utils.randomHex(31), 'SwapShield', true) }
+    let keys = JSON.parse(
       fs.readFileSync(keyDb, 'utf-8', (err) => {
         console.log(err)
       })
