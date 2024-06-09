@@ -1,9 +1,10 @@
 /* eslint-disable camelcase, prefer-const, no-unused-vars */
 import fs from 'fs'
 import GN from 'general-number'
+import utils from 'zkp-utils'
 import config from 'config'
 import { decodeCommitmentData, decryptBackupDataWithKeys } from './common/backupData.mjs'
-import { getContractInstance, getContractMetadata } from './common/contract.mjs'
+import { getContractInstance, getContractMetadata, registerKey } from './common/contract.mjs'
 import { formatCommitment, persistCommitment } from './common/commitment-storage.mjs'
 const { generalise } = GN
 
