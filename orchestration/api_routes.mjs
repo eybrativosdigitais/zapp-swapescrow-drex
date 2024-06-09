@@ -104,7 +104,7 @@ export class Router {
     router.get('/shielded-balance', service_shieldedBalance)
     router.get('/swap', service_getSwaps)
     router.get('/stats', service_stats)
-    router.get('/healthcheck', service_stats)
+    router.get('/healthcheck', (req, res) => res.status(200).send({status: 'ok'}))
 
     return router
   }
