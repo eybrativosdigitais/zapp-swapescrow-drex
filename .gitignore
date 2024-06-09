@@ -25,3 +25,5 @@ go.work
 node_modules/
 starlight-utils/node_modules/
 starlight-utils/dist/
+
+docker-compose.yml
