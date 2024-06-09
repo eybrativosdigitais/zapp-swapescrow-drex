@@ -80,8 +80,6 @@ export class DepositErc20Manager {
     const secretKey = generalise(keys.secretKey)
     const publicKey = generalise(keys.publicKey)
 
-    console.log('keys', keys)
-
     // read preimage for incremented state
     balances_msgSender_erc20Address_newOwnerPublicKey =
       _balances_msgSender_erc20Address_newOwnerPublicKey === 0
