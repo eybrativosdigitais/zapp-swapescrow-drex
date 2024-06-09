@@ -29,6 +29,7 @@ services:
       MONGO_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}
       MONGO_NAME: zapp_db
       TIMBER_URL: http://timber
+    restart: on-failure
     networks:
       - zapp_network
 

@@ -32,6 +32,7 @@ services:
       MONGO_URL: mongodb://admin:admin@zapp-mongo:27017
       MONGO_NAME: zapp_db
       TIMBER_URL: http://timber
+    restart: on-failure
     networks:
       - zapp_network
 
