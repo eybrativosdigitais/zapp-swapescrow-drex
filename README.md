@@ -72,8 +72,8 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
    * Senha do mongo externo: MONGO_PASSWORD
 
 5) Crie o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.external-db-using-image.yml docker-compose.yml`
-6) `chmod +x ./bin/startup.sh`
-7) `./bin/startup.sh`
+6) `chmod +x ./startup.sh`
+7) `./startup.sh`
 8) Verificar se todos os containers estão up: `docker ps`. O log deverá ser semelhante ao abaixo:
 
  | CONTAINER ID | IMAGE                                                 | COMMAND                  | CREATED     | STATUS   | PORTS                                       | NAMES                             |
