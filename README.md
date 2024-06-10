@@ -117,7 +117,7 @@ Para configurar o Postman, siga os passos abaixo:
 * Importe o arquivo [SwapEscrow.postman_collection.json](SwapEscrow.postman_collection) no [Postman](https://www.postman.com/downloads/).
 * Dentro do Postman, clique no nome da pasta e defina as seguintes propriedades na aba variáveis:
 * * `bank_a_zapp`: Servidor onde está rodando a aplicação, o valor default é `http://localhost:3000`)
-* * `swapShield_address`: Endereço do contrato de SwapShield na rede Besu, o valor default é `0x79dEf25c56d2F980dE1e8fAB77b22846fd7Ae557` 
+* * `swapShield_address`: Endereço do contrato de SwapShield na rede DREX
 * * `accountBankA`: `` Preencher com conta Ethereum do participante que será utilizada para o teste)
 * * `accountBankB`: `` O endereço do banco que irá propor uma troca
 * * `erc_1155_address`: `` Endereço do contrato do TPFt na rede Besu
