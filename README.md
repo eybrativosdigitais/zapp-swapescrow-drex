@@ -26,8 +26,6 @@ Para o Piloto serão implementados os seguintes cenários:
 
 As próximas seções fornecerão uma visão da estrutura da solução, seguida de um guia passo a passo elaborado para a execução dos cenários de teste.
 
-<br />
-
 # Estrutura do Starlight
 
 Todas as interações com as aplicações Starlight são realizadas através do cliente ZApp, que opera localmente em cada nó da rede. Cada aplicação Zapp é constituída pelos seguintes serviços:
@@ -85,8 +83,6 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 
 1) Exibir os logs: `docker compose logs -f -n 1000 timber zapp zokrates`
 2) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha aconteido algum erro, vá até a seção [Erros comuns](#./ProblemasComuns.md) checar se há alguma solução já conhecida.
-
-<br />
 
 #### 1.1.1) Observações
 
