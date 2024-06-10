@@ -89,7 +89,10 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 
 * Alterar as configurações do seu nó Besu, aumentando ou desabilitando o limite RPC para logs (parâmetro (RPC-MAX-LOGS-RANGE)[https://besu.hyperledger.org/23.4.0/public-networks/reference/cli/options#rpc-max-logs-range]) (necessário para o correto funcionamento do Timber)
 
-<br />
+* Caso a sua URL do seu Mongo não siga o padrão HOST e PORT que está no MONGO_URL do zapp no docker-compose.yml (Por exemplo, se você estiver rodando via Mongo Atlas), você pode alterar o arquivo `docker-compose.yml` para adicionar a URL completa em 3 locais: 
+1) MONGO_URL do zapp
+2) MONGO_HOST do timber
+3) DB_URL do timber
 
 ### 2 - Permissões dos contratos
 
