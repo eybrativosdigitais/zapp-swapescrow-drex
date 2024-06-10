@@ -6,8 +6,9 @@
       - [1.1.1) Observações](#111-observações)
     - [2 - Permissões dos contratos](#2---permissões-dos-contratos)
     - [3 - Configurar scripts](#3---configurar-scripts)
-      - [3.1 - Configurar scripts - Postman (Recomendado)](#31---configurar-scripts---postman-recomendado)
-    - [4 - Consultar Status](#4---consultar-status)
+      - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
+      - [3.2 - Configurar scripts - via Postman (StepByStep)](#32---configurar-scripts---via-postman-stepbystep)
+    - [4 - Consultar de informações da aplicações](#4---consultar-de-informações-da-aplicações)
     - [5 - Configuração inicial alternativa](#5---configuração-inicial-alternativa)
       - [5.1) Configuração tipo 2 (Criando a imagem localmente)](#51-configuração-tipo-2-criando-a-imagem-localmente)
       - [5.2) Configuração tipo 3 (Hospedando Mongo localmente)](#52-configuração-tipo-3-hospedando-mongo-localmente)
@@ -71,9 +72,9 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
    * Senha do mongo externo: MONGO_PASSWORD
 
 5) Crie o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.external-db-using-image.yml docker-compose.yml`
-5) `chmod +x ./bin/startup.sh`
-6) `./bin/startup.sh`
-7) Verificar se todos os containers estão up: `docker ps`. O log deverá ser semelhante ao abaixo:
+6) `chmod +x ./bin/startup.sh`
+7) `./bin/startup.sh`
+8) Verificar se todos os containers estão up: `docker ps`. O log deverá ser semelhante ao abaixo:
 
  | CONTAINER ID | IMAGE                                                 | COMMAND                  | CREATED     | STATUS   | PORTS                                       | NAMES                             |
 |--------------|-------------------------------------------------------|--------------------------|-------------|----------|---------------------------------------------|-----------------------------------|
@@ -104,26 +105,60 @@ Isso requer a autorização do contrato **SwapShield** para duas ações:
 
 Nesta etapa configurar um formato de interação com os contratos. O foco será a interação via Postman, mas também é possível interagir via frontend da aplicação ou cURL. Você pode checar essas outras formas de interação na seção [Interações alternativas](#).
 
-#### 3.1 - Configurar scripts - Postman (Recomendado)
+#### 3.1 - Configurar scripts - via Postman
 
-* Importe o arquivo [SwapEscrowStepByStep.postman_collection.json](SwapEscrowStepByStep.postman_collection) no [Postman](https://www.postman.com/downloads/).
-* Dentro do Postman, clique no nome da pasta e defina as seguintes variáveis:
-* * `host`: `http://localhost:3000` (servidor onde está rodando o cliente, o valor default é `http://localhost:3000`)
-* * `SwapShield`: `0xf3cBfC5c2d71CdB931B004b3B5Ca4ABEdbA3Cd43` (endereço do contrato de escrow na rede)
-* * `account`: `` (preencher com conta Ethereum do participante que será utilizada para o teste)
-* * `counterParty`: O endereço do banco que irá propor uma troca
+Existem duas coleções do Postman na raiz do projeto. Na coleção StepByStep, encontram-se as sequências padrão de interação com os contratos. Na coleção SwapEscrow.postman_collection.json, há rotas adicionais para depuração da aplicação.
 
-### 4 - Consultar Status
+Para configurar o Postman, siga os passos abaixo:
 
-Na aplicação, há um frontend com rotas para consultar o status dos contratos. Para acessar, basta acessar o endereço `http://localhost:3000` no navegador. Neste frontend, é possível consultar o status dos contratos, os *commitments* e os balanços privados (ou também chamados de shielded) do seu endereço. Para isso, você pode ir nas páginas "Info", "Balanços" e "Commitments".
+* Importe o arquivo [SwapEscrow.postman_collection.json](SwapEscrow.postman_collection) no [Postman](https://www.postman.com/downloads/).
+* Dentro do Postman, clique no nome da pasta e defina as seguintes propriedades na aba variáveis:
+* * `bank_a_zapp`: Servidor onde está rodando a aplicação, o valor default é `http://localhost:3000`)
+* * `swapShield_address`: Endereço do contrato de SwapShield na rede Besu, o valor default é `0x79dEf25c56d2F980dE1e8fAB77b22846fd7Ae557` 
+* * `accountBankA`: `` Preencher com conta Ethereum do participante que será utilizada para o teste)
+* * `accountBankB`: `` O endereço do banco que irá propor uma troca
+* * `erc_1155_address`: `` Endereço do contrato do TPFt na rede Besu
+* * `erc_20_address`: `` Endereço do contrato de real tokenizado utilizado na troca na rede Besu
+* * `erc_20_address_test`: `` Endereço de outro contrato de real tokenizado utilizado na troca na rede Besu
+* * `bank_b_zapp`: *Campo não obrigatório* - Servidor onde está rodando a aplicação de sua contra-parte o valor default é `http://localhost:3003`. Este campo é útil caso esteja testando entre dois bancos próprios.
 
+<p align="center">
+  <img src="https://starlight-readme.s3.amazonaws.com/postman-config.png" alt="Configuração Postman"/>
+</p>
+
+#### 3.2 - Configurar scripts - via Postman (StepByStep)
+
+A coleção StepByStep já contém pastas com os passos específicos dos testes do piloto. Será necessário a configuração de mesmas variáveis do passo anterior para que os scripts funcionem corretamente. Para isso, repita o processo de configuração de variáveis descrito na seção [Configurar scripts - via Postman](#31---configurar-scripts---via-postman).
+
+### 4 - Consultar de informações da aplicações
+
+Na aplicação, há um frontend com rotas para consultar o status da aplicação. Para acessar, basta acessar o endereço `http://<endpoint_da_aplicação>:3000` no navegador. Neste frontend, é possível consultar o *status da aplicação*, os *commitments* e os *balanços privados* (ou também chamados de shielded) do seu endereço. Para isso, você pode ir nas páginas "Info", "Balanços" e "Commitments".
+
+<p align="center">
+  <img src="https://starlight-readme.s3.amazonaws.com/starlight-frontend.png" alt="Frontend - Info"/>
+</p>
 
 ### 5 - Configuração inicial alternativa
 
+Nesta etapa será apresentado duas formas alternativas de configuração inicial do sistema. A primeira é a criação da imagem localmente e a segunda é a hospedagem do Mongo localmente.
+
 #### 5.1) Configuração tipo 2 (Criando a imagem localmente)
 
+Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tipo-1-recomendado). O único passo que haveŕa diferença é o passo 5, onde será necessário criar o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.external-db-using-dockerfile.yml docker-compose.yml`.
+
 #### 5.2) Configuração tipo 3 (Hospedando Mongo localmente)
+
+Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tipo-1-recomendado). O único passo que haveŕa diferença é o passo 5, onde será necessário criar o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.unsafe-local-db-using-dockerfile docker-compose.yml`.
+
+> *Observação: A configuração tipo 3 não é recomendada para ambientes de produção, pois o Mongo será apagado toda vez que o container for reiniciado. Apesar de a aplicação ter um mecanismo de recuperação de dados, isso poderá gerar erros ou complicações para a aplicação.*
 
 ### 6 - Interação com contratos alternativa
 
 #### 6.1 - Interação via frontend
+
+A aplicação possui um frontend que permite a interação com os contratos. Para acessar, basta acessar o endereço `http://<endereço_da_aplicação>:3000` no navegador. Neste frontend, é possível realizar todos os passos de interação com os contratos que estão disponíveis nas rotas do Postman. Para isso, você pode começar pela tela de Depósito da aplicação. 
+
+Na seção já foi coberta [Consultar de informações da aplicações](#4---consultar-de-informações-da-aplicações) as informações que podem ser consultadas no frontend.
+
+
+
