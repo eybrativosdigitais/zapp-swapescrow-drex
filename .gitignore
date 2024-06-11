@@ -27,3 +27,5 @@ starlight-utils/node_modules/
 starlight-utils/dist/
 
 docker-compose.yml
+
+orchestration/common/db/key.json 
