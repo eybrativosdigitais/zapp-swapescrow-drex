@@ -8,11 +8,11 @@
     - [3 - Configurar scripts](#3---configurar-scripts)
       - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
       - [3.2 - Configurar scripts - via Postman (StepByStep)](#32---configurar-scripts---via-postman-stepbystep)
-    - [4 - Consultar de informações da aplicações](#4---consultar-de-informações-da-aplicações)
+    - [4 - Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações)
     - [5 - Configuração inicial alternativa](#5---configuração-inicial-alternativa)
       - [5.1) Configuração tipo 2 (Criando a imagem localmente)](#51-configuração-tipo-2-criando-a-imagem-localmente)
       - [5.2) Configuração tipo 3 (Hospedando Mongo localmente)](#52-configuração-tipo-3-hospedando-mongo-localmente)
-    - [6 - Interação com contratos alternativa](#6---interação-com-contratos-alternativa)
+    - [6 - Interação com contratos de forma alternativa](#6---interação-com-contratos-de-forma-alternativa)
       - [6.1 - Interação via frontend](#61---interação-via-frontend)
 
 # Starlight
@@ -83,7 +83,7 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 | b7b53b8b0a63 | ghcr.io/eyblockchain/zokrates-worker-updated:latest   | "/bin/sh -c 'npm sta…"   | 4 days ago  | Up 4 days| 0.0.0.0:8080->80/tcp, :::8080->80/tcp       | zapp-swapescrow-zokrates-1        |
 
 1) Exibir os logs: `docker compose logs -f -n 1000 timber zapp zokrates`
-2) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha aconteido algum erro, vá até a seção [Erros comuns](#./ProblemasComuns.md) checar se há alguma solução já conhecida.
+2) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha acontecido algum erro, vá até a seção [Erros comuns](./ProblemasComuns.md) checar se há alguma solução já conhecida.
 
 #### 1.1.1) Observações
 
@@ -102,8 +102,6 @@ Isso requer a autorização do contrato **SwapShield** para duas ações:
 -  a) Retirar o Real Digital da carteira Ethereum do participante. É feito por meio do **approve** do valor no contrato de Real Digital. O endereço do contrato de SwapShield que necessita autorização está especificado na seção [Endereços](#).
 -  b) Retirar os Títulos Públicos Federais tokenizados (TPFt) da carteira Ethereum do participante. É feito por meio do **setApprovalForAll**. O endereço do contrato de SwapShield que necessita autorização está especificado na seção [Endereços](#).
 
-<br />
-
 ### 3 - Configurar scripts
 
 Nesta etapa configurar um formato de interação com os contratos. O foco será a interação via Postman, mas também é possível interagir via frontend da aplicação ou cURL. Você pode checar essas outras formas de interação na seção [Interações alternativas](#).
@@ -114,7 +112,7 @@ Existem duas coleções do Postman na raiz do projeto. Na coleção StepByStep, 
 
 Para configurar o Postman, siga os passos abaixo:
 
-* Importe o arquivo [SwapEscrow.postman_collection.json](SwapEscrow.postman_collection) no [Postman](https://www.postman.com/downloads/).
+* Importe o arquivo [./SwapEscrow.postman_collection.json](SwapEscrow.postman_collection) no [Postman](https://www.postman.com/downloads/).
 * Dentro do Postman, clique no nome da pasta e defina as seguintes propriedades na aba variáveis:
 * * `bank_a_zapp`: Servidor onde está rodando a aplicação, o valor default é `http://localhost:3000`)
 * * `swapShield_address`: Endereço do contrato de SwapShield na rede DREX
@@ -133,7 +131,7 @@ Para configurar o Postman, siga os passos abaixo:
 
 A coleção StepByStep já contém pastas com os passos específicos dos testes do piloto. Será necessário a configuração de mesmas variáveis do passo anterior para que os scripts funcionem corretamente. Para isso, repita o processo de configuração de variáveis descrito na seção [Configurar scripts - via Postman](#31---configurar-scripts---via-postman).
 
-### 4 - Consultar de informações da aplicações
+### 4 - Consulta de informações das aplicações
 
 Na aplicação, há um frontend com rotas para consultar o status da aplicação. Para acessar, basta acessar o endereço `http://<endpoint_da_aplicação>:3000` no navegador. Neste frontend, é possível consultar o *status da aplicação*, os *commitments* e os *balanços privados* (ou também chamados de shielded) do seu endereço. Para isso, você pode ir nas páginas "Info", "Balanços" e "Commitments".
 
@@ -155,7 +153,7 @@ Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tip
 
 > *Observação: A configuração tipo 3 não é recomendada para ambientes de produção, pois o Mongo será apagado toda vez que o container for reiniciado. Apesar de a aplicação ter um mecanismo de recuperação de dados, isso poderá gerar erros ou complicações para a aplicação.*
 
-### 6 - Interação com contratos alternativa
+### 6 - Interação com contratos de forma alternativa
 
 #### 6.1 - Interação via frontend
 
