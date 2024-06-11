@@ -24,7 +24,7 @@ export class EncryptedDataEventListener {
       const contractAddr = contractMetadata.address
       console.log('encrypted-data-listener', 'init', 'Contract Address --------->', contractAddr)
 
-      if (!fs.existsSync(keyDb)) { await registerKey(utils.randomHex(31), 'SwapShield', true) }
+      await registerKey(utils.randomHex(31), 'SwapShield', true)
 
       const { secretKey, publicKey, sharedSecretKey, sharedPublicKey } = JSON.parse(
         fs.readFileSync(keyDb)

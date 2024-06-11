@@ -24,6 +24,7 @@
       background-attachment: fixed;
     } */
   </style>
+
 </head>
 
 <body>
@@ -134,8 +135,26 @@
       </header>
       <div class="w-screen flex items-center justify-center mt-[180px] md:mt-[140px] md:p-0 p-6">
         <div class="w-[40rem] rounded-2xl bg-white p-4 shadow-lg">
-          <div class="flex flex-col items-center justify-center  px-2 text-xl font-semibold text-gray-900">
+          <!-- <div class="flex flex-col items-center justify-center  px-2 text-xl font-semibold text-gray-900">
             Swap Token
+          </div> -->
+          <!-- Tabs Navigation -->
+          <div class="mt-4">
+            <ul class="flex border-b justify-center">
+              <li class="-mb-px mr-1">
+                <a class="tab-link inline-block border-l border-t border-r rounded-t py-2 px-4 text-blue-700 font-semibold hover:bg-blue-800 hover:text-white hover:border-blue-500 transition-all duration-300 ease-in-out"
+                  href="#formTab" id="formTabLink">Swap token</a>
+              </li>
+              <li class="mr-1">
+                <a class="tab-link inline-block py-2 px-4 text-blue-500 hover:text-white hover:bg-blue-800 hover:border-blue-500 font-semibold transition-all duration-300 ease-in-out"
+                  href="#tableTab" id="tableTabLink">Histórico de swaps</a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Tabs Content -->
+          <div id="formTabContent">
+            <br />
             <div class="mt-4 flex w-full items-center gap-10 justify-center">
               <div class="flex flex-col justify-center items-center gap-2 text-sm font-normal">
                 Enviando
@@ -168,120 +187,107 @@
                 </div>
               </div>
             </div>
-          </div>
-          <!-- Switch component for ERC20 and ERC1155 -->
-          <!-- Counter Party
-                  Amount Received
-                  Token ID Sent
-                  Token Sent Amount -->
-          <br /><br />
-          <form>
-            <label for="swapTokenAddress" class="text-gray-600" id="labelSwapTokenAddress">Endereço do token</label>
-            <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="swapTokenAddressInput">
-              <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                placeholder="Endereço do token" id="swapTokenAddress" />
-            </div>
-
-            <label for="erc20AddressReceived" class="text-gray-600" id="labelErc20AddressReceived">Endereço do ERC20
-              Test token</label>
-            <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="erc20AddressReceivedInput">
-              <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                placeholder="Endereço do token" id="erc20AddressReceived" />
-            </div>
-
-            <label for="counterParty" class="text-gray-600" id="labelCounterParty">Endereço Destinatário</label>
-            <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="counterPartyInput">
-              <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                placeholder="Endereço Destinatário" id="counterParty" />
-            </div>
-
-            <label for="amountSent" class="text-gray-600" id="labelAmountSent">Quantidade para enviar</label>
-            <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="amountSentInput">
-              <input type="text" class="money w-full bg-transparent text-2xl text-gray-900 outline-none"
-                placeholder="Quantidade para enviar" id="amountSent" />
-            </div>
-
-            <label for="tokenIdSent" class="text-gray-600" id="labelTokenIdSent">ID Do Token para enviar</label>
-            <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdSentInput">
-              <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                placeholder="ID Do Token para enviar" id="tokenIdSent" />
-            </div>
-
-            <label for="tokenIdSentAmount" class="text-gray-600" id="labelTokenIdSentAmount">Quantidade de tokens para
-              enviar</label>
-            <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdSentAmountInput">
-              <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                placeholder="Quantidade de tokens para enviar" id="tokenIdSentAmount" />
-            </div>
-
-            <label for="tokenIdReceived" class="text-gray-600" id="labelTokenIdReceived">ID Do Token para
-              receber</label>
-            <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdReceivedInput">
-              <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                placeholder="ID Do Token para receber" id="tokenIdReceived" />
-            </div>
-
-            <label for="tokenReceivedAmount" class="text-gray-600" id="labelTokenReceivedAmount">Quantidade de tokens a
-              receber</label>
-            <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenReceivedAmountInput">
-              <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                placeholder="Quantidade de tokens a receber" id="tokenReceivedAmount" />
-            </div>
-
-            <div
-              class="my-2 flex cursor-pointer items-center justify-center rounded-2xl bg-blue-500 px-8 py-6 text-xl font-semibold text-white"
-              id="startSwapButton">
-              <svg class="-ml-1 mr-3 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg"
-                fill="none" viewBox="0 0 24 24" id="isLoading">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-              </svg>
-              Iniciar Proposta de Swap
-            </div>
             <br />
-          </form>
+            <form>
+              <label for="swapTokenAddress" class="text-gray-600" id="labelSwapTokenAddress">Endereço do token</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="swapTokenAddressInput">
+                <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="Endereço do token" id="swapTokenAddress" />
+              </div>
 
-          <br />
-          <!-- INSERT TABLES HERE -->
-          <div class="mt-10 w-full ">
-            <!-- Filter by Status -->
-            <div class="mb-4 flex items-center justify-start">
-              <label for="statusFilter" class="mr-2 font-semibold text-gray-700">Filtrar pelo status:</label>
-              <select id="statusFilter" class="rounded-md border p-2">
-                <option value="">Todos</option>
-                <option value="Open">Abertos</option>
-                <option value="Completed">Completados</option>
-                <option value="Cancelled">Cancelados</option>
-              </select>
+              <label for="erc20AddressReceived" class="text-gray-600" id="labelErc20AddressReceived">Endereço do ERC20
+                Test token</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="erc20AddressReceivedInput">
+                <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="Endereço do token" id="erc20AddressReceived" />
+              </div>
+
+              <label for="counterParty" class="text-gray-600" id="labelCounterParty">Endereço Destinatário</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="counterPartyInput">
+                <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="Endereço Destinatário" id="counterParty" />
+              </div>
+
+              <label for="amountSent" class="text-gray-600" id="labelAmountSent">Quantidade para enviar</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="amountSentInput">
+                <input type="text" class="money w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="Quantidade para enviar" id="amountSent" />
+              </div>
+
+              <label for="tokenIdSent" class="text-gray-600" id="labelTokenIdSent">ID Do Token para enviar</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdSentInput">
+                <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="ID Do Token para enviar" id="tokenIdSent" />
+              </div>
+
+              <label for="tokenIdSentAmount" class="text-gray-600" id="labelTokenIdSentAmount">Quantidade de tokens para
+                enviar</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdSentAmountInput">
+                <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="Quantidade de tokens para enviar" id="tokenIdSentAmount" />
+              </div>
+
+              <label for="tokenIdReceived" class="text-gray-600" id="labelTokenIdReceived">ID Do Token para
+                receber</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdReceivedInput">
+                <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="ID Do Token para receber" id="tokenIdReceived" />
+              </div>
+
+              <label for="tokenReceivedAmount" class="text-gray-600" id="labelTokenReceivedAmount">Quantidade de tokens
+                a
+                receber</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenReceivedAmountInput">
+                <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="Quantidade de tokens a receber" id="tokenReceivedAmount" />
+              </div>
+
+              <div
+                class="my-2 flex cursor-pointer items-center justify-center rounded-2xl bg-blue-500 px-8 py-6 text-xl font-semibold text-white"
+                id="startSwapButton">
+                <svg class="-ml-1 mr-3 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg"
+                  fill="none" viewBox="0 0 24 24" id="isLoading">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                  </path>
+                </svg>
+                Iniciar Proposta de Swap
+              </div>
+              <br />
+            </form>
+          </div>
+
+          <div id="tableTabContent" class="hidden">
+            <!-- Table Content -->
+            <div class="mt-10 w-full ">
+              <!-- Filter by Status -->
+              <div class="mb-4 flex items-center justify-start">
+                <label for="statusFilter" class="mr-2 font-semibold text-gray-700">Filtrar pelo status:</label>
+                <select id="statusFilter" class="rounded-md border p-2">
+                  <option value="">Todos</option>
+                  <option value="Aberto">Abertos</option>
+                  <option value="Fechado">Fechados</option>
+                </select>
+              </div>
+
+              <table class="w-full caption-bottom text-sm">
+                <thead class="bg-gray-100">
+                  <tr class="border-b">
+                    <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Swap ID</th>
+                    <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Destinatário Swap</th>
+                    <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Emissor Swap</th>
+                    <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Estado</th>
+                    <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="swapTableBody">
+                  <!-- Data will be appended here -->
+                </tbody>
+              </table>
             </div>
-
-            <table class="w-full caption-bottom text-sm">
-              <thead class="bg-gray-100">
-                <tr class="border-b">
-                  <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Swap ID</th>
-                  <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Emissor Swap</th>
-                  <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Destinatário Swap</th>
-                  <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Estado</th>
-                  <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Ações</th>
-                </tr>
-              </thead>
-              <svg class="-ml-1 mr-3 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg"
-                fill="none" viewBox="0 0 24 24" id="isLoading">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                </path>
-              </svg>
-              <tbody id="swapTableBody">
-                <!-- Data will be appended here -->
-              </tbody>
-            </table>
           </div>
         </div>
-
-
       </div>
       <div class="h-full text-gray-800 w-screen flex-1 pt-14 flex items-end justify-end pb-12 overflow-scroll px-8">
         <!-- Additional content here -->
@@ -292,6 +298,55 @@
   <!-- jQuery AJAX Handling -->
   <script src="./utils.js"></script>
   <script src="./script.js"></script>
+  <script>
+    $(document).ready(function () {
+      // Handle click event for the "Swap token" tab link
+      $('#formTabLink').on('click', function (e) {
+        e.preventDefault();
+        // Add active class to the clicked tab link
+        // $(this).addClass('border-l border-t border-r rounded-t py-2 px-4 text-white bg-blue-800 font-semibold')
+        //   // Remove active class from sibling tab links
+        //   .siblings().removeClass('border-l border-t border-r rounded-t text-white bg-blue-800 py-2 px-4 text-blue-700 font-semibold')
+        //   .addClass('py-2 px-4 text-blue-500 hover:text-white-800 hover:bg-blue-800 font-semibold');
+        // // Show the form tab content and hide the table tab content
+        // $('#tableTabLink').remove('bg-blue-800 text-white').addClass('text-blue-700');
+
+        $('#tableTabLink').addClass('text-blue-700');
+        $('#tableTabLink').addClass('bg-white');
+        $('#tableTabLink').removeClass('bg-blue-800');
+        $('#tableTabLink').removeClass('text-white');
+        $('#formTabLink').removeClass('text-blue-700');
+        $('#formTabLink').removeClass('bg-white');
+        $(this).addClass('text-white bg-blue-800');
+
+        $('#formTabContent').removeClass('hidden');
+        $('#tableTabContent').addClass('hidden');
+      });
+
+      // Handle click event for the "Histórico de swaps" tab link
+      $('#tableTabLink').on('click', function (e) {
+        e.preventDefault();
+        // // Add active class to the clicked tab link
+        // $(this).addClass('border-l border-t border-r rounded-t py-2 px-4 text-white bg-blue-800 font-semibold')
+        //   // Remove active class from sibling tab links
+        //   .siblings().removeClass('border-l border-t border-r rounded-t py-2 text-white bg-blue-800 px-4 text-blue-700 font-semibold')
+        //   .addClass('py-2 px-4 text-blue-500 hover:text-white hover:bg-blue-800 font-semibold');
+        // // Show the table tab content and hide the form tab content
+        // $('#formTabLink').remove('bg-blue-800 text-white').addClass('text-blue-700');
+
+        $('#formTabLink').addClass('text-blue-700');
+        $('#formTabLink').addClass('bg-white');
+        $('#formTabLink').removeClass('bg-blue-800');
+        $('#formTabLink').removeClass('text-white');
+        $('#tableTabLink').removeClass('text-blue-700');
+        $('#tableTabLink').removeClass('bg-white');
+        $(this).addClass('text-white bg-blue-800');
+
+        $('#tableTabContent').removeClass('hidden');
+        $('#formTabContent').addClass('hidden');
+      });
+    });
+  </script>
 
 </body>
 

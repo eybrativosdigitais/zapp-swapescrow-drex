@@ -45,6 +45,7 @@ import { generalise } from 'general-number'
 import parseCommitments from './common/parseCommitments.js'
 import formatCommitments from './common/format-commitments.mjs'
 import { EncryptedDataEventListener } from './encrypted-data-listener.mjs'
+import { hasERC1155Balance, hasERC20Balance } from './common/validateBalance.mjs'
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 let leafIndex
@@ -122,7 +123,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -158,7 +159,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -175,6 +176,12 @@ export class ServiceManager {
       req.body.balances_msgSender_erc20Address_newOwnerPublicKey || 0
       const swapProposals_swapIdCounter_1_newOwnerPublicKey =
       req.body.swapProposals_swapIdCounter_1_newOwnerPublicKey || 0
+
+      if (!await hasERC20Balance(erc20Address, amountSent)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
       const { tx, encEvent, commitment } = await this.startSwapFromErc20ToErc1155.startSwapFromErc20ToErc1155(
         erc20Address,
         counterParty,
@@ -201,7 +208,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -218,6 +225,12 @@ export class ServiceManager {
       req.body.balances_msgSender_erc20AddressSent_newOwnerPublicKey || 0
       const swapProposals_swapIdCounter_2_newOwnerPublicKey =
       req.body.swapProposals_swapIdCounter_2_newOwnerPublicKey || 0
+
+      if (!await hasERC20Balance(erc20AddressSent, amountSent)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
       const { tx, encEvent, commitment } = await this.startSwapFromErc20ToErc20.startSwapFromErc20ToErc20(
         erc20AddressSent,
         erc20AddressReceived,
@@ -244,7 +257,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -261,6 +274,12 @@ export class ServiceManager {
       req.body.tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey || 0
       const swapProposals_swapIdCounter_3_newOwnerPublicKey =
       req.body.swapProposals_swapIdCounter_3_newOwnerPublicKey || 0
+
+      if (!await hasERC1155Balance(tokenIdSent, tokenSentAmount)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
       const { tx, encEvent, commitment } = await this.startSwapFromErc1155ToErc1155.startSwapFromErc1155ToErc1155(
         counterParty,
         tokenIdSent,
@@ -287,7 +306,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -304,6 +323,12 @@ export class ServiceManager {
       req.body.tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey || 0
       const swapProposals_swapIdCounter_4_newOwnerPublicKey =
       req.body.swapProposals_swapIdCounter_4_newOwnerPublicKey || 0
+
+      if (!await hasERC1155Balance(tokenIdSent, tokenSentAmount)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
       const { tx, encEvent, commitment } = await this.startSwapFromErc1155ToErc20.startSwapFromErc1155ToErc20(
         counterParty,
         tokenIdSent,
@@ -330,7 +355,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -347,6 +372,25 @@ export class ServiceManager {
       req.body.tokenOwners_msgSender_tokenIdSent_newOwnerPublicKey || 0
       const swapProposals_swapId_newOwnerPublicKey =
       req.body.swapProposals_swapId_newOwnerPublicKey || 0
+
+      const [swapCommitment] = await getCommitmentsWhere({
+        name: 'swapProposals',
+        'preimage.value.swapId': swapId.toString()
+      })
+
+      if (!swapCommitment) {
+        logger.warn(`Swap: "${swapId}" not found. Either it was not found or it was not synced yet.`)
+        return res.status(404).send('Not found.')
+      }
+
+      const tokenId = swapCommitment.preimage.value.swapTokenRecievedId
+      const swapAmount = swapCommitment.preimage.value.swapTokenRecievedAmount
+
+      if (!await hasERC1155Balance(tokenId, swapAmount)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
       const { tx, encEvent } = await this.completeSwapFromErc20ToErc1155.completeSwapFromErc20ToErc1155(
         swapId,
         balances_msgSender_erc20Address_newOwnerPublicKey,
@@ -371,7 +415,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -388,6 +432,24 @@ export class ServiceManager {
       req.body.tokenOwners_msgSender_tokenIdReceived_newOwnerPublicKey || 0
       const swapProposals_swapId_newOwnerPublicKey =
       req.body.swapProposals_swapId_newOwnerPublicKey || 0
+
+      const [swapCommitment] = await getCommitmentsWhere({
+        name: 'swapProposals',
+        'preimage.value.swapId': swapId.toString()
+      })
+
+      if (!swapCommitment) {
+        logger.warn(`Swap: "${swapId}" not found. Either it was not found or it was not synced yet.`)
+        return res.status(404).send('Not found.')
+      }
+      const erc20Address = generalise(swapCommitment.preimage.value.erc20AddressSent).hex()
+      const swapAmount = swapCommitment.preimage.value.swapAmountRecieved
+
+      if (!await hasERC20Balance(erc20Address, swapAmount)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
       const { tx, encEvent } = await this.completeSwapFromErc1155ToErc20.completeSwapFromErc1155ToErc20(
         swapId,
         balances_counterParty_erc20Address_newOwnerPublicKey,
@@ -412,7 +474,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -429,6 +491,25 @@ export class ServiceManager {
       req.body.balances_msgSender_erc20AddressReceived_newOwnerPublicKey || 0
       const swapProposals_swapId_newOwnerPublicKey =
       req.body.swapProposals_swapId_newOwnerPublicKey || 0
+
+      const [swapCommitment] = await getCommitmentsWhere({
+        name: 'swapProposals',
+        'preimage.value.swapId': swapId.toString()
+      })
+
+      if (!swapCommitment) {
+        logger.warn(`Swap: "${swapId}" not found. Either it was not found or it was not synced yet.`)
+        return res.status(404).send('Not found.')
+      }
+
+      const erc20Address = generalise(swapCommitment.preimage.value.erc20AddressRecieved).hex()
+      const swapAmount = swapCommitment.preimage.value.swapAmountRecieved
+
+      if (!await hasERC20Balance(erc20Address, swapAmount)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
       const { tx, encEvent } = await this.completeSwapFromErc20ToErc20.completeSwapFromErc20ToErc20(
         swapId,
         balances_counterParty_erc20AddressSent_newOwnerPublicKey,
@@ -453,7 +534,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -470,6 +551,25 @@ export class ServiceManager {
       req.body.tokenOwners_counterParty_tokenIdSent_newOwnerPublicKey || 0
       const swapProposals_swapId_newOwnerPublicKey =
       req.body.swapProposals_swapId_newOwnerPublicKey || 0
+
+      const [swapCommitment] = await getCommitmentsWhere({
+        name: 'swapProposals',
+        'preimage.value.swapId': swapId.toString()
+      })
+
+      if (!swapCommitment) {
+        logger.warn(`Swap: "${swapId}" not found. Either it was not found or it was not synced yet.`)
+        return res.status(404).send('Not found.')
+      }
+
+      const tokenId = swapCommitment.preimage.value.swapTokenRecievedId
+      const swapAmount = swapCommitment.preimage.value.swapTokenRecievedAmount
+
+      if (!await hasERC1155Balance(tokenId, swapAmount)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
       const { tx, encEvent } = await this.completeSwapFromErc1155ToErc1155.completeSwapFromErc1155ToErc1155(
         swapId,
         tokenOwners_msgSender_tokenIdReceived_newOwnerPublicKey,
@@ -494,7 +594,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -532,7 +632,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -566,7 +666,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -602,7 +702,7 @@ export class ServiceManager {
       await sleep(10)
     } catch (err) {
       logger.error(err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -613,7 +713,7 @@ export class ServiceManager {
       await this.backupData.performBackup()
     } catch (err) {
       logger.error('service_BackupData', err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 
@@ -621,10 +721,10 @@ export class ServiceManager {
     try {
       await startEventFilter('SwapShield')
       const backupData = await this.backupData.fetchBackupData()
-      res.send(backupData)
+      return res.send(backupData)
     } catch (err) {
       logger.error('service_ReadBackupData', err)
-      res.send({ errors: [err.message] })
+      return res.status(422).send({ errors: [err.message] })
     }
   }
 }
@@ -632,20 +732,19 @@ export class ServiceManager {
 export async function service_allCommitments (req, res, next) {
   try {
     const commitments = await getAllCommitments()
-    res.send({ commitments })
-    await sleep(10)
+    return res.send({ commitments })
   } catch (err) {
     logger.error(err)
-    res.send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 export async function service_getBalance (req, res, next) {
   try {
     const sum = await getBalance()
-    res.send({ ' Total Balance': sum })
+    return res.send({ ' Total Balance': sum })
   } catch (error) {
     console.error('Error in calculation :', error)
-    res.status(500).send({ error: error.message })
+    return res.status(500).send({ error: error.message })
   }
 }
 
@@ -653,10 +752,10 @@ export async function service_getBalanceByState (req, res, next) {
   try {
     const { name, mappingKey } = req.body
     const balance = await getBalanceByState(name, mappingKey)
-    res.send({ ' Total Balance': balance })
+    return res.send({ ' Total Balance': balance })
   } catch (error) {
     console.error('Error in calculation :', error)
-    res.status(500).send({ error: error.message })
+    return res.status(500).send({ error: error.message })
   }
 }
 
@@ -664,22 +763,20 @@ export async function service_getCommitmentsByState (req, res, next) {
   try {
     const { name, mappingKey } = req.body
     const commitments = await getCommitmentsByState(name, mappingKey)
-    res.send({ commitments })
-    await sleep(10)
+    return res.send({ commitments })
   } catch (err) {
     logger.error(err)
-    res.send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
 export async function service_reinstateNullifiers (req, res, next) {
   try {
     await reinstateNullifiers()
-    res.send('Complete')
-    await sleep(10)
+    return res.send('Complete')
   } catch (err) {
     logger.error(err)
-    res.send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -688,11 +785,10 @@ export async function service_getSharedKeys (req, res, next) {
     const { recipientAddress } = req.body
     const recipientPubKey = req.body.recipientPubKey || 0
     const SharedKeys = await getSharedSecretskeys(recipientAddress, recipientPubKey)
-    res.send({ SharedKeys })
-    await sleep(10)
+    return res.send({ SharedKeys })
   } catch (err) {
     logger.error(err)
-    res.send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -720,7 +816,7 @@ export async function service_timberProxy (req, res) {
     return res.status(response.status).send(response.data)
   } catch (err) {
     logger.error(err)
-    res.send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -739,7 +835,7 @@ export async function service_getZKPPublicKey (req, res, next) {
     return res.send({ address, publicKey })
   } catch (err) {
     logger.error(err)
-    res.status(400).send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -792,7 +888,7 @@ export async function service_verify (req, res, next) {
     return res.send({ result })
   } catch (err) {
     logger.error(err)
-    res.status(400).send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -872,7 +968,7 @@ export async function service_publicBalance (req, res, next) {
     })
   } catch (err) {
     logger.error(err)
-    res.status(400).send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -936,7 +1032,7 @@ export async function service_shieldedBalance (req, res, next) {
     })
   } catch (err) {
     logger.error(err)
-    res.status(400).send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -1006,7 +1102,7 @@ export async function service_getSwaps (req, res, next) {
     return res.send({ commitments: normalizedCommitments })
   } catch (err) {
     logger.error(err)
-    res.status(400).send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -1075,7 +1171,7 @@ export async function service_getParsedCommitments (req, res, next) {
     })
   } catch (err) {
     logger.error(err)
-    res.status(400).send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }
 
@@ -1125,6 +1221,6 @@ export async function service_stats (req, res, next) {
     })
   } catch (err) {
     logger.error(err)
-    res.status(400).send({ errors: [err.message] })
+    return res.status(422).send({ errors: [err.message] })
   }
 }

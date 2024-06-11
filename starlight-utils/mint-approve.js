@@ -5,7 +5,7 @@ const { program } = require('commander')
 const { ethers, NonceManager } = require('ethers')
 const ERC20_ABI = require('./ierc20.abi.json')
 const ERC1155_ABI = require('./erc1155.abi.json')
-const SWAPSHIELD_ABI = require('./swapshield.abi.json')
+const SWAPSHIELD_ABI = require('./swapescrow-shield.abi.json')
 
 const swapShieldAddress = process.env.STARLIGHT_ESCROWSHIELD_ADDRESS
 const erc20Address = process.env.STARLIGHT_ERC20X_ADDRESS

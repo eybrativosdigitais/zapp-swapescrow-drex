@@ -22,23 +22,14 @@ export default {
       }
     }
     console.log(`creating new connection to mongo: ${url}`)
-    // Check if we are connecting to MongoDb or DocumentDb
-    const { MONGO_CONNECTION_STRING = '' } = process.env
-    if (MONGO_CONNECTION_STRING !== '') {
-      const client = await new MongoClient(`${MONGO_CONNECTION_STRING}`, {
-        useUnifiedTopology: true
-      })
-      CacheMongoConnection = await client.connect()
-    } else {
-      const client = await new MongoClient(url, {
-        useUnifiedTopology: true,
-        connectTimeoutMS: 40000
-        // keepAlive: true,
-        // serverSelectionTimeoutMS: 30000,
-        // socketTimeoutMS: 360000,
-      })
-      CacheMongoConnection = await client.connect()
-    }
+    const client = new MongoClient(url, {
+      useUnifiedTopology: true,
+      connectTimeoutMS: 40000,
+      keepAlive: true
+      // serverSelectionTimeoutMS: 30000,
+      // socketTimeoutMS: 360000,
+    })
+    CacheMongoConnection = await client.connect()
     return CacheMongoConnection
   },
   async disconnect (url) {

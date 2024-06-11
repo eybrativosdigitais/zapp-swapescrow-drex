@@ -1,14 +1,19 @@
 [
   {
     "inputs": [
-      { "internalType": "address", "name": "verifierAddress", "type": "address" },
-      { "internalType": "uint256[][]", "name": "vk", "type": "uint256[][]" }
+      {
+        "internalType": "address",
+        "name": "verifierAddress",
+        "type": "address"
+      }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "nullifierId", "type": "uint256" }],
+    "inputs": [
+      { "internalType": "uint256", "name": "nullifierId", "type": "uint256" }
+    ],
     "name": "CommitmentNullified",
     "type": "error"
   },
@@ -26,8 +31,37 @@
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": false, "internalType": "uint256[]", "name": "cipherText", "type": "uint256[]" },
-      { "indexed": false, "internalType": "uint256[2]", "name": "ephPublicKey", "type": "uint256[2]" }
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "cipherText",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "BackupData",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "cipherText",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[2]",
+        "name": "ephPublicKey",
+        "type": "uint256[2]"
+      }
     ],
     "name": "EncryptedData",
     "type": "event"
@@ -35,9 +69,24 @@
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": false, "internalType": "uint256", "name": "leafIndex", "type": "uint256" },
-      { "indexed": false, "internalType": "uint256", "name": "leafValue", "type": "uint256" },
-      { "indexed": false, "internalType": "uint256", "name": "root", "type": "uint256" }
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "leafIndex",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "leafValue",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "root",
+        "type": "uint256"
+      }
     ],
     "name": "NewLeaf",
     "type": "event"
@@ -45,11 +94,39 @@
   {
     "anonymous": false,
     "inputs": [
-      { "indexed": false, "internalType": "uint256", "name": "minLeafIndex", "type": "uint256" },
-      { "indexed": false, "internalType": "uint256[]", "name": "leafValues", "type": "uint256[]" },
-      { "indexed": false, "internalType": "uint256", "name": "root", "type": "uint256" }
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "minLeafIndex",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "leafValues",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "root",
+        "type": "uint256"
+      }
     ],
     "name": "NewLeaves",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "nullifiers",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "Nullifiers",
     "type": "event"
   },
   {
@@ -58,7 +135,9 @@
       { "internalType": "uint256", "name": "in_k", "type": "uint256" }
     ],
     "name": "Encipher",
-    "outputs": [{ "internalType": "uint256", "name": "out_x", "type": "uint256" }],
+    "outputs": [
+      { "internalType": "uint256", "name": "out_x", "type": "uint256" }
+    ],
     "stateMutability": "pure",
     "type": "function"
   },
@@ -81,10 +160,27 @@
   },
   {
     "inputs": [
-      { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-      { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      {
+        "internalType": "uint256[]",
+        "name": "newNullifiers",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "commitmentRoot",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "newCommitments",
+        "type": "uint256[]"
+      },
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "cancelSwap",
     "outputs": [],
@@ -102,18 +198,47 @@
     "inputs": [
       {
         "components": [
-          { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-          { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-          { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-          { "internalType": "uint256[][]", "name": "cipherText", "type": "uint256[][]" },
-          { "internalType": "uint256[2][]", "name": "encKeys", "type": "uint256[2][]" },
-          { "internalType": "uint256[]", "name": "customInputs", "type": "uint256[]" }
+          {
+            "internalType": "uint256[]",
+            "name": "newNullifiers",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRoot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "newCommitments",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[][]",
+            "name": "cipherText",
+            "type": "uint256[][]"
+          },
+          {
+            "internalType": "uint256[2][]",
+            "name": "encKeys",
+            "type": "uint256[2][]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "customInputs",
+            "type": "uint256[]"
+          }
         ],
         "internalType": "struct SwapShield.Inputs",
         "name": "inputs",
         "type": "tuple"
       },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "completeSwapFromErc1155ToErc1155",
     "outputs": [],
@@ -124,18 +249,47 @@
     "inputs": [
       {
         "components": [
-          { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-          { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-          { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-          { "internalType": "uint256[][]", "name": "cipherText", "type": "uint256[][]" },
-          { "internalType": "uint256[2][]", "name": "encKeys", "type": "uint256[2][]" },
-          { "internalType": "uint256[]", "name": "customInputs", "type": "uint256[]" }
+          {
+            "internalType": "uint256[]",
+            "name": "newNullifiers",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRoot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "newCommitments",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[][]",
+            "name": "cipherText",
+            "type": "uint256[][]"
+          },
+          {
+            "internalType": "uint256[2][]",
+            "name": "encKeys",
+            "type": "uint256[2][]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "customInputs",
+            "type": "uint256[]"
+          }
         ],
         "internalType": "struct SwapShield.Inputs",
         "name": "inputs",
         "type": "tuple"
       },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "completeSwapFromErc1155ToErc20",
     "outputs": [],
@@ -146,18 +300,47 @@
     "inputs": [
       {
         "components": [
-          { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-          { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-          { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-          { "internalType": "uint256[][]", "name": "cipherText", "type": "uint256[][]" },
-          { "internalType": "uint256[2][]", "name": "encKeys", "type": "uint256[2][]" },
-          { "internalType": "uint256[]", "name": "customInputs", "type": "uint256[]" }
+          {
+            "internalType": "uint256[]",
+            "name": "newNullifiers",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRoot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "newCommitments",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[][]",
+            "name": "cipherText",
+            "type": "uint256[][]"
+          },
+          {
+            "internalType": "uint256[2][]",
+            "name": "encKeys",
+            "type": "uint256[2][]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "customInputs",
+            "type": "uint256[]"
+          }
         ],
         "internalType": "struct SwapShield.Inputs",
         "name": "inputs",
         "type": "tuple"
       },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "completeSwapFromErc20ToErc1155",
     "outputs": [],
@@ -168,18 +351,47 @@
     "inputs": [
       {
         "components": [
-          { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-          { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-          { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-          { "internalType": "uint256[][]", "name": "cipherText", "type": "uint256[][]" },
-          { "internalType": "uint256[2][]", "name": "encKeys", "type": "uint256[2][]" },
-          { "internalType": "uint256[]", "name": "customInputs", "type": "uint256[]" }
+          {
+            "internalType": "uint256[]",
+            "name": "newNullifiers",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRoot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "newCommitments",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[][]",
+            "name": "cipherText",
+            "type": "uint256[][]"
+          },
+          {
+            "internalType": "uint256[2][]",
+            "name": "encKeys",
+            "type": "uint256[2][]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "customInputs",
+            "type": "uint256[]"
+          }
         ],
         "internalType": "struct SwapShield.Inputs",
         "name": "inputs",
         "type": "tuple"
       },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "completeSwapFromErc20ToErc20",
     "outputs": [],
@@ -188,11 +400,24 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "erc1155Address", "type": "address" },
+      {
+        "internalType": "address",
+        "name": "erc1155Address",
+        "type": "address"
+      },
       { "internalType": "uint256", "name": "amount", "type": "uint256" },
       { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      {
+        "internalType": "uint256[]",
+        "name": "newCommitments",
+        "type": "uint256[]"
+      },
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "depositErc1155",
     "outputs": [],
@@ -203,8 +428,17 @@
     "inputs": [
       { "internalType": "address", "name": "erc20Address", "type": "address" },
       { "internalType": "uint256", "name": "amount", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      {
+        "internalType": "uint256[]",
+        "name": "newCommitments",
+        "type": "uint256[]"
+      },
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "depositErc20",
     "outputs": [],
@@ -214,14 +448,18 @@
   {
     "inputs": [],
     "name": "erc1155",
-    "outputs": [{ "internalType": "contract IERC1155", "name": "", "type": "address" }],
+    "outputs": [
+      { "internalType": "contract IERC1155", "name": "", "type": "address" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
     "name": "erc20",
-    "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }],
+    "outputs": [
+      { "internalType": "contract IERC20", "name": "", "type": "address" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -233,32 +471,61 @@
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "leafIndex", "type": "uint256" }],
+    "inputs": [
+      { "internalType": "uint256", "name": "leafIndex", "type": "uint256" }
+    ],
     "name": "getFrontierSlot",
-    "outputs": [{ "internalType": "uint256", "name": "slot", "type": "uint256" }],
+    "outputs": [
+      { "internalType": "uint256", "name": "slot", "type": "uint256" }
+    ],
     "stateMutability": "pure",
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "leafValue", "type": "uint256" }],
+    "inputs": [
+      { "internalType": "uint256", "name": "leafValue", "type": "uint256" }
+    ],
     "name": "insertLeaf",
-    "outputs": [{ "internalType": "uint256", "name": "root", "type": "uint256" }],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "uint256[]", "name": "leafValues", "type": "uint256[]" }],
-    "name": "insertLeaves",
-    "outputs": [{ "internalType": "uint256", "name": "root", "type": "uint256" }],
+    "outputs": [
+      { "internalType": "uint256", "name": "root", "type": "uint256" }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
-      { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-      { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "leafValues", "type": "uint256[]" }
+    ],
+    "name": "insertLeaves",
+    "outputs": [
+      { "internalType": "uint256", "name": "root", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "newNullifiers",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "commitmentRoot",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "newCommitments",
+        "type": "uint256[]"
+      },
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "joinCommitments",
     "outputs": [],
@@ -280,7 +547,9 @@
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "uint256[]", "name": "in_msgs", "type": "uint256[]" }],
+    "inputs": [
+      { "internalType": "uint256[]", "name": "in_msgs", "type": "uint256[]" }
+    ],
     "name": "mimcHash",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "pure",
@@ -315,10 +584,36 @@
   },
   {
     "inputs": [
-      { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-      { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[][]", "name": "vk", "type": "uint256[][]" }
+    ],
+    "name": "setVerificationKeys",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "newNullifiers",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "commitmentRoot",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "newCommitments",
+        "type": "uint256[]"
+      },
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "splitCommitments",
     "outputs": [],
@@ -329,18 +624,47 @@
     "inputs": [
       {
         "components": [
-          { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-          { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-          { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-          { "internalType": "uint256[][]", "name": "cipherText", "type": "uint256[][]" },
-          { "internalType": "uint256[2][]", "name": "encKeys", "type": "uint256[2][]" },
-          { "internalType": "uint256[]", "name": "customInputs", "type": "uint256[]" }
+          {
+            "internalType": "uint256[]",
+            "name": "newNullifiers",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRoot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "newCommitments",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[][]",
+            "name": "cipherText",
+            "type": "uint256[][]"
+          },
+          {
+            "internalType": "uint256[2][]",
+            "name": "encKeys",
+            "type": "uint256[2][]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "customInputs",
+            "type": "uint256[]"
+          }
         ],
         "internalType": "struct SwapShield.Inputs",
         "name": "inputs",
         "type": "tuple"
       },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "startSwapFromErc1155ToErc1155",
     "outputs": [],
@@ -351,18 +675,47 @@
     "inputs": [
       {
         "components": [
-          { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-          { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-          { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-          { "internalType": "uint256[][]", "name": "cipherText", "type": "uint256[][]" },
-          { "internalType": "uint256[2][]", "name": "encKeys", "type": "uint256[2][]" },
-          { "internalType": "uint256[]", "name": "customInputs", "type": "uint256[]" }
+          {
+            "internalType": "uint256[]",
+            "name": "newNullifiers",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRoot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "newCommitments",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[][]",
+            "name": "cipherText",
+            "type": "uint256[][]"
+          },
+          {
+            "internalType": "uint256[2][]",
+            "name": "encKeys",
+            "type": "uint256[2][]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "customInputs",
+            "type": "uint256[]"
+          }
         ],
         "internalType": "struct SwapShield.Inputs",
         "name": "inputs",
         "type": "tuple"
       },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "startSwapFromErc1155ToErc20",
     "outputs": [],
@@ -373,18 +726,47 @@
     "inputs": [
       {
         "components": [
-          { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-          { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-          { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-          { "internalType": "uint256[][]", "name": "cipherText", "type": "uint256[][]" },
-          { "internalType": "uint256[2][]", "name": "encKeys", "type": "uint256[2][]" },
-          { "internalType": "uint256[]", "name": "customInputs", "type": "uint256[]" }
+          {
+            "internalType": "uint256[]",
+            "name": "newNullifiers",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRoot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "newCommitments",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[][]",
+            "name": "cipherText",
+            "type": "uint256[][]"
+          },
+          {
+            "internalType": "uint256[2][]",
+            "name": "encKeys",
+            "type": "uint256[2][]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "customInputs",
+            "type": "uint256[]"
+          }
         ],
         "internalType": "struct SwapShield.Inputs",
         "name": "inputs",
         "type": "tuple"
       },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "startSwapFromErc20ToErc1155",
     "outputs": [],
@@ -395,18 +777,47 @@
     "inputs": [
       {
         "components": [
-          { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-          { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-          { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-          { "internalType": "uint256[][]", "name": "cipherText", "type": "uint256[][]" },
-          { "internalType": "uint256[2][]", "name": "encKeys", "type": "uint256[2][]" },
-          { "internalType": "uint256[]", "name": "customInputs", "type": "uint256[]" }
+          {
+            "internalType": "uint256[]",
+            "name": "newNullifiers",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "commitmentRoot",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "newCommitments",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[][]",
+            "name": "cipherText",
+            "type": "uint256[][]"
+          },
+          {
+            "internalType": "uint256[2][]",
+            "name": "encKeys",
+            "type": "uint256[2][]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "customInputs",
+            "type": "uint256[]"
+          }
         ],
         "internalType": "struct SwapShield.Inputs",
         "name": "inputs",
         "type": "tuple"
       },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "startSwapFromErc20ToErc20",
     "outputs": [],
@@ -437,7 +848,9 @@
   {
     "inputs": [],
     "name": "verifier",
-    "outputs": [{ "internalType": "contract IVerifier", "name": "", "type": "address" }],
+    "outputs": [
+      { "internalType": "contract IVerifier", "name": "", "type": "address" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -455,10 +868,27 @@
     "inputs": [
       { "internalType": "uint256", "name": "tokenId", "type": "uint256" },
       { "internalType": "uint256", "name": "amount", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-      { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      {
+        "internalType": "uint256[]",
+        "name": "newNullifiers",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "commitmentRoot",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "newCommitments",
+        "type": "uint256[]"
+      },
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "withdrawErc1155",
     "outputs": [],
@@ -469,10 +899,27 @@
     "inputs": [
       { "internalType": "address", "name": "erc20Address", "type": "address" },
       { "internalType": "uint256", "name": "amount", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newNullifiers", "type": "uint256[]" },
-      { "internalType": "uint256", "name": "commitmentRoot", "type": "uint256" },
-      { "internalType": "uint256[]", "name": "newCommitments", "type": "uint256[]" },
-      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" }
+      {
+        "internalType": "uint256[]",
+        "name": "newNullifiers",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "commitmentRoot",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "newCommitments",
+        "type": "uint256[]"
+      },
+      { "internalType": "uint256[]", "name": "proof", "type": "uint256[]" },
+      {
+        "internalType": "uint256[][]",
+        "name": "backupData",
+        "type": "uint256[][]"
+      }
     ],
     "name": "withdrawErc20",
     "outputs": [],

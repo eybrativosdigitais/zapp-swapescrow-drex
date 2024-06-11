@@ -183,6 +183,8 @@ const generateInfoTableRow = (key, value) => `
   $('#tokenAllowanceTable').append(generateInfoTableRow('ERC20 Token: ', response.allowances.ERC20))
   $('#tokenAllowanceTable').append(generateInfoTableRow('ERC1155 Token: ', response.allowances.ERC1155))
   $('#processEnvTable').append(generateInfoTableRow('Own Address: ', response.ownAddress))
+  $('#processEnvTable').append(generateInfoTableRow('Swap Shield Address: ', response.swapShieldAddress))
+  $('#processEnvTable').append(generateInfoTableRow('Swap Shield Block Start: ', response.swapShieldDeployBlocknumber))
   $('#processEnvTable').append(generateInfoTableRow('RPC URL: ', response.rpcUrl))
   $('#processEnvTable').append(generateInfoTableRow('Gas Price: ', response.gasPrice))
   $('#processEnvTable').append(generateInfoTableRow('Gas Limit: ', response.gasLimit))
@@ -284,77 +286,102 @@ const generateInfoTableRow = (key, value) => `
   $(document).ready(function () {
     let uniqueData = [] // Store the fetched data
 
-    $.ajax({
-      type: 'GET',
-      url: `/parsedCommitment?erc20Address[]=${response.tokens.ERC20}&erc1155TokenIds[]=1&erc1155TokenIds[]=2`,
-      contentType: 'application/json',
-      success: function (response) {
-        $('#commitmentsTable').empty()
-        const nameClasses = {
-          balances: 'bg-blue-500 text-white',
-          tokenOwners: 'bg-green-500 text-white',
-          swapProposals: 'bg-yellow-500 text-white'
-        }
+    // Update the commitments table based on the selected filters
+    const filterCommitments = (commitments) => {
+      const typeFilter = $('#typeFilter').val();
+      const statusFilter = $('#statusFilter').val();
 
-        response.commitments.forEach(commitment => {
-          const nameClass = nameClasses[commitment.name] || 'bg-gray-500 text-white'
-          const preimageValue = typeof commitment.preimage.value === 'object' ? 'Detalhes' : numberFormatter.format(commitment.preimage.value)
-          const preimageClass = typeof commitment.preimage.value === 'object' ? 'text-blue-500 underline accordion cursor-pointer' : ''
+      // Filter commitments based on selected type and status
+      const filteredCommitments = commitments.filter(commitment => {
+        const typeMatches = typeFilter ? commitment.name === typeFilter : true;
+        const statusMatches = statusFilter ? commitment.isNullified.toString() === statusFilter : true;
+        return typeMatches && statusMatches;
+      }).sort((a, b) => parseInt(b.mappingKey) - parseInt(a.mappingKey))
+      // Render the filtered commitments
+      renderCommitmentsTable(filteredCommitments);
+    };
 
-          $('#commitmentsTable').append(`
-            <tr>
-              <td class="px-6 py-4 whitespace-nowrap text-sm flex font-medium text-gray-900">
-                ${shortenString(commitment._id)}
-                <span class="copy-btn" onclick="copyToClipboard('${commitment._id}')">${copyIconSVG}</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                <div class="${nameClass} w-auto text-center rounded-full px-3 py-1">${commitment.name}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm flex text-gray-500">
-                ${shortenString(commitment.mappingKey)}
-                <span class="copy-btn" onclick="copyToClipboard('${commitment.mappingKey}')">${copyIconSVG}</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm ${preimageClass}">${preimageValue}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm ${commitment.isNullified ? 'text-red-600' : 'text-green-600'}">${commitment.isNullified}</td>
-            </tr>
-            <tr class="panel hidden transition">
-              <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <div class="panel-content">
-                  <h4 class="font-semibold mb-2">Detalhes</h4>
-                  ${typeof commitment.preimage.value === 'object'
-              ? `
-                    <div>
-                      <p><strong>Swap Amount Sent:</strong> ${formatNumber(commitment.preimage.value.swapAmountSent)}</p>
-                      <p><strong>Swap Amount Received:</strong> ${formatNumber(commitment.preimage.value.swapAmountRecieved)}</p>
-                      <p><strong>Swap Token Sent ID:</strong> ${commitment.preimage.value.swapTokenSentId}</p>
-                      <p><strong>Swap Token Sent Amount:</strong> ${formatNumber(commitment.preimage.value.swapTokenSentAmount)}</p>
-                      <p><strong>Swap Token Received ID:</strong> ${commitment.preimage.value.swapTokenRecievedId}</p>
-                      <p><strong>Swap Token
+    // Render commitments table rows
+    const renderCommitmentsTable = (commitments) => {
+      $('#commitmentsTable').empty();
+      const nameClasses = {
+        balances: 'bg-blue-500 text-white',
+        tokenOwners: 'bg-green-500 text-white',
+        swapProposals: 'bg-yellow-500 text-white'
+      };
 
- Received Amount:</strong> ${formatNumber(commitment.preimage.value.swapTokenRecievedAmount)}</p>
-                      <p><strong>Swap ID:</strong> ${commitment.preimage.value.swapId}</p>
-                      <p><strong>Swap Sender:</strong> ${commitment.preimage.value.swapSender}</p>
-                      <p><strong>Swap Receiver:</strong> ${commitment.preimage.value.swapReciever}</p>
-                      <p><strong>ERC20 Address Sent:</strong> ${commitment.preimage.value.erc20AddressSent}</p>
-                      <p><strong>ERC20 Address Received:</strong> ${commitment.preimage.value.erc20AddressRecieved}</p>
-                      <p><strong>Pending Status:</strong> ${commitment.preimage.value.pendingStatus}</p>
-                    </div>
-                  `
-              : `
-                    <p><strong>Value:</strong> ${formatNumber(commitment.preimage.value)}</p>
-                  `}
+      commitments.forEach(commitment => {
+        const nameClass = nameClasses[commitment.name] || 'bg-gray-500 text-white';
+        const preimageValue = typeof commitment.preimage.value === 'object' ? 'Detalhes' : numberFormatter.format(commitment.preimage.value);
+        const preimageClass = typeof commitment.preimage.value === 'object' ? 'text-blue-500 underline accordion cursor-pointer' : '';
+
+        $('#commitmentsTable').append(`
+      <tr>
+        <td class="px-6 py-4 whitespace-nowrap text-sm flex font-medium text-gray-900">
+          ${shortenString(commitment.mappingKey)}
+          <span class="copy-btn" onclick="copyToClipboard('${commitment.mappingKey}')">${copyIconSVG}</span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+          <div class="${nameClass} w-auto text-center rounded-full px-3 py-1">${commitment.name}</div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm ${preimageClass}">${preimageValue}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm ${commitment.isNullified ? 'text-red-600' : 'text-green-600'}">${commitment.isNullified}</td>
+      </tr>
+      <tr class="panel hidden transition">
+        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          <div class="panel-content">
+            <h4 class="font-semibold mb-2">Detalhes</h4>
+            ${typeof commitment.preimage.value === 'object'
+            ? `
+                <div>
+                  <p><strong>Swap Amount Sent:</strong> ${formatNumber(commitment.preimage.value.swapAmountSent)}</p>
+                  <p><strong>Swap Amount Received:</strong> ${formatNumber(commitment.preimage.value.swapAmountRecieved)}</p>
+                  <p><strong>Swap Token Sent ID:</strong> ${commitment.preimage.value.swapTokenSentId}</p>
+                  <p><strong>Swap Token Sent Amount:</strong> ${formatNumber(commitment.preimage.value.swapTokenSentAmount)}</p>
+                  <p><strong>Swap Token Received ID:</strong> ${commitment.preimage.value.swapTokenRecievedId}</p>
+                  <p><strong>Swap Token Received Amount:</strong> ${formatNumber(commitment.preimage.value.swapTokenRecievedAmount)}</p>
+                  <p><strong>Swap ID:</strong> ${commitment.preimage.value.swapId}</p>
+                  <p><strong>Swap Sender:</strong> ${commitment.preimage.value.swapSender}</p>
+                  <p><strong>Swap Receiver:</strong> ${commitment.preimage.value.swapReciever}</p>
+                  <p><strong>ERC20 Address Sent:</strong> ${commitment.preimage.value.erc20AddressSent}</p>
+                  <p><strong>ERC20 Address Received:</strong> ${commitment.preimage.value.erc20AddressRecieved}</p>
+                  <p><strong>Pending Status:</strong> ${commitment.preimage.value.pendingStatus}</p>
                 </div>
-              </td>
-            </tr>
-          `)
-        })
+              `
+            : `
+                <p><strong>Value:</strong> ${formatNumber(commitment.preimage.value)}</p>
+              `}
+          </div>
+        </td>
+      </tr>
+    `);
+      });
 
-        $('.accordion').click(toggleAccordion)
-      },
-      error: function () {
-        console.log('Error getting commitments')
-      }
-    })
+      $('.accordion').click(toggleAccordion);
+    };
+
+    // Load commitments and filter them based on user input
+    const loadCommitments = () => {
+      setIsLoading(true);
+      $.ajax({
+        type: 'GET',
+        url: `/parsedCommitment?erc20Address[]=${response.tokens.ERC20}&erc1155TokenIds[]=1&erc1155TokenIds[]=2`,
+        contentType: 'application/json',
+        success: function (response) {
+          setIsLoading(false);
+          const commitments = response.commitments;
+          filterCommitments(commitments);  // Initially filter commitments
+          // Add event listeners for dropdowns to filter commitments dynamically
+          $('#typeFilter, #statusFilter').change(() => filterCommitments(commitments));
+        },
+        error: function () {
+          setIsLoading(false);
+          console.log('Error getting commitments');
+        }
+      });
+    };
+
+    loadCommitments();
 
     const fetchSwapData = () => {
       const fetchData = (params) => $.ajax({ url: '/swap', type: 'GET', data: params })
@@ -396,39 +423,55 @@ const generateInfoTableRow = (key, value) => `
       const filteredData = selectedStatus
         ? data.filter(item => {
           let statusText
-          switch (item.preimage.value.pendingStatus) {
-            case '0': statusText = 'Completed'; break
-            case '1': statusText = 'Open'; break
-            case '2': statusText = 'Cancelled'; break
-            default: statusText = 'Unknown'
+          // switch (item.preimage.value.pendingStatus) {
+          //   case '0': statusText = 'Completed'; break
+          //   case '1': statusText = 'Open'; break
+          //   case '2': statusText = 'Cancelled'; break
+          //   default: statusText = 'Unknown'
+          // }
+          if (item.isNullified) {
+            statusText = 'Fechado'
+          } else {
+            statusText = 'Aberto'
           }
           return statusText === selectedStatus
         })
         : data
 
-      filteredData.forEach(item => {
-        let statusText, statusClass
-        switch (item.preimage.value.pendingStatus) {
-          case '0': statusText = 'Completed'; statusClass = 'bg-green-200 text-green-800'; break
-          case '1': statusText = 'Open'; statusClass = 'bg-blue-200 text-blue-800'; break
-          case '2': statusText = 'Cancelled'; statusClass = 'bg-red-200 text-red-800'; break
-          default: statusText = 'Unknown'; statusClass = 'bg-gray-200 text-gray-800'
-        }
-        const swapReceiver = item.preimage.value.swapReciever
-        const swapSender = item.preimage.value.swapSender
-        const endpoint = generateEndpointCompleteSwap(item)
-        let actionButton = ''
-        if (statusText !== 'Completed') {
-          actionButton = swapReceiver.toLowerCase() === currentBank.toLowerCase()
-            ? `<button class="complete-swap inline-flex items-center justify-center text-[12px] font-medium bg-green-500 text-white hover:bg-green-700 rounded h-10 px-4 py-2" data-swap-id="${item.preimage.value.swapId}" data-endpoint="${endpoint}">
-              Completar Swap
-            </button>`
-            : `<button class="cancel-swap inline-flex items-center justify-center text-[12px] font-medium bg-red-500 text-white hover:bg-red-700 rounded h-10 px-4 py-2" data-swap-id="${item.preimage.value.swapId}" data-endpoint="${endpoint}">
-              Cancelar Swap
-            </button>`
-        }
-
-        $('#swapTableBody').append(`
+      filteredData
+        .sort((a, b) => parseInt(b.preimage.value.swapId) - parseInt(a.preimage.value.swapId))
+        .forEach(item => {
+          let statusText, statusClass
+          if (item.isNullified) {
+            statusText = 'Fechado'
+            statusClass = 'bg-red-200 text-red-800'
+          } else {
+            statusText = 'Aberto'
+            statusClass = 'bg-green-200 text-green-800'
+          }
+          // switch (item.preimage.value.pendingStatus) {
+          //   case '0': statusText = 'Completed'; statusClass = 'bg-green-200 text-green-800'; break
+          //   case '1': statusText = 'Open'; statusClass = 'bg-blue-200 text-blue-800'; break
+          //   case '2': statusText = 'Cancelled'; statusClass = 'bg-red-200 text-red-800'; break
+          //   default: statusText = 'Unknown'; statusClass = 'bg-gray-200 text-gray-800'
+          // }
+          const swapReceiver = item.preimage.value.swapReciever
+          const swapSender = item.preimage.value.swapSender
+          const endpoint = generateEndpointCompleteSwap(item)
+          let actionButton = ''
+          if (statusText !== 'Completed') {
+            actionButton = swapReceiver.toLowerCase() === currentBank.toLowerCase()
+              ? `<button class="complete-swap inline-flex items-center justify-center text-[12px] font-medium bg-green-500 text-white hover:bg-green-700 rounded h-10 px-4 py-2" data-swap-id="${item.preimage.value.swapId}" data-endpoint="${endpoint}">
+            Completar Swap
+          </button>`
+              : `<button class="cancel-swap inline-flex items-center justify-center text-[12px] font-medium bg-red-500 text-white hover:bg-red-700 rounded h-10 px-4 py-2" data-swap-id="${item.preimage.value.swapId}" data-endpoint="${endpoint}">
+            Cancelar Swap
+          </button>`
+          }
+          if (item.isNullified) {
+            actionButton = "";
+          }
+          $('#swapTableBody').append(`
           <tr class="border-b transition-colors hover:bg-gray-100">
             <td class="p-4 align-middle">${item.preimage.value.swapId}</td>
             <td class="p-4 align-middle">${humanizeAddress(swapReceiver)}</td>
@@ -441,7 +484,7 @@ const generateInfoTableRow = (key, value) => `
             </td>
           </tr>
         `)
-      })
+        })
 
       $('.complete-swap').click(function () {
         const swapId = $(this).data('swap-id')

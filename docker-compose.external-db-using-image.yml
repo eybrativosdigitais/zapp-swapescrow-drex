@@ -3,7 +3,7 @@ services:
     env_file:
       - .env
     ports:
-      - '3000:3000'
+      - "3000:3000"
     image: ghcr.io/eybrativosdigitais/zapp-swapescrow-drex:latest
     depends_on:
       - zokrates
@@ -26,7 +26,7 @@ services:
       DEFAULT_ACCOUNT: ${DEFAULT_ACCOUNT}
       KEY: ${KEY}
       LOG_LEVEL: info
-      MONGO_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}
+      MONGO_URL: ${MONGO_URL}
       MONGO_NAME: zapp_db
       TIMBER_URL: http://timber
     restart: on-failure
@@ -42,43 +42,37 @@ services:
       - ./orchestration/common/write-vk.mjs:/app/write-vk.mjs
       - ./orchestration/common/db/:/app/orchestration/common/db
     environment:
-      PROVING_SCHEME: 'g16'
+      PROVING_SCHEME: "g16"
     ports:
-      - '8080:80'
+      - "8080:80"
     networks:
       - zapp_network
 
   timber:
     env_file:
       - .env
-    build: 
-      context: https://github.com/eybrativosdigitais/timber.git#starlight-timber:merkle-tree
-      dockerfile: Dockerfile
+    image: ghcr.io/eybrativosdigitais/starlight-timber:latest
     restart: on-failure
     volumes:
       - ./config/:/app/config
       - ./contracts/:/app/contracts
       - ./build/:/app/build
     ports:
-      - '3100:80'
+      - "3100:80"
     environment:
-      HASH_TYPE: 'mimc'
-      LOG_LEVEL: 'debug'
-      UNIQUE_LEAVES: 'true'
+      HASH_TYPE: "mimc"
+      LOG_LEVEL: "debug"
+      UNIQUE_LEAVES: "true"
       DEFAULT_GAS: ${DEFAULT_GAS}
       DEFAULT_GAS_PRICE: ${DEFAULT_GAS_PRICE}
       RPC_URL: ${SWAPESCROW_RPC_URL}
       DEFAULT_ACCOUNT: ${DEFAULT_ACCOUNT}
       KEY: ${KEY}
-      CONTRACT_LOCATION: 'default'
-      MONGO_HOST: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}
-      MONGO_PORT: ${MONGO_PORT}
-      MONGO_NAME: merkle_tree
-      MONGO_USERNAME: ${MONGO_USERNAME}
-      MONGO_PASSWORD: ${MONGO_PASSWORD}
-      DB_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}
+      CONTRACT_LOCATION: "default"
+      DB_URL: ${MONGO_URL}
     networks:
       - zapp_network
+
 networks:
   zapp_network:
     name: zapp_network

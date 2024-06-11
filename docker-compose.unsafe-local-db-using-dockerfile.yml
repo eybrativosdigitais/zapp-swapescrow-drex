@@ -75,12 +75,7 @@ services:
       RPC_URL: ${SWAPESCROW_RPC_URL}
       DEFAULT_ACCOUNT: ${DEFAULT_ACCOUNT}
       KEY: ${KEY}
-      CONTRACT_LOCATION: 'default'
-      MONGO_HOST: mongodb://admin:admin@timber-mongo:27017
-      MONGO_PORT: 27017
-      MONGO_NAME: merkle_tree
-      MONGO_USERNAME: admin
-      MONGO_PASSWORD: admin
+      CONTRACT_LOCATION: 'default'      
       DB_URL: mongodb://admin:admin@timber-mongo:27017
     networks:
       - zapp_network
