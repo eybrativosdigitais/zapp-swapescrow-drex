@@ -54,7 +54,7 @@ Abaixo segue os requisitos mínimos de Sistema Operacional, Docker, Ambiente de 
 
 A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar a configuração inicial do sistema. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e a imagem do zapp hospedadas no Ghcr(Github Container Registry). Para checar as outras formas, vá em [Configurações alternativas](#).
 
-* Observação: Caso deseje utilizar o Mongo interno, esteja ciente que o mesmo será apagado toda vez que o container for reiniciado. Isso poderá gerar erros ou complicações para a aplicação.
+* Observação: Caso deseje utilizar o Mongo interno, esteja ciente que o mesmo será apagado toda vez que o container for reiniciado com a flag `-v`. Isso poderá gerar erros ou complicações para a aplicação.
 
 ## 1.1) Configuração tipo 1 (recomendado)
 
@@ -66,10 +66,7 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
    * Endereço da sua conta: DEFAULT_ACCOUNT
    * Chave da sua conta default: KEY
    * Bloco inicial para sincronização: FILTER_GENESIS_BLOCK_NUMBER
-   * Host do mongo externo: MONGO_HOST
-   * Port do mongo externo: MONGO_PORT
-   * Username do mongo externo: MONGO_USERNAME
-   * Senha do mongo externo: MONGO_PASSWORD
+   * Url de conexão com o Mongo: MONGO_URL
 
 5) Crie o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.external-db-using-image.yml docker-compose.yml`
 6) `chmod +x ./startup.sh`
@@ -82,17 +79,12 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 | 0594e1178515 | zapp-swapescrow-timber                                | "docker-entrypoint.s…"   | 4 days ago  | Up 4 days| 0.0.0.0:3100->80/tcp, :::3100->80/tcp       | zapp-swapescrow-timber-1          |
 | b7b53b8b0a63 | ghcr.io/eyblockchain/zokrates-worker-updated:latest   | "/bin/sh -c 'npm sta…"   | 4 days ago  | Up 4 days| 0.0.0.0:8080->80/tcp, :::8080->80/tcp       | zapp-swapescrow-zokrates-1        |
 
-1) Exibir os logs: `docker compose logs -f -n 1000 timber zapp zokrates`
-2) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha acontecido algum erro, vá até a seção [Erros comuns](./ProblemasComuns.md) checar se há alguma solução já conhecida.
+9) Exibir os logs: `docker compose logs -f -n 1000 timber zapp zokrates`
+10) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha acontecido algum erro, vá até a seção [Erros comuns](./ErrosComuns.md) checar se há alguma solução já conhecida.
 
 #### 1.1.1) Observações
 
 * Alterar as configurações do seu nó Besu, aumentando ou desabilitando o limite RPC para logs (parâmetro (RPC-MAX-LOGS-RANGE)[https://besu.hyperledger.org/23.4.0/public-networks/reference/cli/options#rpc-max-logs-range]) (necessário para o correto funcionamento do Timber)
-
-* Caso a sua URL do seu Mongo não siga o padrão HOST e PORT que está no MONGO_URL do zapp no docker-compose.yml (Por exemplo, se você estiver rodando via Mongo Atlas), você pode alterar o arquivo `docker-compose.yml` para adicionar a URL completa em 3 locais: 
-1) MONGO_URL do zapp
-2) MONGO_HOST do timber
-3) DB_URL do timber
 
 ### 2 - Permissões dos contratos
 
