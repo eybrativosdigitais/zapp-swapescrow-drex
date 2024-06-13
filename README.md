@@ -132,7 +132,12 @@ Neste método, as imagens do zapp, timber, zokrates, e mongo são criadas localm
     | 0594e1178515 | zapp-swapescrow-timber                                | "docker-entrypoint.s…"   | 45 seconds ago  | Up 30 seconds| 0.0.0.0:3100->80/tcp, :::3100->80/tcp       | zapp-swapescrow-timber-1          |
     | b7b53b8b0a63 | ghcr.io/eyblockchain/zokrates-worker-updated:latest   | "/bin/sh -c 'npm sta…"   | 45 seconds ago  | Up 30 seconds| 0.0.0.0:8080->80/tcp, :::8080->80/tcp       | zapp-swapescrow-zokrates-1        |
 
-9) Exibir os logs: `docker compose logs -f -n 1000 timber zapp zokrates`
+9) Exibir os logs:
+
+    ```bash
+    docker compose logs -f -n 1000 timber zapp zokrates
+    ```
+
 10) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha acontecido algum erro, vá até a seção [Erros comuns](./docs/ERROS.md) checar se há alguma solução já conhecida.
 
 ### Observações
