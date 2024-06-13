@@ -125,7 +125,9 @@ A coleção StepByStep já contém pastas com os passos específicos dos testes 
 
 ### 4 - Consulta de informações das aplicações
 
-Na aplicação, há um frontend com rotas para consultar o status da aplicação. Para acessar, basta acessar o endereço `http://<endpoint_da_aplicação>:3000` no navegador. Neste frontend, é possível consultar o *status da aplicação*, os *commitments* e os *balanços privados* (ou também chamados de shielded) do seu endereço. Para isso, você pode ir nas páginas "Info", "Balanços" e "Commitments".
+Na aplicação, há um frontend com rotas para consultar o status. Para acessá-lo, basta abrir o navegador e ir até o endereço http://<endereço_da_aplicacao>:3000. Nesse frontend, é possível verificar o *status da aplicação*, os *commitments* e os *balanços privados* (também chamados de shielded) do seu endereço. Para isso, você pode navegar pelas páginas "Info", "Balanços" e "Commitments". 
+
+> É possível através dessa interface, realizar as ações de "Depósito", "Troca" e "Retirada" de Real Digital e TPFt, sneod uma forma alternativa ao Postman.
 
 <p align="center">
   <img src="https://starlight-readme.s3.amazonaws.com/starlight-frontend.png" alt="Frontend - Info"/>
