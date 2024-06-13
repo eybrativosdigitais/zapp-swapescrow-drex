@@ -3,17 +3,18 @@
 - [Requisitos mínimos](#requisitos-mínimos)
 - [1) Configuração inicial](#1-configuração-inicial)
   - [1.1) Configuração tipo 1 (recomendado)](#11-configuração-tipo-1-recomendado)
-      - [1.1.1) Observações](#111-observações)
-    - [2 - Permissões dos contratos](#2---permissões-dos-contratos)
-    - [3 - Configurar scripts](#3---configurar-scripts)
-      - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
-      - [3.2 - Configurar scripts - via Postman (StepByStep)](#32---configurar-scripts---via-postman-stepbystep)
-    - [4 - Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações)
-    - [5 - Configuração inicial alternativa](#5---configuração-inicial-alternativa)
-      - [5.1) Configuração tipo 2 (Criando a imagem localmente)](#51-configuração-tipo-2-criando-a-imagem-localmente)
-      - [5.2) Configuração tipo 3 (Hospedando Mongo localmente)](#52-configuração-tipo-3-hospedando-mongo-localmente)
-    - [6 - Interação com contratos de forma alternativa](#6---interação-com-contratos-de-forma-alternativa)
-      - [6.1 - Interação via frontend](#61---interação-via-frontend)
+    - [1.1.1) Observações](#111-observações)
+  - [2 - Permissões dos contratos](#2---permissões-dos-contratos)
+  - [3 - Configurar scripts](#3---configurar-scripts)
+    - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
+    - [3.2 - Configurar scripts - via Postman (StepByStep)](#32---configurar-scripts---via-postman-stepbystep)
+  - [4 - Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações)
+  - [5 - Configuração inicial alternativa](#5---configuração-inicial-alternativa)
+    - [5.1) Configuração tipo 2 (Criando a imagem localmente)](#51-configuração-tipo-2-criando-a-imagem-localmente)
+    - [5.2) Configuração tipo 3 (Hospedando Mongo localmente)](#52-configuração-tipo-3-hospedando-mongo-localmente)
+  - [6 - Interação com contratos de forma alternativa](#6---interação-com-contratos-de-forma-alternativa)
+    - [6.1 - Interação via frontend](#61---interação-via-frontend)
+  - [7 - Endereços dos contratos](#7---endereços-dos-contratos)
 
 # Starlight
 
@@ -82,23 +83,23 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 9) Exibir os logs: `docker compose logs -f -n 1000 timber zapp zokrates`
 10) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha acontecido algum erro, vá até a seção [Erros comuns](./ErrosComuns.md) checar se há alguma solução já conhecida.
 
-#### 1.1.1) Observações
+### 1.1.1) Observações
 
 * Alterar as configurações do seu nó Besu, aumentando ou desabilitando o limite RPC para logs (parâmetro (RPC-MAX-LOGS-RANGE)[https://besu.hyperledger.org/23.4.0/public-networks/reference/cli/options#rpc-max-logs-range]) (necessário para o correto funcionamento do Timber)
 
-### 2 - Permissões dos contratos
+## 2 - Permissões dos contratos
 
 Foi realizado o deploy do contrato inteligente denominado **SwapShield** responsável por gerenciar os *commitments* do Starlight para os testes de transferência, assegurando que os saldos permaneçam criptografados na rede. Para participar dos testes, os envolvidos no projeto piloto deverão realizar um depósito de Real tokenizado (ERC20) e de TPFt (ERC1155) neste contrato.
 
 Isso requer a autorização do contrato **SwapShield** para duas ações:
--  a) Retirar o Real Digital da carteira Ethereum do participante. É feito por meio do **approve** do valor no contrato de Real Digital. O endereço do contrato de SwapShield que necessita autorização está especificado na seção [Endereços](#).
--  b) Retirar os Títulos Públicos Federais tokenizados (TPFt) da carteira Ethereum do participante. É feito por meio do **setApprovalForAll**. O endereço do contrato de SwapShield que necessita autorização está especificado na seção [Endereços](#).
+-  a) Retirar o Real Digital da carteira Ethereum do participante. É feito por meio do **approve** do valor no contrato de Real Digital. O endereço do contrato de SwapShield que necessita autorização está especificado na seção [Endereços](#7---endereços-dos-contratos).
+-  b) Retirar os Títulos Públicos Federais tokenizados (TPFt) da carteira Ethereum do participante. É feito por meio do **setApprovalForAll**. O endereço do contrato de SwapShield que necessita autorização está especificado na seção [Endereços](#7---endereços-dos-contratos).
 
-### 3 - Configurar scripts
+## 3 - Configurar scripts
 
 Nesta etapa configurar um formato de interação com os contratos. O foco será a interação via Postman, mas também é possível interagir via frontend da aplicação ou cURL. Você pode checar essas outras formas de interação na seção [Interações alternativas](#6---interação-com-contratos-de-forma-alternativa).
 
-#### 3.1 - Configurar scripts - via Postman
+### 3.1 - Configurar scripts - via Postman
 
 Existem duas coleções do Postman na raiz do projeto. Na coleção StepByStep, encontram-se as sequências padrão de interação com os contratos. Na coleção SwapEscrow.postman_collection.json, há rotas adicionais para depuração da aplicação.
 
@@ -119,11 +120,11 @@ Para configurar o Postman, siga os passos abaixo:
   <img src="https://starlight-readme.s3.amazonaws.com/postman-config.png" alt="Configuração Postman"/>
 </p>
 
-#### 3.2 - Configurar scripts - via Postman (StepByStep)
+### 3.2 - Configurar scripts - via Postman (StepByStep)
 
 A coleção StepByStep já contém pastas com os passos específicos dos testes do piloto. Será necessário a configuração de mesmas variáveis do passo anterior para que os scripts funcionem corretamente. Para isso, repita o processo de configuração de variáveis descrito na seção [Configurar scripts - via Postman](#31---configurar-scripts---via-postman).
 
-### 4 - Consulta de informações das aplicações
+## 4 - Consulta de informações das aplicações
 
 Na aplicação, há um frontend com rotas para consultar o status. Para acessá-lo, basta abrir o navegador e ir até o endereço http://<endereço_da_aplicacao>:3000. Nesse frontend, é possível verificar o *status da aplicação*, os *commitments* e os *balanços privados* (também chamados de shielded) do seu endereço. Para isso, você pode navegar pelas páginas "Info", "Balanços" e "Commitments". 
 
@@ -133,27 +134,30 @@ Na aplicação, há um frontend com rotas para consultar o status. Para acessá-
   <img src="https://starlight-readme.s3.amazonaws.com/starlight-frontend.png" alt="Frontend - Info"/>
 </p>
 
-### 5 - Configuração inicial alternativa
+## 5 - Configuração inicial alternativa
 
 Nesta etapa será apresentado duas formas alternativas de configuração inicial do sistema. A primeira é a criação da imagem localmente e a segunda é a hospedagem do Mongo localmente.
 
-#### 5.1) Configuração tipo 2 (Criando a imagem localmente)
+### 5.1) Configuração tipo 2 (Criando a imagem localmente)
 
 Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tipo-1-recomendado). O único passo que haveŕa diferença é o passo 5, onde será necessário criar o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.external-db-using-dockerfile.yml docker-compose.yml`.
 
-#### 5.2) Configuração tipo 3 (Hospedando Mongo localmente)
+### 5.2) Configuração tipo 3 (Hospedando Mongo localmente)
 
 Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tipo-1-recomendado). O único passo que haveŕa diferença é o passo 5, onde será necessário criar o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.unsafe-local-db-using-dockerfile docker-compose.yml`.
 
 > *Observação: A configuração tipo 3 não é recomendada para ambientes de produção, pois o Mongo será apagado toda vez que o container for reiniciado. Apesar de a aplicação ter um mecanismo de recuperação de dados, isso poderá gerar erros ou complicações para a aplicação.*
 
-### 6 - Interação com contratos de forma alternativa
+## 6 - Interação com contratos de forma alternativa
 
-#### 6.1 - Interação via frontend
+### 6.1 - Interação via frontend
 
 A aplicação possui um frontend que permite a interação com os contratos. Para acessar, basta acessar o endereço `http://<endereço_da_aplicação>:3000` no navegador. Neste frontend, é possível realizar todos os passos de interação com os contratos que estão disponíveis nas rotas do Postman. Para isso, você pode começar pela tela de Depósito da aplicação. 
 
 Na seção já foi coberta [Consultar de informações da aplicações](#4---consultar-de-informações-da-aplicações) as informações que podem ser consultadas no frontend.
 
+## 7 - Endereços dos contratos
 
+- **SwapShield**: Ainda não definido
+- **TPFt (ERC1155)**: Ainda não definido
 
