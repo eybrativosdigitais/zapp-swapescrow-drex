@@ -52,7 +52,7 @@ Abaixo segue os requisitos mínimos de Sistema Operacional, Docker, Ambiente de 
 
 # 1) Configuração inicial
 
-A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar a configuração inicial do sistema. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e a imagem do zapp hospedadas no Ghcr(Github Container Registry). Para checar as outras formas, vá em [Configurações alternativas](#).
+A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar essa configuração, cada uma com o seu respectivo arquivo de docker-compose. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e a imagem do zapp hospedadas no Ghcr(Github Container Registry). Para checar as outras formas, vá em [Configurações alternativas](#5---configuração-inicial-alternativa).
 
 * Observação: Caso deseje utilizar o Mongo interno, esteja ciente que o mesmo será apagado toda vez que o container for reiniciado com a flag `-v`. Isso poderá gerar erros ou complicações para a aplicação.
 
@@ -75,9 +75,9 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 
  | CONTAINER ID | IMAGE                                                 | COMMAND                  | CREATED     | STATUS   | PORTS                                       | NAMES                             |
 |--------------|-------------------------------------------------------|--------------------------|-------------|----------|---------------------------------------------|-----------------------------------|
-| 3e52d5d9a6ea | zapp-swapescrow-zapp                                  | "docker-entrypoint.s…"   | 4 days ago  | Up 4 days| 0.0.0.0:3000->3000/tcp, :::3000->3000/tcp   | zapp-swapescrow-zapp-1            |
-| 0594e1178515 | zapp-swapescrow-timber                                | "docker-entrypoint.s…"   | 4 days ago  | Up 4 days| 0.0.0.0:3100->80/tcp, :::3100->80/tcp       | zapp-swapescrow-timber-1          |
-| b7b53b8b0a63 | ghcr.io/eyblockchain/zokrates-worker-updated:latest   | "/bin/sh -c 'npm sta…"   | 4 days ago  | Up 4 days| 0.0.0.0:8080->80/tcp, :::8080->80/tcp       | zapp-swapescrow-zokrates-1        |
+| 3e52d5d9a6ea | zapp-swapescrow-zapp                                  | "docker-entrypoint.s…"   | 45 seconds ago  | Up 30 seconds| 0.0.0.0:3000->3000/tcp, :::3000->3000/tcp   | zapp-swapescrow-zapp-1            |
+| 0594e1178515 | zapp-swapescrow-timber                                | "docker-entrypoint.s…"   | 45 seconds ago  | Up 30 seconds| 0.0.0.0:3100->80/tcp, :::3100->80/tcp       | zapp-swapescrow-timber-1          |
+| b7b53b8b0a63 | ghcr.io/eyblockchain/zokrates-worker-updated:latest   | "/bin/sh -c 'npm sta…"   | 45 seconds ago  | Up 30 seconds| 0.0.0.0:8080->80/tcp, :::8080->80/tcp       | zapp-swapescrow-zokrates-1        |
 
 9) Exibir os logs: `docker compose logs -f -n 1000 timber zapp zokrates`
 10) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha acontecido algum erro, vá até a seção [Erros comuns](./ErrosComuns.md) checar se há alguma solução já conhecida.
@@ -96,7 +96,7 @@ Isso requer a autorização do contrato **SwapShield** para duas ações:
 
 ### 3 - Configurar scripts
 
-Nesta etapa configurar um formato de interação com os contratos. O foco será a interação via Postman, mas também é possível interagir via frontend da aplicação ou cURL. Você pode checar essas outras formas de interação na seção [Interações alternativas](#).
+Nesta etapa configurar um formato de interação com os contratos. O foco será a interação via Postman, mas também é possível interagir via frontend da aplicação ou cURL. Você pode checar essas outras formas de interação na seção [Interações alternativas](#6---interação-com-contratos-de-forma-alternativa).
 
 #### 3.1 - Configurar scripts - via Postman
 
