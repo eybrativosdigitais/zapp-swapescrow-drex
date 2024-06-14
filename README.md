@@ -8,6 +8,8 @@ Para o Piloto serão implementados os seguintes cenários:
 
 - transferência de Real Digital entre duas instituições;
 - compra e venda de TPFt com Real Digital.
+- transferência de Real Tokenizado entre duas contas.
+- trocas diretas de TPFt com séries diferentes.
 
 As próximas seções fornecerão uma visão da estrutura da solução, seguida de um guia passo a passo elaborado para a instalação e execução.
 
@@ -23,7 +25,7 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
     - [Passo a Passo](#passo-a-passo)
     - [Observações](#observações)
   - [2 - Permissões dos contratos](#2---permissões-dos-contratos)
-  - [3 - Configurar scripts](#3---configurar-scripts)
+  - [3 - Interação com a aplicação](#3---interação-com-a-aplicação)
     - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
     - [3.2 - Configurar scripts - via Postman (StepByStep)](#32---configurar-scripts---via-postman-stepbystep)
   - [4 - Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações)
@@ -92,7 +94,6 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
    - Apontar para o seu fullnode no parâmetro: `SWAPESCROW_RPC_URL=ws://host:porta`
    - Endereço da sua conta: `DEFAULT_ACCOUNT`
    - Chave da sua conta default: `KEY`
-   - Bloco inicial para sincronização: `FILTER_GENESIS_BLOCK_NUMBER`
    - Url de conexão com o Mongo: `MONGO_URL`
 
 5) Copiar o arquivo de configuração do Docker Compose:
@@ -133,6 +134,16 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 
 - Alterar as configurações do seu nó Besu, aumentando ou desabilitando o limite RPC para logs (parâmetro [RPC-MAX-LOGS-RANGE](https://besu.hyperledger.org/23.4.0/public-networks/reference/cli/options#rpc-max-logs-range)) (necessário para o correto funcionamento do Timber)
 
+- Permitir conexões Websocket no seu nó Besu (parâmetro [--rpc-ws-enabled=true](https://besu.hyperledger.org/23.7.3/public-networks/reference/cli/options#rpc-ws-api)) (necessário para o correto funcionamento do Zapp e Timber)
+
+- Outros configurações da conexão Websocket do seu nó Besu, importantes para o bom funcionamento: 
+
+```
+--rpc-ws-enabled \
+--rpc-ws-api="ETH,WEB3,NET" \
+--rpc-ws-host=0.0.0.0 \
+```
+
 ## 2 - Permissões dos contratos
 
 Foi realizado o deploy do contrato inteligente denominado **SwapShield** responsável por gerenciar os *commitments* do Starlight para os testes de transferência, assegurando que os saldos permaneçam criptografados na rede. Para participar dos testes, os envolvidos no projeto piloto deverão realizar um depósito de Real tokenizado (ERC20) e de TPFt (ERC1155) neste contrato.
@@ -142,25 +153,25 @@ Isso requer a autorização do contrato **SwapShield** para duas ações:
 - a) Retirar o Real Digital da carteira Ethereum do participante. É feito por meio do **approve** do valor no contrato de Real Digital. O endereço do contrato de SwapShield que necessita autorização está especificado na seção [Endereços](#6---endereços-dos-contratos).
 - b) Retirar os Títulos Públicos Federais tokenizados (TPFt) da carteira Ethereum do participante. É feito por meio do **setApprovalForAll**. O endereço do contrato de SwapShield que necessita autorização está especificado na seção [Endereços](#6---endereços-dos-contratos).
 
-## 3 - Configurar scripts
+## 3 - Interação com a aplicação
 
-Nesta etapa configurar um formato de interação com os contratos. O foco será a interação via Postman, mas também é possível interagir via frontend da aplicação ou cURL. Você pode checar essas outras formas de interação na seção [Interações alternativas](#5---interação-com-contratos-de-forma-alternativa).
+O foco será a interação via Postman, mas também é possível interagir via frontend da aplicação ou cURL. Você pode checar essas outras formas de interação na seção [Interações alternativas](#5---interação-com-contratos-de-forma-alternativa).
 
 ### 3.1 - Configurar scripts - via Postman
 
-Existem duas coleções do Postman na raiz do projeto. Na coleção StepByStep, encontram-se as sequências padrão de interação com os contratos. Na coleção SwapEscrow.postman_collection.json, há rotas adicionais para depuração da aplicação.
+Existem duas coleções do Postman na raiz do projeto. Na coleção `StepByStep`, encontram-se as sequências padrão de interação com a aplicação. Na coleção `SwapEscrow.postman_collection.json`, há rotas adicionais para depuração da aplicação.
 
 Para configurar o Postman, siga os passos abaixo:
 
 - Importe o arquivo [./SwapEscrow.postman_collection.json](SwapEscrow.postman_collection) no [Postman](https://www.postman.com/downloads/).
 - Dentro do Postman, clique no nome da pasta e defina as seguintes propriedades na aba variáveis:
-  - `bank_a_zapp`: Servidor onde está rodando a aplicação, o valor default é `http://localhost:3000`)
+  - `bank_a_zapp`: Servidor onde está rodando a sua aplicação, o valor default é `http://localhost:3000`
   - `swapShield_address`: Endereço do contrato de SwapShield na rede DREX
-  - `accountBankA`: `` Preencher com conta Ethereum do participante que será utilizada para o teste)
-  - `accountBankB`: `` O endereço do banco que irá propor uma troca
-  - `erc_1155_address`: `` Endereço do contrato do TPFt na rede Besu
-  - `erc_20_address`: `` Endereço do contrato de real tokenizado utilizado na troca na rede Besu
-  - `erc_20_address_test`: `` Endereço de outro contrato de real tokenizado utilizado na troca na rede Besu
+  - `accountBankA`: Preencher com a sua conta Ethereum que será utilizada para o teste
+  - `accountBankB`: A conta Ethereum da instituição que será sua contra-parte nas operações
+  - `erc_1155_address`: Endereço do contrato do TPFt na rede DREX
+  - `erc_20_address`: Endereço do contrato de real digital utilizado na troca na rede DREX
+  - `erc_20_address_test`: Endereço de outro possível contrato de real tokenizado utilizado na troca na rede DREX
   - `bank_b_zapp`: *Campo não obrigatório* - Servidor onde está rodando a aplicação de sua contra-parte o valor default é `http://localhost:3003`. Este campo é útil caso esteja testando entre dois bancos próprios.
 
 <p align="center">
@@ -192,9 +203,8 @@ Na seção já foi coberta [Consulta de informações das aplicações](#4---con
 ## 6 - Endereços dos contratos
 
 - **SwapShield**: Ainda não definido
+- **Real Digital (ERC20)**: Ainda não definido
 - **TPFt (ERC1155)**: Ainda não definido
-
-
 
 ## 7 - Interagindo com o sistema
 
