@@ -9,7 +9,7 @@ Para o Piloto serão implementados os seguintes cenários:
 - transferência de Real Digital entre duas instituições;
 - compra e venda de TPFt com Real Digital.
 
-As próximas seções fornecerão uma visão da estrutura da solução, seguida de um guia passo a passo elaborado para a execução dos cenários de teste.
+As próximas seções fornecerão uma visão da estrutura da solução, seguida de um guia passo a passo elaborado para a instalação e execução.
 
 ## Índice
 
@@ -39,7 +39,7 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
 
 Todas as interações com as aplicações Starlight são realizadas através do cliente ZApp, que opera localmente em cada nó da rede. Cada aplicação Zapp é constituída pelos seguintes serviços:
 
-- **Zapp-escrow**: este é o aplicativo cliente principal. As interações com o aplicativo se dão por meio de APIs
+- **Zapp**: este é o aplicativo cliente principal. As interações com o aplicativo se dão por meio de APIs
 - **Timber**: responsável por sincronizar a merkle-tree dos *commitments* com as informações privadas locais e as informações públicas registradas na rede DLT
 - **Zokrates-worker**: responsável pela geração das provas de conhecimento zero
 - **MongoDB**: base de dados utilizada pelo Zapp e pelo Timber para salvar os *commitments* e o estado do merkle-tree, respectivamente
@@ -67,9 +67,6 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 #### 1. Configuração Padrão (recomendado)
 
 A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar essa configuração, cada uma com o seu respectivo arquivo de docker-compose. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e a imagem do zapp hospedadas no Ghcr(Github Container Registry). Para checar as outras formas, vá em [Configurações alternativas](#8---configuração-inicial-alternativa).
-
-
-> Observação: Ao usar este método, esteja ciente que o banco de dados será apagado toda vez que o container for reiniciado com a flag `-v`. Isso poderá gerar erros ou complicações para a aplicação. Para ambientes de produção, é recomendado o uso de um banco de dados externo.
 
 ### Passo a Passo
 
@@ -230,4 +227,6 @@ Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tip
 ### 8.2) Configuração tipo 3 (Hospedando Mongo localmente)
 
 Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tipo-1-recomendado). O único passo que haveŕa diferença é o passo 5, onde será necessário criar o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.unsafe-local-db-using-dockerfile docker-compose.yml`.
+
+> Observação: Ao usar este método, esteja ciente que o banco de dados será apagado toda vez que o container for reiniciado com a flag `-v`. Isso poderá gerar erros ou complicações para a aplicação. Para ambientes de produção, é recomendado o uso de um banco de dados externo.
 
