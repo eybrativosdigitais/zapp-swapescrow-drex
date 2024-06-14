@@ -13,19 +13,26 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
 
 ## Índice
 
-- [Componentes do Starlight](#componentes-do-starlight)
-- [Requisitos mínimos](#requisitos-mínimos)
-- [1) Executando o Starlight](#1-executando-o-starlight)
-  - [Tipos de Configuração](#tipos-de-configuração)
-  - [Passo a Passo](#passo-a-passo)
-- [2 - Permissões dos contratos](#2---permissões-dos-contratos)
-- [3 - Configurar scripts](#3---configurar-scripts)
-  - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
-  - [3.2 - Configurar scripts - via Postman (StepByStep)](#32---configurar-scripts---via-postman-stepbystep)
-- [4 - Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações)
-- [5 - Interação com contratos de forma alternativa](#5---interação-com-contratos-de-forma-alternativa)
-  - [5.1 - Interação via frontend](#51---interação-via-frontend)
-- [6 - Endereços dos contratos](#6---endereços-dos-contratos)
+- [Starlight](#starlight)
+  - [Índice](#índice)
+  - [Componentes do Starlight](#componentes-do-starlight)
+  - [Requisitos mínimos](#requisitos-mínimos)
+  - [1. Executando o Starlight](#1-executando-o-starlight)
+    - [Tipos de Configuração](#tipos-de-configuração)
+      - [1. Configuração Padrão (recomendado)](#1-configuração-padrão-recomendado)
+      - [2. Build local](#2-build-local)
+      - [3. Build local + Mongo local](#3-build-local--mongo-local)
+    - [Passo a Passo](#passo-a-passo)
+    - [Observações](#observações)
+  - [2 - Permissões dos contratos](#2---permissões-dos-contratos)
+  - [3 - Configurar scripts](#3---configurar-scripts)
+    - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
+    - [3.2 - Configurar scripts - via Postman (StepByStep)](#32---configurar-scripts---via-postman-stepbystep)
+  - [4 - Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações)
+  - [5 - Interação com contratos de forma alternativa](#5---interação-com-contratos-de-forma-alternativa)
+    - [5.1 - Interação via frontend](#51---interação-via-frontend)
+  - [6 - Endereços dos contratos](#6---endereços-dos-contratos)
+  - [7 - Interagindo com o sistema](#7---interagindo-com-o-sistema)
 
 ## Componentes do Starlight
 
@@ -204,3 +211,23 @@ Na seção já foi coberta [Consulta de informações das aplicações](#4---con
 
 - **SwapShield**: Ainda não definido
 - **TPFt (ERC1155)**: Ainda não definido
+
+## 7 - Interagindo com o sistema
+
+Para interagir com o sistema, você pode utilizar o Postman ou o frontend da aplicação. A seguir, serão apresentadas as 3 ações disponíveis na aplicação e suas variações (Depositar, Trocar e Retirar).
+
+1) [**Depositar**](./docs/DEPOSITOS#.MD) - Há dois tipos de depósito, um para Real Digital e outro para TPFt:
+   - [**Depositar Real Tokenizado (ERC20)**: `/depositErc20`](./docs/DEPOSITOS.md#a-depositar-real-tokenizado-erc20--depositerc20)
+   - [**Depositar TPFt (ERC1155)**: `/depositErc1155`](./docs/DEPOSITOS.md#b-depositar-tpft-erc1155--depositerc1155)
+
+2) [**Trocar**]() - As trocas (ou swaps) ocorrem em duas etapas. A parte que quer propor a troca, começa o swap (por meio das rotas de `/startSwap`). Ao fim da proposta, será gerado um ID de troca, a contraparte pode completar a troca através desse ID gerado. Há 4 formas de troca, que depende do que será enviado e recebido, sendo elas:
+   
+   - [**Trocar Real Tokenizado por TPFt**: `/startSwapErc20ToErc1155`]()
+   - [**Trocar TPFt por Real Tokenizado**: `/startSwapErc1155ToErc20`]()
+   - [**Trocar Real Tokenizado por Real Tokenizado**: `/startSwapErc20ToErc20`]()
+   - [**Trocar TPFt Tokenizado por TPFt**: `/startSwapErc1155ToErc1155`]()
+  
+3) [**Retirar**]() - Há dois tipos de retirada, um para Real Digital e outro para TPFt:
+   
+   - [**Retirar Real Tokenizado (ERC20)**: `/withdrawErc20`]()
+   - [**Retirar TPFt (ERC1155)**: `/withdrawErc1155`]()
