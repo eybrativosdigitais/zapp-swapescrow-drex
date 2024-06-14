@@ -20,8 +20,6 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
   - [1. Executando o Starlight](#1-executando-o-starlight)
     - [Tipos de Configuração](#tipos-de-configuração)
       - [1. Configuração Padrão (recomendado)](#1-configuração-padrão-recomendado)
-      - [2. Build local](#2-build-local)
-      - [3. Build local + Mongo local](#3-build-local--mongo-local)
     - [Passo a Passo](#passo-a-passo)
     - [Observações](#observações)
   - [2 - Permissões dos contratos](#2---permissões-dos-contratos)
@@ -33,6 +31,9 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
     - [5.1 - Interação via frontend](#51---interação-via-frontend)
   - [6 - Endereços dos contratos](#6---endereços-dos-contratos)
   - [7 - Interagindo com o sistema](#7---interagindo-com-o-sistema)
+  - [8 - Configuração inicial alternativa](#8---configuração-inicial-alternativa)
+    - [8.1) Configuração tipo 2 (Criando a imagem localmente)](#81-configuração-tipo-2-criando-a-imagem-localmente)
+    - [8.2) Configuração tipo 3 (Hospedando Mongo localmente)](#82-configuração-tipo-3-hospedando-mongo-localmente)
 
 ## Componentes do Starlight
 
@@ -65,15 +66,8 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 
 #### 1. Configuração Padrão (recomendado)
 
-Este é o método recomendado para a configuração inicial do sistema. Neste método, o Mongo é hospedado externamente e as imagens do zapp, timber e zokrates são hospedadas no GHCR (Github Container Registry).
+A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar essa configuração, cada uma com o seu respectivo arquivo de docker-compose. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e a imagem do zapp hospedadas no Ghcr(Github Container Registry). Para checar as outras formas, vá em [Configurações alternativas](#8---configuração-inicial-alternativa).
 
-#### 2. Build local
-
-Neste método, as imagens do zapp, timber e zokrates são criadas localmente. O Mongo é hospedado externamente.
-
-#### 3. Build local + Mongo local
-
-Neste método, as imagens do zapp, timber, zokrates, e mongo são criadas localmente. O Mongo é hospedado localmente.
 
 > Observação: Ao usar este método, esteja ciente que o banco de dados será apagado toda vez que o container for reiniciado com a flag `-v`. Isso poderá gerar erros ou complicações para a aplicação. Para ambientes de produção, é recomendado o uso de um banco de dados externo.
 
@@ -104,20 +98,11 @@ Neste método, as imagens do zapp, timber, zokrates, e mongo são criadas localm
    - Bloco inicial para sincronização: `FILTER_GENESIS_BLOCK_NUMBER`
    - Url de conexão com o Mongo: `MONGO_URL`
 
-5) Selecionar o arquivo de configuração do Docker Compose baseado no método escolhido:
+5) Copiar o arquivo de configuração do Docker Compose:
 
     ```bash
-    # 1. Configuração recomendada
     cp docker-compose.external-db-using-image.yml docker-compose.yml
-
-    # 2. Build Local
-    cp docker-compose.external-db-using-dockerfile.yml docker-compose.yml
-
-    # 3. Build Local + Mongo Local
-    cp docker-compose.unsafe-local-db-using-dockerfile.yml docker-compose.yml
     ```
-
-    > Selecionar apenas 1 dos métodos.
 
 6) Dar permissões de execução para o script de inicialização:
 
@@ -212,6 +197,8 @@ Na seção já foi coberta [Consulta de informações das aplicações](#4---con
 - **SwapShield**: Ainda não definido
 - **TPFt (ERC1155)**: Ainda não definido
 
+
+
 ## 7 - Interagindo com o sistema
 
 Para interagir com o sistema, você pode utilizar o Postman ou o frontend da aplicação. A seguir, serão apresentadas as 3 ações disponíveis na aplicação e suas variações (Depositar, Trocar e Retirar).
@@ -231,3 +218,16 @@ Para interagir com o sistema, você pode utilizar o Postman ou o frontend da apl
    
    - [**Retirar Real Tokenizado (ERC20)**: `/withdrawErc20`]()
    - [**Retirar TPFt (ERC1155)**: `/withdrawErc1155`]()
+
+## 8 - Configuração inicial alternativa
+
+Nesta etapa será apresentado duas formas alternativas de configuração inicial do sistema. A primeira é a criação da imagem localmente e a segunda é a hospedagem do Mongo localmente.
+
+### 8.1) Configuração tipo 2 (Criando a imagem localmente)
+
+Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tipo-1-recomendado). O único passo que haveŕa diferença é o passo 5, onde será necessário criar o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.external-db-using-dockerfile.yml docker-compose.yml`.
+
+### 8.2) Configuração tipo 3 (Hospedando Mongo localmente)
+
+Repita os passos 1 a 4 da seção [Configuração tipo 1](#11-configuração-tipo-1-recomendado). O único passo que haveŕa diferença é o passo 5, onde será necessário criar o arquivo docker-compose.yml copiando o exemplo: `cp docker-compose.unsafe-local-db-using-dockerfile docker-compose.yml`.
+
