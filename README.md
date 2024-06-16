@@ -214,12 +214,12 @@ Para interagir com o sistema, você pode utilizar o Postman ou o frontend da apl
    - [**Depositar Real Tokenizado (ERC20)**: `/depositErc20`](./docs/DEPOSITOS.md#a-depositar-real-tokenizado-erc20--depositerc20)
    - [**Depositar TPFt (ERC1155)**: `/depositErc1155`](./docs/DEPOSITOS.md#b-depositar-tpft-erc1155--depositerc1155)
 
-2) [**Trocar**]() - As trocas (ou swaps) ocorrem em duas etapas. A parte que quer propor a troca, começa o swap (por meio das rotas de `/startSwap`). Ao fim da proposta, será gerado um ID de troca, a contraparte pode completar a troca através desse ID gerado. Há 4 formas de troca, que depende do que será enviado e recebido, sendo elas:
+2) [**Trocar**](./docs/SWAPS.md)) - As trocas (ou swaps) ocorrem em duas etapas. A parte que irá propor a troca, começará o swap por meio das rotas de `/startSwap`. Ao fim da proposta, será gerado um ID de troca, a contraparte pode completar a troca através desse ID gerado, utilizando as rotas de `/completeSwap`. Há 4 formas de troca, que depende do que será enviado e recebido, sendo elas:
    
-   - [**Trocar Real Tokenizado por TPFt**: `/startSwapErc20ToErc1155`]()
-   - [**Trocar TPFt por Real Tokenizado**: `/startSwapErc1155ToErc20`]()
-   - [**Trocar Real Tokenizado por Real Tokenizado**: `/startSwapErc20ToErc20`]()
-   - [**Trocar TPFt Tokenizado por TPFt**: `/startSwapErc1155ToErc1155`]()
+   - [**Trocar Real Tokenizado por TPFt**: `/startSwapErc20ToErc1155`](./docs/SWAPS.md)
+   - [**Trocar TPFt por Real Tokenizado**: `/startSwapErc1155ToErc20`](./docs/SWAPS.md))
+   - [**Trocar Real Tokenizado por Real Tokenizado**: `/startSwapErc20ToErc20`](./docs/SWAPS.md))
+   - [**Trocar TPFt Tokenizado por TPFt**: `/startSwapErc1155ToErc1155`](./docs/SWAPS.md))
   
 3) [**Retirar**]() - Há dois tipos de retirada, um para Real Digital e outro para TPFt:
    
