@@ -24,9 +24,9 @@ e há quatro rotas diferentes para aceitar um swap, sendo elas:
 
 Para realizar um swap via API, é necessário realizar uma requisição POST para a rota `/startSwapFromErc20ToErc1155` do SwapShield, passando os parâmetros necessários no corpo da requisição.
 
-## A) Começar um Swap Real Tokenizado (ERC20) para TPFt (ERC1155) - /startSwapFromErc20ToErc1155
+## A) Começar um Swap Real Tokenizado (ERC20) para TPFt (ERC1155) - `/startSwapFromErc20ToErc1155`
 
-### Rota /startSwapFromErc20ToErc1155
+### Rota 
 `POST <endereço_da_aplicação:3000>/startSwapFromErc20ToErc1155`
 
 ### Descrição
@@ -76,9 +76,9 @@ Se a solicitação for bem-sucedida, a API retornará um código de status 200 c
 
 > A contraparte também poderá saber o swapId proposto através das rotas /getAllCommitments. Os swaps propostos serão reconhecidos pela aplicação da contra-parte e será adicionads no banco de commitements. 
 
-## B) Completar um Swap Real Tokenizado (ERC20) para TPFt (ERC1155) - /completeSwapFromErc20ToErc1155
+## B) Completar um Swap Real Tokenizado (ERC20) para TPFt (ERC1155) - `/completeSwapFromErc20ToErc1155`
 
-### Rota /completeSwapFromErc20ToErc1155
+### Rota
 `POST <endereço_da_aplicação:3000>/completeSwapFromErc20ToErc1155`
 
 ### Descrição
@@ -116,9 +116,9 @@ Se a solicitação for bem-sucedida, a API retornará um código de status 200 c
 }
 ```
 
-## C) Começar um Swap TPFt (ERC1155) para Real Tokenizado(ERC20) - /startSwapFromErc1155ToErc20
+## C) Começar um Swap TPFt (ERC1155) para Real Tokenizado(ERC20) - `/startSwapFromErc1155ToErc20`
 
-### Rota /startSwapFromErc1155ToErc20
+### Rota
 `POST <endereço_da_aplicação:3000>/startSwapFromErc1155ToErc20`
 
 ### Descrição
@@ -168,9 +168,9 @@ Se a solicitação for bem-sucedida, a API retornará um código de status 200 c
 
 > A contraparte também poderá saber o swapId proposto através das rotas /getAllCommitments. Os swaps propostos serão reconhecidos pela aplicação da contra-parte e será adicionads no banco de commitements. 
 
-## D) Completar um Swap TPFt (ERC1155) para Real Tokenizado (ERC20) - /completeSwapFromErc1155ToErc20
+## D) Completar um Swap TPFt (ERC1155) para Real Tokenizado (ERC20) - `/completeSwapFromErc1155ToErc20`
 
-### Rota /completeSwapFromErc1155ToErc20
+### Rota
 `POST <endereço_da_aplicação:3000>/completeSwapFromErc1155ToErc20`
 
 ### Descrição
@@ -208,9 +208,9 @@ Se a solicitação for bem-sucedida, a API retornará um código de status 200 c
 }
 ```
 
-## E) Começar um Swap TPFt (ERC1155) para TPFt (ERC1155) - /startSwapFromErc1155ToErc1155
+## E) Começar um Swap TPFt (ERC1155) para TPFt (ERC1155) - `/startSwapFromErc1155ToErc1155`
 
-### Rota /startSwapFromErc1155ToErc1155
+### Rota
 `POST <endereço_da_aplicação:3000>/startSwapFromErc1155ToErc1155`
 
 ### Descrição
@@ -261,9 +261,9 @@ Se a solicitação for bem-sucedida, a API retornará um código de status 200 c
 
 > A contraparte também poderá saber o swapId proposto através das rotas /getAllCommitments. Os swaps propostos serão reconhecidos pela aplicação da contra-parte e será adicionads no banco de commitements. 
 
-## F) Completar um Swap TPFt (ERC1155) para TPFt (ERC1155) - /completeSwapFromErc1155ToErc1155
+## F) Completar um Swap TPFt (ERC1155) para TPFt (ERC1155) - `/completeSwapFromErc1155ToErc1155`
 
-### Rota /completeSwapFromErc1155ToErc1155
+### Rota
 `POST <endereço_da_aplicação:3000>/completeSwapFromErc1155ToErc1155`
 
 ### Descrição
@@ -301,9 +301,9 @@ Se a solicitação for bem-sucedida, a API retornará um código de status 200 c
 }
 ```
 
-## G) Começar um Swap de Real Tokenizado(ERC20) para Real Tokenizado(ERC20) - /startSwapFromErc20ToErc20
+## G) Começar um Swap de Real Tokenizado(ERC20) para Real Tokenizado(ERC20) - `/startSwapFromErc20ToErc20`
 
-### Rota /startSwapFromErc20ToErc20
+### Rota
 `POST <endereço_da_aplicação:3000>/startSwapFromErc20ToErc20`
 
 ### Descrição
@@ -352,7 +352,7 @@ Se a solicitação for bem-sucedida, a API retornará um código de status 200 c
 
 > A contraparte também poderá saber o swapId proposto através das rotas /getAllCommitments. Os swaps propostos serão reconhecidos pela aplicação da contra-parte e será adicionads no banco de commitements. 
 
-## H) Completar um Real Tokenizado (ERC20) para Real Tokenizado (ERC20) - /completeSwapFromErc20ToErc20
+## H) Completar um Real Tokenizado (ERC20) para Real Tokenizado (ERC20) - `/completeSwapFromErc20ToErc20`
 
 ### Rota
 `POST <endereço_da_aplicação:3000>/completeSwapFromErc20ToErc20`
