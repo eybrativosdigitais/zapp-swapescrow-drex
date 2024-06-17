@@ -9,10 +9,11 @@ import {
   service_getZKPPublicKey,
   service_verify,
   service_publicBalance,
-  service_getSwaps, service_shieldedBalance, service_getParsedCommitments, service_stats
+  service_getSwaps, service_shieldedBalance, service_getParsedCommitments
 } from './api_services.mjs'
 
 import express from 'express'
+import stats from './stats.mjs'
 
 export class Router {
   constructor (serviceMgr) {
@@ -83,7 +84,7 @@ export class Router {
 
     // eslint-disable-next-line func-names
     router.post('/withdrawErc1155', this.serviceMgr.service_withdrawErc1155.bind(this.serviceMgr))
-    
+
     router.get('/backupData', this.serviceMgr.service_ReadBackupData.bind(this.serviceMgr))
     router.post('/backupData', this.serviceMgr.service_BackupData.bind(this.serviceMgr))
 
@@ -103,7 +104,7 @@ export class Router {
     router.get('/public-balance', service_publicBalance)
     router.get('/shielded-balance', service_shieldedBalance)
     router.get('/swap', service_getSwaps)
-    router.get('/stats', service_stats)
+    router.get('/stats', stats)
     router.get('/healthcheck', (req, res) => res.status(200).send({status: 'ok'}))
 
     return router

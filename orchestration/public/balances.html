@@ -144,7 +144,7 @@
         <div class="bg-white w-[50rem] rounded-2xl p-4 shadow-lg">
           <div class="px-2 flex items-center justify-between font-semibold text-xl text-gray-900">
             Balanços
-            <!-- <div class="flex justify-center">
+            <div class="flex justify-center">
               <nav
                 class="flex overflow-x-auto items-center p-1 space-x-1 rtl:space-x-reverse text-sm text-gray-600 bg-gray-500/5 rounded-xl dark:bg-gray-500/20">
                 <button role="tab" type="button"
@@ -159,14 +159,23 @@
                   ERC1155
                 </button>
               </nav>
-            </div> -->
+            </div>
           </div>
 
           <br /><br />
           <div class="flex flex-col items-center">
-            <div class="mb-4 w-full flex rounded-lg">
+            <!-- <div class="mb-4 w-full flex rounded-lg">
               <input type="text" class="bg-transparent border p-4 rounded-lg outline-none w-full text-1xl text-gray-900"
                 placeholder="Endereço do token" id="tokenAddressInput">
+              <button id="addTokenAddress" class="bg-blue-500 text-white px-4 py-2 ml-2 rounded-lg">Adicionar</button>
+            </div> -->
+            <div class="mb-4 w-full flex rounded-lg">
+              <input type="text"
+                class="bg-transparent border p-4 rounded-lg hidden outline-none w-full text-1xl text-gray-900"
+                placeholder="Endereço do token" id="tokenAddressInput">
+              <input type="text"
+                class="bg-transparent border p-4 rounded-lg outline-none hidden w-full text-1xl text-gray-900"
+                placeholder="ID(s) do token (separados por vírgula)" id="tokenIdsInput">
               <button id="addTokenAddress" class="bg-blue-500 text-white px-4 py-2 ml-2 rounded-lg">Adicionar</button>
             </div>
 

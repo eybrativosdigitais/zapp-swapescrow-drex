@@ -33,12 +33,12 @@ import {
   poseidonHash,
   encrypt
 } from './common/number-theory.mjs'
+import { createSwapIdProperties } from './common/createSwapIdNullifier.mjs'
 import logger from './common/logger.mjs'
 
 const { generalise } = GN
 const db = '/app/orchestration/common/db/preimage.json'
 const keyDb = '/app/orchestration/common/db/key.json'
-
 export class StartSwapFromErc20ToErc20Manager {
   constructor (web3) {
     this.web3 = web3
@@ -106,31 +106,21 @@ export class StartSwapFromErc20ToErc20Manager {
     )
     let sharedSecretKey = generalise(keys.sharedSecretKey)
     sharedPublicKey = generalise(keys.sharedPublicKey)
-
-    let swapIdCounter = generalise(await instance.methods.swapIdCounter().call())
-    let swapIdCounter_init = swapIdCounter
-
-    let swapIdCounter_2 = generalise(parseInt(swapIdCounter.integer, 10) + 1)
-
-    swapIdCounter = generalise(swapIdCounter_2)
-
-    swapIdCounter = generalise(swapIdCounter_init)
-
     // Initialise commitment preimage of whole state:
-
     let swapProposals_swapIdCounter_2_stateVarId = 47
 
-    const swapProposals_swapIdCounter_2_stateVarId_key = swapIdCounter_2
+    const swapIdProperties = await createSwapIdProperties(
+      instance,
+      msgSender,
+      swapProposals_swapIdCounter_2_stateVarId
+    )
 
-    swapProposals_swapIdCounter_2_stateVarId = generalise(
-      utils.mimcHash(
-        [
-          generalise(swapProposals_swapIdCounter_2_stateVarId).bigInt,
-          swapProposals_swapIdCounter_2_stateVarId_key.bigInt
-        ],
-        'ALT_BN_254'
-      )
-    ).hex(32)
+    let swapIdCounter = swapIdProperties.swapIdCounter
+    let swapIdCounter_2 = swapIdProperties.swapIdCounter_
+
+    const swapProposals_swapIdCounter_2_stateVarId_key = swapIdProperties.swapProposals_swapIdCounter_stateVarId_key
+
+    swapProposals_swapIdCounter_2_stateVarId = swapIdProperties.swapProposals_swapIdCounter_stateVarId
 
     let swapProposals_swapIdCounter_2_commitmentExists = true
     let swapProposals_swapIdCounter_2_witnessRequired = true

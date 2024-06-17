@@ -42,11 +42,12 @@ const updateTokenAddressList = () => {
     $('#tokenAddressList').append(generateTokenAddressHTML(address, 'erc20'))
   })
 }
+let erc20Addresses = []
+let erc1155Addresses = []
+let erc1155TokenIds = [1, 2, 3]
 
 const fetchBalances = () => {
-  const erc20Addresses = []
-  const erc1155Addresses = []
-  const erc1155TokenIds = [1, 2, 3]
+
 
   tokenAddresses.forEach(obj => {
     const { address, type } = obj
@@ -140,9 +141,17 @@ const loadTokenAddressesFromLocalStorage = () => {
 }
 
 $(document).on('click', '#addTokenAddress', () => {
-  const address = $('#tokenAddressInput').val()
-  if (address && !tokenAddresses.find(addr => addr.address === address)) {
-    tokenAddresses.push({ address, type: 'erc20' })
+  const mode = erc20Tab.getAttribute('aria-selected') === 'true' ? 'erc20' : 'erc1155'
+  if (mode === 'erc20') {
+    const address = $('#tokenAddressInput').val()
+    if (address && !tokenAddresses.find(addr => addr.address === address)) {
+      tokenAddresses.push({ address, type: 'erc20' })
+      updateTokenAddressList()
+      fetchBalances()
+    }
+  } else {
+    const tokenIds = $('#tokenIdsInput').val().split(',').map(id => parseInt(id))
+    erc1155TokenIds = [...new Set(erc1155TokenIds.concat(tokenIds))]
     updateTokenAddressList()
     fetchBalances()
   }
@@ -251,6 +260,8 @@ const generateInfoTableRow = (key, value) => `
     $('#tokenIdInput').addClass('hidden')
     $('#tokenIdErc1155').addClass('hidden')
     $('#labeltokenIdErc1155').addClass('hidden')
+    $('#tokenIdsInput').addClass('hidden')
+    $('#tokenAddressInput').removeClass('hidden')
     mode = 'erc20'
     showHideFields()
   })
@@ -264,6 +275,8 @@ const generateInfoTableRow = (key, value) => `
     $('#tokenIdInput').removeClass('hidden')
     $('#tokenIdErc1155').removeClass('hidden')
     $('#labeltokenIdErc1155').removeClass('hidden')
+    $('#tokenIdsInput').removeClass('hidden')
+    $('#tokenAddressInput').addClass('hidden')
     mode = 'erc1155'
     showHideFields()
   })

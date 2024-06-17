@@ -34,6 +34,7 @@ import {
   encrypt
 } from './common/number-theory.mjs'
 import logger from './common/logger.mjs'
+import { createSwapIdProperties } from './common/createSwapIdNullifier.mjs'
 
 const { generalise } = GN
 const db = '/app/orchestration/common/db/preimage.json'
@@ -61,7 +62,6 @@ export class StartSwapFromErc20ToErc1155Manager {
     _balances_msgSender_erc20Address_1_oldCommitment = 0
   ) {
     // Initialisation of variables:
-
     const instance = this.instance
 
     const contractAddr = this.contractAddr
@@ -87,7 +87,8 @@ export class StartSwapFromErc20ToErc1155Manager {
     if (!fs.existsSync(keyDb)) { await registerKey(utils.randomHex(31), 'SwapShield', true) }
     let keys = JSON.parse(
       fs.readFileSync(keyDb, 'utf-8', (err) => {
-        console.log(err)
+        console.error('Error reading key db on startSwapFromErc20ToErc1155:registerKey', err)
+        throw new Error('Error reading key db on startSwapFromErc20ToErc1155:registerKey')
       })
     )
     const secretKey = generalise(keys.secretKey)
@@ -101,10 +102,12 @@ export class StartSwapFromErc20ToErc1155Manager {
     if (recipientPublicKey.length === 0) {
       throw new Error('WARNING: Public key for given  eth address not found.')
     }
+
     let sharedPublicKey = await getSharedSecretskeys(counterParty, recipientPublicKey)
     keys = JSON.parse(
       fs.readFileSync(keyDb, 'utf-8', (err) => {
-        console.log(err)
+        console.error('Error reading key db on startSwapFromErc20ToErc1155:getSharedSecretskeys', err)
+        throw new Error('Error reading key db on startSwapFromErc20ToErc1155:getSharedSecretskeys')
       })
     )
     let sharedSecretKey = generalise(keys.sharedSecretKey)
@@ -113,30 +116,20 @@ export class StartSwapFromErc20ToErc1155Manager {
     console.log('recipientPublicKey:', recipientPublicKey, 'counterParty:', counterParty)
     console.log(sharedPublicKey)
 
-    let swapIdCounter = generalise(await instance.methods.swapIdCounter().call())
-    let swapIdCounter_init = swapIdCounter
-
-    let swapIdCounter_1 = generalise(parseInt(swapIdCounter.integer, 10) + 1)
-
-    swapIdCounter = generalise(swapIdCounter_1)
-
-    swapIdCounter = generalise(swapIdCounter_init)
-
-    // Initialise commitment preimage of whole state:
-
     let swapProposals_swapIdCounter_1_stateVarId = 47
 
-    const swapProposals_swapIdCounter_1_stateVarId_key = swapIdCounter_1
+    const swapIdProperties = await createSwapIdProperties(
+      instance,
+      msgSender,
+      swapProposals_swapIdCounter_1_stateVarId
+    )
 
-    swapProposals_swapIdCounter_1_stateVarId = generalise(
-      utils.mimcHash(
-        [
-          generalise(swapProposals_swapIdCounter_1_stateVarId).bigInt,
-          swapProposals_swapIdCounter_1_stateVarId_key.bigInt
-        ],
-        'ALT_BN_254'
-      )
-    ).hex(32)
+    let swapIdCounter = swapIdProperties.swapIdCounter
+    let swapIdCounter_1 = swapIdProperties.swapIdCounter_
+
+    const swapProposals_swapIdCounter_1_stateVarId_key = swapIdProperties.swapProposals_swapIdCounter_stateVarId_key
+
+    swapProposals_swapIdCounter_1_stateVarId = swapIdProperties.swapProposals_swapIdCounter_stateVarId
 
     let swapProposals_swapIdCounter_1_commitmentExists = true
     let swapProposals_swapIdCounter_1_witnessRequired = true
@@ -462,6 +455,7 @@ export class StartSwapFromErc20ToErc1155Manager {
     swapProposals_swapIdCounter_1_nullifier = generalise(
       swapProposals_swapIdCounter_1_nullifier.hex(32)
     ) // truncate
+
 
     // Calculate commitment(s):
 

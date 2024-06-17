@@ -32,6 +32,7 @@ import {
   decompressStarlightKey,
   poseidonHash
 } from './common/number-theory.mjs'
+import { createSwapIdProperties } from './common/createSwapIdNullifier.mjs'
 import logger from './common/logger.mjs'
 
 const { generalise } = GN
@@ -107,30 +108,20 @@ export class StartSwapFromErc1155ToErc1155Manager {
     let sharedSecretKey = generalise(keys.sharedSecretKey)
     sharedPublicKey = generalise(keys.sharedPublicKey)
 
-    let swapIdCounter = generalise(await instance.methods.swapIdCounter().call())
-    let swapIdCounter_init = swapIdCounter
-
-    let swapIdCounter_3 = generalise(parseInt(swapIdCounter.integer, 10) + 1)
-
-    swapIdCounter = generalise(swapIdCounter_3)
-
-    swapIdCounter = generalise(swapIdCounter_init)
-
-    // Initialise commitment preimage of whole state:
-
     let swapProposals_swapIdCounter_3_stateVarId = 47
 
-    const swapProposals_swapIdCounter_3_stateVarId_key = swapIdCounter_3
+    const swapIdProperties = await createSwapIdProperties(
+      instance,
+      msgSender,
+      swapProposals_swapIdCounter_3_stateVarId
+    )
 
-    swapProposals_swapIdCounter_3_stateVarId = generalise(
-      utils.mimcHash(
-        [
-          generalise(swapProposals_swapIdCounter_3_stateVarId).bigInt,
-          swapProposals_swapIdCounter_3_stateVarId_key.bigInt
-        ],
-        'ALT_BN_254'
-      )
-    ).hex(32)
+    let swapIdCounter = swapIdProperties.swapIdCounter
+    let swapIdCounter_3 = swapIdProperties.swapIdCounter_
+
+    const swapProposals_swapIdCounter_3_stateVarId_key = swapIdProperties.swapProposals_swapIdCounter_stateVarId_key
+
+    swapProposals_swapIdCounter_3_stateVarId = swapIdProperties.swapProposals_swapIdCounter_stateVarId
 
     let swapProposals_swapIdCounter_3_commitmentExists = true
     let swapProposals_swapIdCounter_3_witnessRequired = true

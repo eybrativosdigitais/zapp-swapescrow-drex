@@ -46,6 +46,7 @@ import parseCommitments from './common/parseCommitments.js'
 import formatCommitments from './common/format-commitments.mjs'
 import { EncryptedDataEventListener } from './encrypted-data-listener.mjs'
 import { hasERC1155Balance, hasERC20Balance } from './common/validateBalance.mjs'
+import web3Instance from 'mocha'
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 let leafIndex
@@ -1168,56 +1169,6 @@ export async function service_getParsedCommitments (req, res, next) {
     return res.send({
       owner,
       commitments: formatCommitments(commitments, owner, erc20Address, erc1155TokenIds)
-    })
-  } catch (err) {
-    logger.error(err)
-    return res.status(422).send({ errors: [err.message] })
-  }
-}
-
-export async function service_stats (req, res, next) {
-  try {
-    const SwapShield = await getContractInstance('SwapShield')
-    const ERC20 = await getContractInstance('ERC20')
-    const ERC1155Token = await getContractInstance('ERC1155Token')
-    const SwapShieldMetadata = await getContractMetadata('SwapShield')
-
-    const [
-      swapIdCounter,
-      latestRoot,
-      ownPublicKey,
-      ERC20Address,
-      ERC1155Address,
-      erc20Allowance,
-      erc1155Allowance
-    ] = await Promise.all([
-      SwapShield.methods.swapIdCounter().call(),
-      SwapShield.methods.latestRoot().call(),
-      SwapShield.methods.zkpPublicKeys(process.env.DEFAULT_ACCOUNT).call(),
-      getContractAddress('ERC20'),
-      getContractAddress('ERC1155Token'),
-      ERC20.methods.allowance(process.env.DEFAULT_ACCOUNT, SwapShieldMetadata.address).call(),
-      ERC1155Token.methods.isApprovedForAll(process.env.DEFAULT_ACCOUNT, SwapShieldMetadata.address).call()
-    ])
-
-    return res.send({
-      ownAddress: process.env.DEFAULT_ACCOUNT,
-      rpcUrl: process.env.RPC_URL,
-      gasPrice: process.env.DEFAULT_GAS_PRICE,
-      gasLimit: process.env.DEFAULT_GAS,
-      ownPublicKey,
-      swapIdCounter,
-      latestRoot,
-      swapShieldAddress: SwapShieldMetadata.address,
-      swapShieldDeployBlocknumber: SwapShieldMetadata.blockNumber,
-      tokens: {
-        ERC20: ERC20Address,
-        ERC1155: ERC1155Address
-      },
-      allowances: {
-        ERC20: erc20Allowance,
-        ERC1155: erc1155Allowance
-      }
     })
   } catch (err) {
     logger.error(err)
