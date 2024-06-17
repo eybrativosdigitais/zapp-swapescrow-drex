@@ -24,7 +24,7 @@ const web3 = Web3.connection()
 const serviceMgr = new ServiceManager(web3)
 serviceMgr.init().then(async () => {
   const eventListener = new EncryptedDataEventListener(web3)
-  await eventListener.start()
+  await eventListener.start('latest')
 
   const router = new Router(serviceMgr)
   const r = router.addRoutes()

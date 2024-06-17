@@ -5,7 +5,6 @@ import { generalise } from 'general-number'
 import { getContractAddress, getContractInstance, registerKey, getContractMetadata } from './common/contract.mjs'
 import { storeCommitment, getSharedSecretskeys, getCommitmentsByState, markNullified, markNullifiedMany, formatCommitment, persistCommitment } from './common/commitment-storage.mjs'
 import { decrypt, poseidonHash, decompressStarlightKey } from './common/number-theory.mjs'
-import { decodeCommitmentData } from './common/backupData.mjs'
 import logger from './common/logger.mjs'
 
 const keyDb = '/app/orchestration/common/db/key.json'
@@ -43,7 +42,7 @@ export class EncryptedDataEventListener {
 
   
 
-  async start () {
+  async start (fromBlock) {
     try {
       await this.init()
 
@@ -53,12 +52,12 @@ export class EncryptedDataEventListener {
       )
 
       const eventSubscription = await this.instance.events[eventName]({
-        fromBlock: this.contractMetadata.blockNumber || 1,
+        fromBlock: fromBlock || this.contractMetadata.blockNumber || 1,
         topics: [eventJsonInterface.signature]
       })
 
       console.log('Initializing event listener...', {
-        fromBlock: this.contractMetadata.blockNumber || 1,
+        fromBlock: fromBlock || this.contractMetadata.blockNumber || 1,
         topics: [eventJsonInterface.signature]
       })
 

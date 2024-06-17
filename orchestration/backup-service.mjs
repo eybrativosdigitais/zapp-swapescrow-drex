@@ -5,7 +5,7 @@ import utils from 'zkp-utils'
 import config from 'config'
 import { decodeCommitmentData, decryptBackupDataWithKeys } from './common/backupData.mjs'
 import { getContractInstance, getContractMetadata, registerKey } from './common/contract.mjs'
-import { formatCommitment, persistCommitment } from './common/commitment-storage.mjs'
+import { formatCommitment, markNullifiedMany, persistCommitment } from './common/commitment-storage.mjs'
 const { generalise } = GN
 
 export class BackupService {
@@ -35,6 +35,34 @@ export class BackupService {
     await this.saveBackupData(backupData)  
   }
 
+  async fetchNullifiers() {
+    if (!this.instance) {
+      await this.init()
+    }
+    const instance = this.instance
+
+    console.log('fetchBackupData - Getting nullifiers...')
+    const nullifierEvents = await instance.getPastEvents('Nullifiers', {
+      fromBlock: this.contractMetadata.blockNumber || 1
+    })
+    console.log('fetchBackupData - nullifiers collected.')
+
+    return nullifierEvents
+      .flatMap(e => e.returnValues.nullifiers)
+  }
+
+  async nullifyUsedCommitments() {
+    const nullifiers = await this.fetchNullifiers()
+    // const chunkSize = 1000
+    // for (let i = 0; i < nullifiers.length; i += chunkSize) {
+    //   const chunk = nullifiers.slice(i, i + chunkSize)
+    //   await markNullifiedMany(chunk)
+    // }
+    console.log('nullifyUsedCommitments - nullifying', nullifiers.length, 'commitments')
+    await markNullifiedMany(nullifiers)
+    console.log('nullifyUsedCommitments - nullifying completed.')
+  }
+
   async fetchBackupData () {
     if (!this.instance) {
       await this.init()
@@ -49,27 +77,17 @@ export class BackupService {
       fromBlock: this.contractMetadata.blockNumber || 1,
       topics: [eventJsonInterface.signature, this.ethAddress.hex(32)]
     })
-    console.log('fetchBackupData - Getting nullifiers. This can take a while...')
-    const nullifierEvents = await instance.getPastEvents('Nullifiers', {
-      fromBlock: this.contractMetadata.blockNumber || 1
-    })
-    console.log('fetchBackupData - nullifiers collected.')
-
-    const nullifiers = nullifierEvents
-      .flatMap(e => e.returnValues.nullifiers)
-
-    console.log('fetchBackupData - start to decryptBackupData, decodeCommitmentData, formatCommitment ...')
-    return Promise.all(
-      backupEvents
-        .map(e => decryptBackupDataWithKeys(e.returnValues.cipherText, this.publicKey, this.secretKey))
-        .map(decodeCommitmentData)
-        .filter(c => c)
-        .map(formatCommitment)
-        .map(c => {
-          c.isNullified = nullifiers.includes(BigInt(c.nullifier).toString())
-          return c
-        })
-    )
+    console.log('fetchBackupData - BackupData collected.')
+    const nullifiers = await this.fetchNullifiers()
+    return backupEvents
+      .map(e => decryptBackupDataWithKeys(e.returnValues.cipherText, this.publicKey, this.secretKey))
+      .map(decodeCommitmentData)
+      .filter(c => c)
+      .map(formatCommitment)
+      .map(c => {
+        c.isNullified = nullifiers.includes(BigInt(c.nullifier).toString())
+        return c
+      })
   }
 
   async saveBackupData (allCommitments) {
@@ -91,5 +109,6 @@ export class BackupService {
         console.log('saveBackupData - operation completed. ', allCommitments.length, 'commitments restored.')
       }
     })
+    await this.nullifyUsedCommitments()
   }
 }

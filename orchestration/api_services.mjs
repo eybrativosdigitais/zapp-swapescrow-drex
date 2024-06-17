@@ -711,6 +711,8 @@ export class ServiceManager {
     try {
       await startEventFilter('SwapShield')
       res.send({ status: 'backup service will start. please check the backend logs for more details' })
+      const eventListener = new EncryptedDataEventListener(this.web3)
+      await eventListener.start()
       await this.backupData.performBackup()
     } catch (err) {
       logger.error('service_BackupData', err)
