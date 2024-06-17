@@ -62,13 +62,11 @@ Abaixo segue os requisitos mínimos de Sistema Operacional, Docker, Ambiente de 
 
 ## 1. Executando o Starlight
 
-A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar essa configuração, cada uma com o seu respectivo arquivo de docker-compose. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e baixa o restante das imagens do GHCR (Github Container Registry).
+A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar essa configuração, cada uma com o seu respectivo arquivo de docker-compose. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e baixa o restante das imagens do GHCR (Github Container Registry). Para checar as outras formas, vá em [Configurações alternativas](#8---configuração-inicial-alternativa).
 
 ### Tipos de Configuração
 
 #### 1. Configuração Padrão (recomendado)
-
-A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar essa configuração, cada uma com o seu respectivo arquivo de docker-compose. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e a imagem do zapp hospedadas no Ghcr(Github Container Registry). Para checar as outras formas, vá em [Configurações alternativas](#8---configuração-inicial-alternativa).
 
 ### Passo a Passo
 
