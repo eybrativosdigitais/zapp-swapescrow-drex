@@ -2,12 +2,16 @@ name: Create and publish a Docker image
 
 # Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
+  workflow_dispatch:
   push:
     tags:
       - v*
 
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
+  AWS_REGION: sa-east-1
+  AWS_IAM_ROLE: "arn:aws:iam::452675509495:role/github-actions-admin"
+  S3_BUCKET_NAME: eybrativosdigitais-swapescrow-3159132979
   DOCKER_REGISTRY: ghcr.io
   DOCKER_REPOSITORY: ${{ github.repository }}
 
@@ -53,8 +57,29 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_IAM_ROLE }}
+
+      - name: Zip and upload to S3
+        env:
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+          GIT_REF: ${{ github.ref_name }}
+        run: |
+          export FILE_NAME="${REPOSITORY_NAME}-${GIT_REF}.tar"
+          docker image save -o "${FILE_NAME}" "${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_REPOSITORY }}:latest"
+          aws s3 cp "${FILE_NAME}" "s3://${S3_BUCKET_NAME}/docker/${FILE_NAME}" --acl "public-read"
+
       - name: Summary
+        env:
+          FILE_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}.tar
         run: |
           echo "## Docker build completed :green_circle:" >> $GITHUB_STEP_SUMMARY
           echo "### Tags" >> $GITHUB_STEP_SUMMARY
-          echo "- `${{ steps.meta.outputs.tags }}`" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r TAG; do
+            echo "- $TAG" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "## S3 Upload Completed :green_circle:" >> $GITHUB_STEP_SUMMARY
+          echo "- Public URL: <https://${S3_BUCKET_NAME}.s3.sa-east-1.amazonaws.com/docker/${FILE_NAME}>" >> $GITHUB_STEP_SUMMARY
