@@ -6,7 +6,7 @@ Este tutorial tem como objetivo explicar como realizar um depósito no SwapShiel
 
 O depósito no SwapShield deve ser realizado com Real Tokenizado (ERC20) ou TPFt(ERC1155). São rotas diferentes para cada tipo de token, e cada uma delas será explicada em detalhes a seguir.
 
-> Lembre-se que antes de realizar o depósito de Real Tokenizado (ERC20) ou TPFt(ERC1155), é necessário a aprovação do contrato do SwapShield para realizar a transferência dos tokens. Veja a seção [Aprovação de Contrato](./README.md#2---permissões-dos-contratos) para mais informações.
+> Lembre-se que antes de realizar o depósito de Real Tokenizado (ERC20) ou TPFt(ERC1155), é necessário a aprovação do contrato do SwapShield para realizar a transferência dos tokens. Veja a seção [Aprovação de Contrato](../README.md#2---permissões-dos-contratos) para mais informações.
 
 ## Método 1: Depósito via API
 
