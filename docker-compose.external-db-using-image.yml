@@ -17,7 +17,7 @@ services:
       start_interval: 2s
     volumes:
       - ./build:/app/build
-      - ./orchestration/common/db/key.json:/app/orchestration/common/db/key.json
+      - ./orchestration/common/db/:/app/orchestration/common/db/
     environment:
       RPC_URL: ${SWAPESCROW_RPC_URL}
       DEFAULT_ACCOUNT: ${DEFAULT_ACCOUNT}
@@ -26,7 +26,6 @@ services:
       MONGO_URL: ${MONGO_URL}
       MONGO_NAME: zapp_db
       TIMBER_URL: http://timber
-    restart: on-failure
     networks:
       - zapp_network
 
@@ -36,7 +35,6 @@ services:
     volumes:
       - ./circuits/:/app/circuits
       - ./proving-files/:/app/output
-      - ./orchestration/common/write-vk.mjs:/app/write-vk.mjs
       - ./orchestration/common/db/:/app/orchestration/common/db
     environment:
       PROVING_SCHEME: "g16"
@@ -52,7 +50,6 @@ services:
     restart: on-failure
     volumes:
       - ./config/:/app/config
-      - ./contracts/:/app/contracts
       - ./build/:/app/build
     ports:
       - "3100:80"
