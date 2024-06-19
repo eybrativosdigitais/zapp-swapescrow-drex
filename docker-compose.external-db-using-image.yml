@@ -17,10 +17,7 @@ services:
       start_interval: 2s
     volumes:
       - ./build:/app/build
-      - ./contracts/:/app/contracts/
-      - ./circuits/:/app/circuits
-      - ./orchestration/:/app/orchestration
-      - ./config/:/app/config
+      - ./orchestration/common/db/key.json:/app/orchestration/common/db/key.json
     environment:
       RPC_URL: ${SWAPESCROW_RPC_URL}
       DEFAULT_ACCOUNT: ${DEFAULT_ACCOUNT}
