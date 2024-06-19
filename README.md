@@ -128,6 +128,8 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 
 10) A configuração inicial está completa! Se os logs não apresentaram erros. Caso tenha acontecido algum erro, vá até a seção [Erros comuns](./docs/ERROS.md) checar se há alguma solução já conhecida.
 
+> Mesmo com a configuração acima usando imagens Dockers que constam no repositório Github Container Repository, são requeridos que os seguintes diretórios estejam no mesmo diretório onde estejam os arquivos .env e docker-compose.yml. São eles: circuits, proving-files, orchestration/common/db, build e config.
+
 ### Observações
 
 - Alterar as configurações do seu nó Besu, aumentando ou desabilitando o limite RPC para logs (parâmetro [RPC-MAX-LOGS-RANGE](https://besu.hyperledger.org/23.4.0/public-networks/reference/cli/options#rpc-max-logs-range)) (necessário para o correto funcionamento do Timber)
