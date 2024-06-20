@@ -15,11 +15,11 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
 
 ## Índice
 
-- [Starlight](#starlight)
+- [Starlight SwapEscrow](#starlight-swapescrow)
   - [Índice](#índice)
-  - [Componentes do Starlight](#componentes-do-starlight)
+  - [Componentes do SwapEscrow](#componentes-do-swapescrow)
   - [Requisitos mínimos](#requisitos-mínimos)
-  - [1. Executando o Starlight](#1-executando-o-starlight)
+  - [1. Executando o Starlight](#1-executando-o-starlight-swapescrow)
     - [Tipos de Configuração](#tipos-de-configuração)
       - [1. Configuração Padrão (recomendado)](#1-configuração-padrão-recomendado)
     - [Passo a Passo](#passo-a-passo)
@@ -37,11 +37,11 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
     - [8.1) Configuração tipo 2 (Criando a imagem localmente)](#81-configuração-tipo-2-criando-a-imagem-localmente)
     - [8.2) Configuração tipo 3 (Hospedando Mongo localmente)](#82-configuração-tipo-3-hospedando-mongo-localmente)
 
-## Componentes do Starlight
+## Componentes do SwapEscrow
 
-Todas as interações com as aplicações Starlight são realizadas através do cliente ZApp, que opera localmente em cada nó da rede. Cada aplicação Zapp é constituída pelos seguintes serviços:
+Todas as interações com as aplicações criadas pelo Starlight, como o SwapEscrow, são realizadas através do cliente ZApp, que opera localmente em cada nó da rede. Cada aplicação Zapp é constituída pelos seguintes serviços:
 
-- **Zapp**: este é o aplicativo cliente principal. As interações com o aplicativo se dão por meio de APIs
+- **Zapp ou Orchestrator**: este é o aplicativo cliente principal. Funciona como um orquestrador de operações entre os demais serviços. As interações com o aplicativo se dão por meio de APIs que estão dentro do Zapp/Orchestrador
 - **Timber**: responsável por sincronizar a merkle-tree dos *commitments* com as informações privadas locais e as informações públicas registradas na rede DLT
 - **Zokrates-worker**: responsável pela geração das provas de conhecimento zero
 - **MongoDB**: base de dados utilizada pelo Zapp e pelo Timber para salvar os *commitments* e o estado do merkle-tree, respectivamente
@@ -60,7 +60,7 @@ Abaixo segue os requisitos mínimos de Sistema Operacional, Docker, Ambiente de 
 
 > Não podemos garantir o correto funcionamento da aplicação se a mesma for executada em máquinas Desktop ou com requisitos inferiores aos citados acima.
 
-## 1. Executando o Starlight
+## 1. Executando o Starlight SwapEscrow
 
 A primeira etapa será a configuração inicial do sistema. Há 3 formas diferentes de realizar essa configuração, cada uma com o seu respectivo arquivo de docker-compose. O foco deste guia será a configuração tipo 1, na qual utiliza um Mongo externo e baixa o restante das imagens do GHCR (Github Container Registry). Para checar as outras formas, vá em [Configurações alternativas](#8---configuração-inicial-alternativa).
 
