@@ -2,7 +2,7 @@
 
 ## Introdução
 
-Este tutorial tem como objetivo explicar como realizar um depósito no SwapShield usand as rotas de API. 
+Este tutorial tem como objetivo explicar como realizar um depósito no SwapShield usando as rotas de API. 
 
 O depósito no SwapShield deve ser realizado com Real Digital (ERC20) ou TPFt(ERC1155). São rotas diferentes para cada tipo de token, e cada uma delas será explicada em detalhes a seguir.
 
