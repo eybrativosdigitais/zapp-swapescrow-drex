@@ -19,11 +19,12 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
   - [Índice](#índice)
   - [Componentes do SwapEscrow](#componentes-do-swapescrow)
   - [Requisitos mínimos](#requisitos-mínimos)
-  - [1. Executando o Starlight](#1-executando-o-starlight-swapescrow)
+  - [1. Executando o Starlight SwapEscrow](#1-executando-o-starlight-swapescrow)
     - [Tipos de Configuração](#tipos-de-configuração)
       - [1. Configuração Padrão (recomendado)](#1-configuração-padrão-recomendado)
     - [Passo a Passo](#passo-a-passo)
     - [Observações](#observações)
+    - [Como funciona a criptografia no Starlight SwapEscrow?](#como-funciona-a-criptografia-no-starlight-swapescrow)
   - [2 - Permissões dos contratos](#2---permissões-dos-contratos)
   - [3 - Interação com a aplicação](#3---interação-com-a-aplicação)
     - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
@@ -206,7 +207,7 @@ Na aplicação, há um frontend com rotas para consultar o status. Para acessá-
 
 A aplicação possui um frontend que permite a interação com os contratos. Para acessar, basta acessar o endereço `http://<endereço_da_aplicação>:3000` no navegador. Neste frontend, é possível realizar todos os passos de interação com os contratos que estão disponíveis nas rotas do Postman. Para isso, você pode começar pela tela de Depósito da aplicação.
 
-Na seção já foi coberta [Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações) as informações que podem ser consultadas no frontend.
+> Além das ações de depósito, troca e retirada, é possível utilizar o frontend para [Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações).
 
 ## 6 - Endereços dos contratos
 
