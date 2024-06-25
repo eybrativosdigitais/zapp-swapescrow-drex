@@ -179,9 +179,7 @@ async function main () {
     }
     const keyJsonStringified = JSON.stringify(keyJson, null, 4)
 
-    const keyDbPath =
-      __dirname.substring(0, __dirname.lastIndexOf('zapp-swapescrow')) +
-      'zapp-swapescrow/orchestration/common/db/key.json'
+    const keyDbPath = 'key.json'
 
     console.log('Writing key\n',
       keyJsonStringified, '\n',
@@ -215,10 +213,6 @@ async function main () {
   if (txReceipt.status !== 1) {
     console.error('registerKey - Transaction failed. Exiting...')
     return
-  }
-
-  if (registerNewKey) {
-
   }
 
   const defaultAccountPubKey = await escrowShieldContract.zkpPublicKeys(defaultAccountAddress)
