@@ -225,9 +225,9 @@ A aplicação possui um frontend que permite a interação com os contratos. Par
 
 ## 6 - Endereços dos contratos
 
-- **SwapShield**: Ainda não definido
-- **Real Digital (ERC20)**: Ainda não definido
-- **TPFt (ERC1155)**: Ainda não definido
+- **SwapShield**: 0xDa4c47FAD65cc6Cd1873F9BD2a5e6dB5d70E6d67
+- **Real Digital (ERC20)**: 0x3A34C530700E3835794eaE04d2a4F22Ce750eF7e
+- **TPFt (ERC1155)**: 0x4ABDE28B04315C05a4141a875f9B33c9d1440a8E
 
 ## 7 - Interagindo com o sistema
 
