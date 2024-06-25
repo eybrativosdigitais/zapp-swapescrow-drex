@@ -19,4 +19,4 @@ docker compose up -d timber
 
 sleep 5
 
-docker compose up -d zapp --build --wait
+docker compose up -d zapp --build

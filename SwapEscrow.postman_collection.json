@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "c504e52b-b0f6-4e55-9d51-57ca838ca42e",
+		"_postman_id": "9d6dd269-2aac-44cf-a5ad-c6774e40cc33",
 		"name": "SwapEscrow",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
-		"_exporter_id": "12508102"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1353748"
 	},
 	"item": [
 		{
@@ -40,7 +40,16 @@
 								}
 							}
 						},
-						"url": "{{bank_a_zapp}}/timber/start"
+						"url": {
+							"raw": "{{bank_a_zapp}}/timber/start",
+							"host": [
+								"{{bank_a_zapp}}"
+							],
+							"path": [
+								"timber",
+								"start"
+							]
+						}
 					},
 					"response": []
 				},
@@ -116,7 +125,16 @@
 					"request": {
 						"method": "GET",
 						"header": [],
-						"url": "{{bank_a_zapp}}/timber/metadata"
+						"url": {
+							"raw": "{{bank_a_zapp}}/timber/metadata",
+							"host": [
+								"{{bank_a_zapp}}"
+							],
+							"path": [
+								"timber",
+								"metadata"
+							]
+						}
 					},
 					"response": []
 				},
@@ -295,7 +313,16 @@
 								}
 							}
 						},
-						"url": "{{bank_a_zapp}}/leaf/value"
+						"url": {
+							"raw": "{{bank_a_zapp}}/leaf/value",
+							"host": [
+								"{{bank_a_zapp}}"
+							],
+							"path": [
+								"leaf",
+								"value"
+							]
+						}
 					},
 					"response": []
 				},
@@ -330,7 +357,16 @@
 								}
 							}
 						},
-						"url": "{{bank_a_zapp}}/timber/update"
+						"url": {
+							"raw": "{{bank_a_zapp}}/timber/update",
+							"host": [
+								"{{bank_a_zapp}}"
+							],
+							"path": [
+								"timber",
+								"update"
+							]
+						}
 					},
 					"response": []
 				}
@@ -372,7 +408,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/depositErc20"
+				"url": {
+					"raw": "{{bank_a_zapp}}/depositErc20",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"depositErc20"
+					]
+				}
 			},
 			"response": []
 		},
@@ -412,7 +456,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/depositErc1155"
+				"url": {
+					"raw": "{{bank_a_zapp}}/depositErc1155",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"depositErc1155"
+					]
+				}
 			},
 			"response": []
 		},
@@ -447,7 +499,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/startSwapFromErc20ToErc1155"
+				"url": {
+					"raw": "{{bank_a_zapp}}/startSwapFromErc20ToErc1155",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"startSwapFromErc20ToErc1155"
+					]
+				}
 			},
 			"response": []
 		},
@@ -482,7 +542,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/startSwapFromErc1155ToErc20"
+				"url": {
+					"raw": "{{bank_a_zapp}}/startSwapFromErc1155ToErc20",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"startSwapFromErc1155ToErc20"
+					]
+				}
 			},
 			"response": []
 		},
@@ -517,7 +585,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/startSwapFromErc20ToErc20"
+				"url": {
+					"raw": "{{bank_a_zapp}}/startSwapFromErc20ToErc20",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"startSwapFromErc20ToErc20"
+					]
+				}
 			},
 			"response": []
 		},
@@ -552,7 +628,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/startSwapFromErc1155ToErc1155"
+				"url": {
+					"raw": "{{bank_a_zapp}}/startSwapFromErc1155ToErc1155",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"startSwapFromErc1155ToErc1155"
+					]
+				}
 			},
 			"response": []
 		},
@@ -587,7 +671,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/completeSwapFromErc20ToErc1155"
+				"url": {
+					"raw": "{{bank_a_zapp}}/completeSwapFromErc20ToErc1155",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"completeSwapFromErc20ToErc1155"
+					]
+				}
 			},
 			"response": []
 		},
@@ -622,7 +714,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/completeSwapFromErc20ToErc20"
+				"url": {
+					"raw": "{{bank_a_zapp}}/completeSwapFromErc20ToErc20",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"completeSwapFromErc20ToErc20"
+					]
+				}
 			},
 			"response": []
 		},
@@ -657,7 +757,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/completeSwapFromErc1155ToErc20"
+				"url": {
+					"raw": "{{bank_a_zapp}}/completeSwapFromErc1155ToErc20",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"completeSwapFromErc1155ToErc20"
+					]
+				}
 			},
 			"response": []
 		},
@@ -692,7 +800,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/completeSwapFromErc1155ToErc1155"
+				"url": {
+					"raw": "{{bank_a_zapp}}/completeSwapFromErc1155ToErc1155",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"completeSwapFromErc1155ToErc1155"
+					]
+				}
 			},
 			"response": []
 		},
@@ -727,7 +843,15 @@
 						}
 					}
 				},
-				"url": "{{bank_b_zapp}}/withdrawErc20"
+				"url": {
+					"raw": "{{bank_a_zapp}}/withdrawErc20",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"withdrawErc20"
+					]
+				}
 			},
 			"response": []
 		},
@@ -762,7 +886,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/withdrawErc1155"
+				"url": {
+					"raw": "{{bank_a_zapp}}/withdrawErc1155",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"withdrawErc1155"
+					]
+				}
 			},
 			"response": []
 		},
@@ -797,7 +929,15 @@
 						}
 					}
 				},
-				"url": "{{bank_a_zapp}}/cancelSwap"
+				"url": {
+					"raw": "{{bank_a_zapp}}/cancelSwap",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"cancelSwap"
+					]
+				}
 			},
 			"response": []
 		},
@@ -823,7 +963,15 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{bank_a_zapp}}/getAllCommitments"
+				"url": {
+					"raw": "{{bank_a_zapp}}/getAllCommitments",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"getAllCommitments"
+					]
+				}
 			},
 			"response": []
 		},
@@ -974,7 +1122,15 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": "{{bank_a_zapp}}/stats"
+				"url": {
+					"raw": "{{bank_a_zapp}}/stats",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"stats"
+					]
+				}
 			},
 			"response": []
 		},
@@ -1000,7 +1156,15 @@
 			"request": {
 				"method": "POST",
 				"header": [],
-				"url": "{{bank_a_zapp}}/backupData"
+				"url": {
+					"raw": "{{bank_a_zapp}}/backupData",
+					"host": [
+						"{{bank_a_zapp}}"
+					],
+					"path": [
+						"backupData"
+					]
+				}
 			},
 			"response": []
 		}

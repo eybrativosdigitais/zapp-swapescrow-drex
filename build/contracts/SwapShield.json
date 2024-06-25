@@ -1,1 +1,1331 @@
-{"contractName":"SwapShield","abi":[{"inputs":[{"internalType":"address","name":"verifierAddress","type":"address"}],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"uint256","name":"nullifierId","type":"uint256"}],"name":"CommitmentNullified","type":"error"},{"inputs":[],"name":"CommitmentRootDontExist","type":"error"},{"inputs":[],"name":"ProofInvalid","type":"error"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"TransferFailed","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"sender","type":"address"},{"indexed":false,"internalType":"uint256[]","name":"cipherText","type":"uint256[]"}],"name":"BackupData","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256[]","name":"cipherText","type":"uint256[]"},{"indexed":false,"internalType":"uint256[2]","name":"ephPublicKey","type":"uint256[2]"}],"name":"EncryptedData","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"leafIndex","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"leafValue","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"root","type":"uint256"}],"name":"NewLeaf","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"minLeafIndex","type":"uint256"},{"indexed":false,"internalType":"uint256[]","name":"leafValues","type":"uint256[]"},{"indexed":false,"internalType":"uint256","name":"root","type":"uint256"}],"name":"NewLeaves","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256[]","name":"nullifiers","type":"uint256[]"}],"name":"Nullifiers","type":"event"},{"inputs":[{"internalType":"uint256","name":"in_x","type":"uint256"},{"internalType":"uint256","name":"in_k","type":"uint256"}],"name":"Encipher","outputs":[{"internalType":"uint256","name":"out_x","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256[]","name":"in_msgs","type":"uint256[]"},{"internalType":"uint256","name":"in_key","type":"uint256"}],"name":"Hash","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[],"name":"Initial_NullifierRoot","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"cancelSwap","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"commitmentRoots","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"components":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[][]","name":"cipherText","type":"uint256[][]"},{"internalType":"uint256[2][]","name":"encKeys","type":"uint256[2][]"},{"internalType":"uint256[]","name":"customInputs","type":"uint256[]"}],"internalType":"struct SwapShield.Inputs","name":"inputs","type":"tuple"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"completeSwapFromErc1155ToErc1155","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[][]","name":"cipherText","type":"uint256[][]"},{"internalType":"uint256[2][]","name":"encKeys","type":"uint256[2][]"},{"internalType":"uint256[]","name":"customInputs","type":"uint256[]"}],"internalType":"struct SwapShield.Inputs","name":"inputs","type":"tuple"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"completeSwapFromErc1155ToErc20","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[][]","name":"cipherText","type":"uint256[][]"},{"internalType":"uint256[2][]","name":"encKeys","type":"uint256[2][]"},{"internalType":"uint256[]","name":"customInputs","type":"uint256[]"}],"internalType":"struct SwapShield.Inputs","name":"inputs","type":"tuple"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"completeSwapFromErc20ToErc1155","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[][]","name":"cipherText","type":"uint256[][]"},{"internalType":"uint256[2][]","name":"encKeys","type":"uint256[2][]"},{"internalType":"uint256[]","name":"customInputs","type":"uint256[]"}],"internalType":"struct SwapShield.Inputs","name":"inputs","type":"tuple"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"completeSwapFromErc20ToErc20","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"erc1155Address","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"depositErc1155","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"erc20Address","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"depositErc20","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"erc1155","outputs":[{"internalType":"contract IERC1155","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"erc20","outputs":[{"internalType":"contract IERC20","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"frontier","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"leafIndex","type":"uint256"}],"name":"getFrontierSlot","outputs":[{"internalType":"uint256","name":"slot","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"leafValue","type":"uint256"}],"name":"insertLeaf","outputs":[{"internalType":"uint256","name":"root","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256[]","name":"leafValues","type":"uint256[]"}],"name":"insertLeaves","outputs":[{"internalType":"uint256","name":"root","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"joinCommitments","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"latestRoot","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"leafCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256[]","name":"in_msgs","type":"uint256[]"}],"name":"mimcHash","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"nullifiers","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"name":"onERC1155Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"pure","type":"function"},{"inputs":[{"internalType":"uint256","name":"pk","type":"uint256"}],"name":"registerZKPPublicKey","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256[][]","name":"vk","type":"uint256[][]"}],"name":"setVerificationKeys","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"splitCommitments","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[][]","name":"cipherText","type":"uint256[][]"},{"internalType":"uint256[2][]","name":"encKeys","type":"uint256[2][]"},{"internalType":"uint256[]","name":"customInputs","type":"uint256[]"}],"internalType":"struct SwapShield.Inputs","name":"inputs","type":"tuple"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"startSwapFromErc1155ToErc1155","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[][]","name":"cipherText","type":"uint256[][]"},{"internalType":"uint256[2][]","name":"encKeys","type":"uint256[2][]"},{"internalType":"uint256[]","name":"customInputs","type":"uint256[]"}],"internalType":"struct SwapShield.Inputs","name":"inputs","type":"tuple"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"startSwapFromErc1155ToErc20","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[][]","name":"cipherText","type":"uint256[][]"},{"internalType":"uint256[2][]","name":"encKeys","type":"uint256[2][]"},{"internalType":"uint256[]","name":"customInputs","type":"uint256[]"}],"internalType":"struct SwapShield.Inputs","name":"inputs","type":"tuple"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"startSwapFromErc20ToErc1155","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[][]","name":"cipherText","type":"uint256[][]"},{"internalType":"uint256[2][]","name":"encKeys","type":"uint256[2][]"},{"internalType":"uint256[]","name":"customInputs","type":"uint256[]"}],"internalType":"struct SwapShield.Inputs","name":"inputs","type":"tuple"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"startSwapFromErc20ToErc20","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"swapIdCounter","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"treeHeight","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"treeWidth","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"verifier","outputs":[{"internalType":"contract IVerifier","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"name":"vks","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"withdrawErc1155","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"erc20Address","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256[]","name":"newNullifiers","type":"uint256[]"},{"internalType":"uint256","name":"commitmentRoot","type":"uint256"},{"internalType":"uint256[]","name":"newCommitments","type":"uint256[]"},{"internalType":"uint256[]","name":"proof","type":"uint256[]"},{"internalType":"uint256[][]","name":"backupData","type":"uint256[][]"}],"name":"withdrawErc20","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"zero","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"zkpPublicKeys","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"}],"networks":{"31337":{"address":"0xc5a5C42992dECbae36851359345FE25997F5C42d","transactionHash":"0x0fba34056f21cdf0d33ad7c4613d169094622f5105b4d4dcc4fd72b2558c5fe9","blockNumber":28},"25581337":{"address":"0x79dEf25c56d2F980dE1e8fAB77b22846fd7Ae557","transactionHash":"0x4d77ad2718b6c59af722b5039bb8d8f4c44cd38607de1d821482d1b09c2bf363","blockNumber":175739}}}
+{
+  "contractName": "SwapShield",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "verifierAddress",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "nullifierId",
+          "type": "uint256"
+        }
+      ],
+      "name": "CommitmentNullified",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "CommitmentRootDontExist",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ProofInvalid",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "TransferFailed",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "cipherText",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "BackupData",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "cipherText",
+          "type": "uint256[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[2]",
+          "name": "ephPublicKey",
+          "type": "uint256[2]"
+        }
+      ],
+      "name": "EncryptedData",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "leafIndex",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "leafValue",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "root",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewLeaf",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "minLeafIndex",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "leafValues",
+          "type": "uint256[]"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "root",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewLeaves",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256[]",
+          "name": "nullifiers",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "Nullifiers",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "in_x",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "in_k",
+          "type": "uint256"
+        }
+      ],
+      "name": "Encipher",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "out_x",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "in_msgs",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "in_key",
+          "type": "uint256"
+        }
+      ],
+      "name": "Hash",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "Initial_NullifierRoot",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "newNullifiers",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "commitmentRoot",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newCommitments",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "cancelSwap",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "commitmentRoots",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "newNullifiers",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitmentRoot",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "newCommitments",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[][]",
+              "name": "cipherText",
+              "type": "uint256[][]"
+            },
+            {
+              "internalType": "uint256[2][]",
+              "name": "encKeys",
+              "type": "uint256[2][]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "customInputs",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SwapShield.Inputs",
+          "name": "inputs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "completeSwapFromErc1155ToErc1155",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "newNullifiers",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitmentRoot",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "newCommitments",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[][]",
+              "name": "cipherText",
+              "type": "uint256[][]"
+            },
+            {
+              "internalType": "uint256[2][]",
+              "name": "encKeys",
+              "type": "uint256[2][]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "customInputs",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SwapShield.Inputs",
+          "name": "inputs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "completeSwapFromErc1155ToErc20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "newNullifiers",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitmentRoot",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "newCommitments",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[][]",
+              "name": "cipherText",
+              "type": "uint256[][]"
+            },
+            {
+              "internalType": "uint256[2][]",
+              "name": "encKeys",
+              "type": "uint256[2][]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "customInputs",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SwapShield.Inputs",
+          "name": "inputs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "completeSwapFromErc20ToErc1155",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "newNullifiers",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitmentRoot",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "newCommitments",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[][]",
+              "name": "cipherText",
+              "type": "uint256[][]"
+            },
+            {
+              "internalType": "uint256[2][]",
+              "name": "encKeys",
+              "type": "uint256[2][]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "customInputs",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SwapShield.Inputs",
+          "name": "inputs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "completeSwapFromErc20ToErc20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "erc1155Address",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newCommitments",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "depositErc1155",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "erc20Address",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newCommitments",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "depositErc20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "erc1155",
+      "outputs": [
+        {
+          "internalType": "contract IERC1155",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "erc20",
+      "outputs": [
+        {
+          "internalType": "contract IERC20",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "frontier",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "leafIndex",
+          "type": "uint256"
+        }
+      ],
+      "name": "getFrontierSlot",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "slot",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "leafValue",
+          "type": "uint256"
+        }
+      ],
+      "name": "insertLeaf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "root",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "leafValues",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "insertLeaves",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "root",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "newNullifiers",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "commitmentRoot",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newCommitments",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "joinCommitments",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latestRoot",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "leafCount",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "in_msgs",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "mimcHash",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "nullifiers",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "name": "onERC1155Received",
+      "outputs": [
+        {
+          "internalType": "bytes4",
+          "name": "",
+          "type": "bytes4"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "pk",
+          "type": "uint256"
+        }
+      ],
+      "name": "registerZKPPublicKey",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[][]",
+          "name": "vk",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "setVerificationKeys",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "newNullifiers",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "commitmentRoot",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newCommitments",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "splitCommitments",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "newNullifiers",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitmentRoot",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "newCommitments",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[][]",
+              "name": "cipherText",
+              "type": "uint256[][]"
+            },
+            {
+              "internalType": "uint256[2][]",
+              "name": "encKeys",
+              "type": "uint256[2][]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "customInputs",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SwapShield.Inputs",
+          "name": "inputs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "startSwapFromErc1155ToErc1155",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "newNullifiers",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitmentRoot",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "newCommitments",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[][]",
+              "name": "cipherText",
+              "type": "uint256[][]"
+            },
+            {
+              "internalType": "uint256[2][]",
+              "name": "encKeys",
+              "type": "uint256[2][]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "customInputs",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SwapShield.Inputs",
+          "name": "inputs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "startSwapFromErc1155ToErc20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "newNullifiers",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitmentRoot",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "newCommitments",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[][]",
+              "name": "cipherText",
+              "type": "uint256[][]"
+            },
+            {
+              "internalType": "uint256[2][]",
+              "name": "encKeys",
+              "type": "uint256[2][]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "customInputs",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SwapShield.Inputs",
+          "name": "inputs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "startSwapFromErc20ToErc1155",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256[]",
+              "name": "newNullifiers",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "commitmentRoot",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "newCommitments",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256[][]",
+              "name": "cipherText",
+              "type": "uint256[][]"
+            },
+            {
+              "internalType": "uint256[2][]",
+              "name": "encKeys",
+              "type": "uint256[2][]"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "customInputs",
+              "type": "uint256[]"
+            }
+          ],
+          "internalType": "struct SwapShield.Inputs",
+          "name": "inputs",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "startSwapFromErc20ToErc20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "swapIdCounter",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treeHeight",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treeWidth",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "verifier",
+      "outputs": [
+        {
+          "internalType": "contract IVerifier",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "vks",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newNullifiers",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "commitmentRoot",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newCommitments",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "withdrawErc1155",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "erc20Address",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newNullifiers",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "commitmentRoot",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "newCommitments",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "proof",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[][]",
+          "name": "backupData",
+          "type": "uint256[][]"
+        }
+      ],
+      "name": "withdrawErc20",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "zero",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "zkpPublicKeys",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "networks": {
+    "31337": {
+      "address": "0xc5a5C42992dECbae36851359345FE25997F5C42d",
+      "transactionHash": "0x0fba34056f21cdf0d33ad7c4613d169094622f5105b4d4dcc4fd72b2558c5fe9",
+      "blockNumber": 28
+    },
+    "43113": {
+      "address": "0xa09d46460022968B8337Aede608aC1071742081C",
+      "transactionHash": "0x8cd7c76fa7a456b7eefd2012a8d8f66e48e9abfe5ac80edbbaaec25aab4c71dc",
+      "blockNumber": 34284396
+    },
+    "44787": {
+      "address": "0x919Ca90ddaA6aEA5712E8C98Afa561c701adf80B",
+      "transactionHash": "0x945cae82d7da9c85204ef2d8e3aed5e17e4cdad3ac3133b1fabbc8e75190cab2",
+      "blockNumber": 24672387
+    },
+    "59141": {
+      "address": "0xA7c2c7f739c8C2Bc5f86e0c597efc12FA4D7aB2f",
+      "transactionHash": "0xb37f893dc18e5987a3ae577e354dfe471e28a1d9cf6b164b645f90a795ddd17f",
+      "blockNumber": 1773054
+    },
+    "80002": {
+      "address": "0xBFa13188fbC1E258f6b99A5bf73Ff342139e8E13",
+      "transactionHash": "0xcc8f04a46b74158c2f9d738d26462613705dfe007abe998ea45c3068397ff252",
+      "blockNumber": 8445681
+    },
+    "84532": {
+      "address": "0x5204F13e738DaB63735e235D175A7a6369a725d3",
+      "transactionHash": "0x94e00ae407c7b45f0909222da99fbc4d2e755fbfeeb93a968ade91196b9ee648",
+      "blockNumber": 11521174
+    },
+    "421614": {
+      "address": "0xEfB15E7FDdf883d36527841EfD3Fc573f2344432",
+      "transactionHash": "0xf855939a0b7e69907cca7c92b9ef99f8e900e39a486f01d93fb0432c9fcfa461",
+      "blockNumber": 56080500
+    },
+    "11155111": {
+      "address": "0x85CF5575e3d05fe6159c6e73fBD67111902c3a0A",
+      "transactionHash": "0x884cf92ea78092e727ed2801e47c1c3cfee0c8fc996767b5f6a0233b5d23c117",
+      "blockNumber": 6136440
+    },
+    "11155420": {
+      "address": "0x16C0adDE2Bd6cB67F81b3592Fb079e0Fc69f01aC",
+      "transactionHash": "0xbff7b816199fc2f37475b6ef5e5d726fcffe943a44a64058878e30042575c4fb",
+      "blockNumber": 13502716
+    },
+    "25581337": {
+      "address": "0x79dEf25c56d2F980dE1e8fAB77b22846fd7Ae557",
+      "transactionHash": "0x4d77ad2718b6c59af722b5039bb8d8f4c44cd38607de1d821482d1b09c2bf363",
+      "blockNumber": 175739
+    },
+    "381660001": {
+      "address": "0xDa4c47FAD65cc6Cd1873F9BD2a5e6dB5d70E6d67",
+      "transactionHash": "0xea4e8479e0de85352d1ab9eea765fee0857e09ed7f61a58ac60e73084d38b3d4",
+      "blockNumber": 5911288
+    }
+  }
+}
