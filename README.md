@@ -19,11 +19,12 @@ As próximas seções fornecerão uma visão da estrutura da solução, seguida 
   - [Índice](#índice)
   - [Componentes do SwapEscrow](#componentes-do-swapescrow)
   - [Requisitos mínimos](#requisitos-mínimos)
-  - [1. Executando o Starlight](#1-executando-o-starlight-swapescrow)
+  - [1. Executando o Starlight SwapEscrow](#1-executando-o-starlight-swapescrow)
     - [Tipos de Configuração](#tipos-de-configuração)
       - [1. Configuração Padrão (recomendado)](#1-configuração-padrão-recomendado)
     - [Passo a Passo](#passo-a-passo)
     - [Observações](#observações)
+    - [Como funciona a criptografia no Starlight SwapEscrow?](#como-funciona-a-criptografia-no-starlight-swapescrow)
   - [2 - Permissões dos contratos](#2---permissões-dos-contratos)
   - [3 - Interação com a aplicação](#3---interação-com-a-aplicação)
     - [3.1 - Configurar scripts - via Postman](#31---configurar-scripts---via-postman)
@@ -144,9 +145,27 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
 --rpc-ws-host=0.0.0.0 \
 ```
 
+### Como funciona a criptografia no SwapEscrow?
+
+O Starlight grava as operações em registros que são chamados de commitments. Esses commitments ficam em um banco de dados local, definido pelo cliente e configurado no docker-compose.yml
+
+Quando esses commitments enviados para gerar as provas que a transação ocorreu ou mesmo registrados on chain para restauração de backup futuros, é utilizada um par de chaves criptograficas que usam a curva eliptica [BabyJubJub](https://docs.iden3.io/publications/pdfs/Baby-Jubjub.pdf) para fazer a criptografia/descriptografia destas informações. Chamamos essas chaves de `chaves de criptografia` para não confundirmos com a chave da conta Ethereum da instancia. A geração desse par de chaves é aleatória, e sua geração ocorre em disco.
+
+Cada instancia do Starlight SwapEscrow usa a conta Ethereum configurada no arquivo `.env` e para cada conta, quando a instancia é carregada a primeira vez, é criada um par de chaves criptograficas que usam a curva eliptica [BabyJubJub](https://docs.iden3.io/publications/pdfs/Baby-Jubjub.pdf). Essa chave fica registrada no arquivo **orchestration/common/db/key.json**. A chave pública deste par e o endereço Ethereum da instancia Startlight SwapEscrow são registrados no mapa `zkpPublicKeys` no Smart Contract SwapShield do projeto Starlight SwapEscrow.
+
+IMPORTANTE: Caso o usuário perca o arquivo **orchestration/common/db/key.json**, ele *não poderá descriptografar* as transações que foram destinadas a ele com a chave pública registrada anteriormente, e também não poderá realizar saque, pois não conseguirá mais enviar a chave privada correta na geração das provas. 
+
+Caso o usuário queira criar uma nova chave de encriptação, mas mantendo a conta Ethereum, ele deverá parar a instancia que esta com a chave registrada incorretamente com `docker compose down`, apague o arquivo **orchestration/common/db/key.json** e inicialize a aplicação novamente. Uma nova chave será gerada, porém, esta nova chave não estará registrada no Smart Contract SwapShield e o usuário deverá registrar a nova chave pública no mapa `zkpPublicKeys` do Smart Contract SwapShield. Este processo poderá ser feito através do script `./starlight-utils/register.js`.
+
+Caso o usuário tenha um backup do arquivo key.json e ele deseja restaurar, ele deverá copiar o arquivo para o diretório **orchestration/common/db/** e através do script `./starlight-utils/register.js` registrar a chave pública no mapa `zkpPublicKeys` do Smart Contract SwapShield. 
+
+Os dados da contraparte são criprografados pelo remetente da proposta utilizando a chave pública da contraparte (receiver) que esta registrada no Smart Contract SwapShield. Somente a contraparte, utilizando a chave privada própria, pode descriptografar estes dados. Sendo assim, a contraparte (receiver) só consegue incorporar o commitment de proposta de troca (swapProposals) se o proponente (sender) encriptar os dados com a chave pública do recebedor da proposta (receiver), ou quando no momento de conclusão da troca, a contraparte (receiver) encriptar os dados da aceitação utilizando a chave pública do proponente (sender), permitindo assim o proponente incorporar o commitment em seu banco de dados.
+
+Para efeitos de backup, os commitments (dados de cada transação) também são criptografados com a chave privada do remetente. Se for necessário restaurar um backup, o Starlight SwapEscrow poderá acessar novamente os eventos das transações, descriptografar e trazer os dados das transações para o banco de dados da instância.
+
 ## 2 - Permissões dos contratos
 
-Foi realizado o deploy do contrato inteligente denominado **SwapShield** responsável por gerenciar os *commitments* do Starlight para os testes de transferência, assegurando que os saldos permaneçam criptografados na rede. Para participar dos testes, os envolvidos no projeto piloto deverão realizar um depósito de Real tokenizado (ERC20) e de TPFt (ERC1155) neste contrato.
+Foi realizado o deploy do contrato inteligente denominado **SwapShield** responsável por gerenciar os *commitments* do Starlight para os testes de transferência, assegurando que os saldos permaneçam criptografados na rede. Para participar dos testes, os envolvidos no projeto piloto deverão realizar um depósito de Real Digital (ERC20) e de TPFt (ERC1155) neste contrato.
 
 Isso requer a autorização do contrato **SwapShield** para duas ações:
 
@@ -198,7 +217,7 @@ Na aplicação, há um frontend com rotas para consultar o status. Para acessá-
 
 A aplicação possui um frontend que permite a interação com os contratos. Para acessar, basta acessar o endereço `http://<endereço_da_aplicação>:3000` no navegador. Neste frontend, é possível realizar todos os passos de interação com os contratos que estão disponíveis nas rotas do Postman. Para isso, você pode começar pela tela de Depósito da aplicação.
 
-Na seção já foi coberta [Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações) as informações que podem ser consultadas no frontend.
+> Além das ações de depósito, troca e retirada, é possível utilizar o frontend para [Consulta de informações das aplicações](#4---consulta-de-informações-das-aplicações).
 
 ## 6 - Endereços dos contratos
 
@@ -211,19 +230,19 @@ Na seção já foi coberta [Consulta de informações das aplicações](#4---con
 Para interagir com o sistema, você pode utilizar o Postman ou o frontend da aplicação. A seguir, serão apresentadas as 3 ações disponíveis na aplicação e suas variações (Depositar, Trocar e Retirar).
 
 1) [**Depositar**](./docs/DEPOSITOS#.MD) - Há dois tipos de depósito, um para Real Digital e outro para TPFt:
-   - [**Depositar Real Tokenizado (ERC20)**: `/depositErc20`](./docs/DEPOSITOS.md#a-depositar-real-tokenizado-erc20--depositerc20)
+   - [**Depositar Real Digital (ERC20)**: `/depositErc20`](./docs/DEPOSITOS.md#a-depositar-real-digital-erc20--depositerc20)
    - [**Depositar TPFt (ERC1155)**: `/depositErc1155`](./docs/DEPOSITOS.md#b-depositar-tpft-erc1155--depositerc1155)
 
 2) [**Trocar**](./docs/SWAPS.md)) - As trocas (ou swaps) ocorrem em duas etapas. A parte que irá propor a troca, começará o swap por meio das rotas de `/startSwap`. Ao fim da proposta, será gerado um ID de troca, a contraparte pode completar a troca através desse ID gerado, utilizando as rotas de `/completeSwap`. Há 4 formas de troca, que depende do que será enviado e recebido, sendo elas:
    
-   - [**Trocar Real Tokenizado por TPFt**: `/startSwapErc20ToErc1155`](./docs/SWAPS.md)
-   - [**Trocar TPFt por Real Tokenizado**: `/startSwapErc1155ToErc20`](./docs/SWAPS.md))
-   - [**Trocar Real Tokenizado por Real Tokenizado**: `/startSwapErc20ToErc20`](./docs/SWAPS.md))
-   - [**Trocar TPFt Tokenizado por TPFt**: `/startSwapErc1155ToErc1155`](./docs/SWAPS.md))
+   - [**Trocar Real Digital por TPFt**: `/startSwapErc20ToErc1155`](./docs/SWAPS.md)
+   - [**Trocar TPFt por Real Digital**: `/startSwapErc1155ToErc20`](./docs/SWAPS.md))
+   - [**Trocar entre ERC20s diferentes**: `/startSwapErc20ToErc20`](./docs/SWAPS.md))
+   - [**Trocar TPFt por TPFt (séries diferentes)**: `/startSwapErc1155ToErc1155`](./docs/SWAPS.md))
   
 3) [**Retirar**]() - Há dois tipos de retirada, um para Real Digital e outro para TPFt:
    
-   - [**Retirar Real Tokenizado (ERC20)**: `/withdrawErc20`]()
+   - [**Retirar Real Digital (ERC20)**: `/withdrawErc20`]()
    - [**Retirar TPFt (ERC1155)**: `/withdrawErc1155`]()
 
 ## 8 - Configuração inicial alternativa
