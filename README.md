@@ -1,4 +1,4 @@
-*A EY não oferece garantias e se isenta de qualquer responsabilidade pelo uso deste código. Os usuários devem conduzir sua própria diligência no que diz respeito ao uso para seus propósitos e qualquer e todo uso é "no estado em que se encontra" e por sua própria conta e risco.*
+*A EY não oferece garantias e se isenta de qualquer responsabilidade pelo uso deste código. Os usuários devem conduzir sua própria due diligence no que diz respeito ao uso para seus propósitos. Qualquer e todo uso é "no estado em que se encontra" e por sua própria conta e risco.*
 
 # Starlight SwapEscrow
 
