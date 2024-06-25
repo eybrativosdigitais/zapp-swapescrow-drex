@@ -79,7 +79,7 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
     git clone https://github.com/eybrativosdigitais/zapp-swapescrow-drex
     ```
 
-> Fontes do projeto também estão disponíveis para download em: https://eybrativosdigitais-swapescrow-3159132979.s3.sa-east-1.amazonaws.com/zapp-swapescrow-drex/zapp-swapescrow-drex-v<<versao>>.zip . Exemplo: https://eybrativosdigitais-swapescrow-3159132979.s3.sa-east-1.amazonaws.com/zapp-swapescrow-drex/zapp-swapescrow-drex-v0.3.12.zip 
+> Fontes do projeto também estão disponíveis para download em: https://eybrativosdigitais-swapescrow-3159132979.s3.sa-east-1.amazonaws.com/zapp-swapescrow-drex/zapp-swapescrow-drex-(tag_da_versao).zip , exemplo: v0.3.12
 
 2) Entrar no diretório do projeto:
 
