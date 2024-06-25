@@ -1,3 +1,5 @@
+*A EY não oferece garantias e se isenta de qualquer responsabilidade pelo uso deste código. Os usuários devem conduzir sua própria diligência no que diz respeito ao uso para seus propósitos e qualquer e todo uso é "no estado em que se encontra" e por sua própria conta e risco.*
+
 # Starlight SwapEscrow
 
 O SwapEscrow é uma aplicação criada através do Starlight. Por sua vez, o Starlight é uma solução que cria aplicações de privacidade para blockchains baseadas no padrão EVM. Ela é desenvolvida e mantida pela Ernest & Young ([EYBlockchain/starlight: :zap: solidity --> zApp transpiler :zap: (github.com)​](https://github.com/EYBlockchain/starlight)).
