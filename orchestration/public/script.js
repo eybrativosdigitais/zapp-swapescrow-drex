@@ -158,6 +158,8 @@ $(document).on('click', '#addTokenAddress', () => {
   }
 })
 
+$(document).on('click', '.accordion', toggleAccordion)
+
 $(document).on('click', '.removeTokenAddress', function () {
   if (!window.confirm('Tem certeza que gostaria de remover esse endereço da lista?')) return
   const address = $(this).data('address')
@@ -236,35 +238,44 @@ let escrowShieldContract = null;
   function showHideFields() {
     const modeCombined = mode + modeTo
 
-    const fieldConfig = {
-      erc20ToErc20: {
-        hide: ['#tokenIdSentInput', '#tokenIdSentAmountInput', '#tokenIdReceivedInput', '#labelTokenIdReceived', '#labelTokenIdSentAmount', '#labelTokenIdSent'],
-        show: ['#labelErc20AddressReceived', '#labelTokenReceivedAmount', '#tokenReceivedAmountInput', '#erc20AddressReceivedInput', '#swapTokenAddressInput', '#amountSentInput']
-      },
-      erc20ToErc1155: {
-        hide: ['#tokenIdSentInput', '#tokenIdSentAmountInput', '#labelErc20AddressReceived', '#erc20AddressReceivedInput', '#tokenReceivedAmountInput', '#labelTokenIdSentAmount', '#labelTokenIdSent'],
-        show: ['#tokenIdReceivedInput', '#amountSentInput', '#swapTokenAddressInput', '#tokenReceivedAmountInput', '#labelAmountSent', '#labelTokenIdReceived']
-      },
-      erc1155ToErc20: {
-        hide: ['#tokenIdSentAmountInput', '#labelTokenIdSentAmount', '#erc20AddressReceivedInput', '#tokenIdReceivedInput', '#labelErc20AddressReceived', '#labelTokenIdReceived'],
-        show: ['#tokenIdSentInput', '#swapTokenAddressInput', '#amountSentInput', '#tokenReceivedAmountInput', '#amountReceivedInput', '#labelTokenIdSent', '#labelAmountSent']
-      },
-      erc1155ToErc1155: {
-        hide: ['#amountSentInput', '#erc20AddressReceivedInput', '#swapTokenAddressInput', '#labelAmountSent'],
-        show: ['#tokenIdSentInput', '#tokenIdSentAmountInput', '#tokenIdReceivedInput', '#tokenReceivedAmountInput', '#labelTokenIdSent', '#labelTokenIdSentAmount', '#labelTokenIdReceived']
-      }
-    }
-
-    function applyClasses(fieldArray, action) {
-      fieldArray.forEach(selector => {
-        $(selector)[action]('hidden')
-      })
-    }
-
-    const config = fieldConfig[modeCombined]
-    if (config) {
-      applyClasses(config.hide, 'addClass')
-      applyClasses(config.show, 'removeClass')
+    $('#input1Label').text('Endereço do destinatário da proposta: ')
+    $('#input1').attr('placeholder', '0x0000000000000000....');
+    if (modeCombined === 'erc20ToErc1155') {
+      $('#input2Label').text('Endereço do token ERC20 para enviar: ');
+      $('#input2').attr('placeholder', '0x0000000000000000....');
+      $('#input3Label').text('Valor de tokens ERC20 para enviar: ');
+      $('#input3').attr('placeholder', '0');
+      $('#input4Label').text('ID do token ERC1155 para receber: ');
+      $('#input4').attr('placeholder', '0');
+      $('#input5Label').text('Quantidade de tokens ERC1155 para receber: ');
+      $('#input5').attr('placeholder', '0');
+    } else if (modeCombined === 'erc1155ToErc20') {
+      $('#input2Label').text('ID do token ERC1155 para enviar: ');
+      $('#input2').attr('placeholder', '0');
+      $('#input3Label').text('Quantidade de tokens ERC1155 para enviar: ');
+      $('#input3').attr('placeholder', '0');
+      $('#input4Label').text('Endereço do token ERC20 para receber: ');
+      $('#input4').attr('placeholder', '0x0000000000000000....');
+      $('#input5Label').text('Valor de tokens ERC20 para receber: ');
+      $('#input5').attr('placeholder', '0');
+    } else if (modeCombined === 'erc20ToErc20') {
+      $('#input2Label').text('Endereço do token ERC20 para enviar: ');
+      $('#input2').attr('placeholder', '0x0000000000000000....');
+      $('#input3Label').text('Valor de tokens ERC20 para enviar: ');
+      $('#input3').attr('placeholder', '0');
+      $('#input4Label').text('Endereço do token ERC20 para receber: ');
+      $('#input4').attr('placeholder', '0x0000000000000000....');
+      $('#input5Label').text('Valor de tokens ERC20 para receber: ');
+      $('#input5').attr('placeholder', '0');
+    } else if (modeCombined === 'erc1155ToErc1155') {
+      $('#input2Label').text('ID do token ERC1155 para enviar: ');
+      $('#input2').attr('placeholder', '0');
+      $('#input3Label').text('Quantidade de tokens ERC1155 para enviar: ');
+      $('#input3').attr('placeholder', '0');
+      $('#input4Label').text('ID do token ERC1155 para receber: ');
+      $('#input4').attr('placeholder', '0');
+      $('#input5Label').text('Quantidade de tokens ERC1155 para receber: ');
+      $('#input5').attr('placeholder', '0');
     }
   }
 
@@ -272,6 +283,8 @@ let escrowShieldContract = null;
     $('#tokenAddressDeposit').removeClass('hidden').parent().removeClass('hidden')
     $('#labelTokenAddress').removeClass('hidden')
     $('#tokenAddressDeposit').val('')
+    $('#depositAmountLabel').text('Valor de tokens ERC20 para depositar')
+    $('#amountWithdrawLabel').text('Valor de tokens ERC20 para retirar')
     $('#erc20Tab').attr('aria-selected', true)
     $('#erc1155Tab').attr('aria-selected', false)
     $('#tokenIdInput').addClass('hidden')
@@ -279,6 +292,9 @@ let escrowShieldContract = null;
     $('#labeltokenIdErc1155').addClass('hidden')
     $('#tokenIdsInput').addClass('hidden')
     $('#tokenAddressInput').removeClass('hidden')
+    $('#inputTokenAddressWithdraw').removeClass('hidden')
+    $('#labelTokenAddressWithdraw').removeClass('hidden')
+    $('#labelTokenIdWithdraw').addClass('hidden')
     mode = 'erc20'
     showHideFields()
   })
@@ -287,6 +303,8 @@ let escrowShieldContract = null;
   $('#erc1155Tab').click(function () {
     $('#tokenAddressDeposit').val(response.tokens.ERC1155).addClass('hidden').parent().addClass('hidden')
     $('#labelTokenAddress').addClass('hidden')
+    $('#depositAmountLabel').text('Quantidade de tokens ERC1155 para depositar')
+    $('#amountWithdrawLabel').text('Quantidade de tokens ERC1155 para retirar')
     $('#erc20Tab').attr('aria-selected', false)
     $('#erc1155Tab').attr('aria-selected', true)
     $('#tokenIdInput').removeClass('hidden')
@@ -294,6 +312,9 @@ let escrowShieldContract = null;
     $('#labeltokenIdErc1155').removeClass('hidden')
     $('#tokenIdsInput').removeClass('hidden')
     $('#tokenAddressInput').addClass('hidden')
+    $('#inputTokenAddressWithdraw').addClass('hidden')
+    $('#labelTokenAddressWithdraw').addClass('hidden')
+    $('#labelTokenIdWithdraw').removeClass('hidden')
     mode = 'erc1155'
     showHideFields()
   })
@@ -387,7 +408,6 @@ let escrowShieldContract = null;
     `);
       });
 
-      $('.accordion').click(toggleAccordion);
     };
 
     // Load commitments and filter them based on user input
@@ -446,6 +466,9 @@ let escrowShieldContract = null;
 
     fetchSwapData()
 
+    // onclick event swapListRefreshButton fetchSwapData
+    $('#swapListRefreshButton').click(fetchSwapData)
+
     const renderSwapTable = (data) => {
       $('#swapTableBody').empty()
 
@@ -501,6 +524,9 @@ let escrowShieldContract = null;
           if (item.isNullified) {
             actionButton = "";
           }
+          const commitment = item;
+          const preimageClass = typeof commitment.preimage.value === 'object' ? 'text-blue-500 underline  cursor-pointer' : '';
+
           $('#swapTableBody').append(`
           <tr class="border-b transition-colors hover:bg-gray-100">
             <td class="p-4 align-middle">${item.preimage.value.swapId}</td>
@@ -509,13 +535,40 @@ let escrowShieldContract = null;
             <td class="p-4 align-middle">
               <span class="px-2 py-1 ${statusClass} rounded-md">${statusText}</span>
             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm accordion ${preimageClass}">Detalhes</td>
             <td class="p-4 align-middle">
               ${actionButton}
             </td>
           </tr>
+         <tr class="panel hidden transition">
+        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-gray-500">
+          <div class="panel-content">
+            <h4 class="font-semibold mb-2">Detalhes</h4>
+            ${typeof commitment.preimage.value === 'object'
+              ? `
+                <div>
+                  <p><strong>Swap Amount Sent:</strong> ${formatNumber(commitment.preimage.value.swapAmountSent)}</p>
+                  <p><strong>Swap Amount Received:</strong> ${formatNumber(commitment.preimage.value.swapAmountRecieved)}</p>
+                  <p><strong>Swap Token Sent ID:</strong> ${commitment.preimage.value.swapTokenSentId}</p>
+                  <p><strong>Swap Token Sent Amount:</strong> ${formatNumber(commitment.preimage.value.swapTokenSentAmount)}</p>
+                  <p><strong>Swap Token Received ID:</strong> ${commitment.preimage.value.swapTokenRecievedId}</p>
+                  <p><strong>Swap Token Received Amount:</strong> ${formatNumber(commitment.preimage.value.swapTokenRecievedAmount)}</p>
+                  <p><strong>Swap ID:</strong> ${commitment.preimage.value.swapId}</p>
+                  <p><strong>Swap Sender:</strong> ${commitment.preimage.value.swapSender}</p>
+                  <p><strong>Swap Receiver:</strong> ${commitment.preimage.value.swapReciever}</p>
+                  <p><strong>ERC20 Address Sent:</strong> ${commitment.preimage.value.erc20AddressSent}<br/>(${convertHexToAddress(commitment.preimage.value.erc20AddressSent)})</p>
+                  <p><strong>ERC20 Address Received:</strong> ${commitment.preimage.value.erc20AddressRecieved}</p>
+                  <p><strong>Pending Status:</strong> ${commitment.preimage.value.pendingStatus}</p>
+                </div>
+              `
+              : `
+                <p><strong>Value:</strong> ${formatNumber(commitment.preimage.value)}</p>
+              `}
+          </div>
+        </td>
+      </tr> 
         `)
         })
-
       $('.complete-swap').click(function () {
         const swapId = $(this).data('swap-id')
         const endpoint = $(this).data('endpoint')
@@ -643,38 +696,36 @@ let escrowShieldContract = null;
         erc1155ToErc1155: '/startSwapFromErc1155ToErc1155'
       }
       let data = {
-        erc20Address: $('#swapTokenAddress').val(),
-        counterParty: $('#counterParty').val(),
-        amountSent: parseFloat($('#amountSent').val()),
-        tokenIdReceived: parseFloat
-
-          ($('#tokenIdReceived').val()),
-        tokenReceivedAmount: parseFloat($('#tokenReceivedAmount').val())
+        erc20Address: $('#input2').val(),
+        counterParty: $('#input1').val(),
+        amountSent: parseFloat($('#input3').val()),
+        tokenIdReceived: parseFloat($('#input4').val()),
+        tokenReceivedAmount: parseFloat($('#input5').val())
       }
 
       if (combined === 'erc20ToErc20') {
         data = {
-          erc20AddressSent: $('#swapTokenAddress').val(),
-          erc20AddressReceived: $('#erc20AddressReceived').val(),
-          counterParty: $('#counterParty').val(),
-          amountSent: parseFloat($('#amountSent').val()),
-          amountReceived: parseFloat($('#tokenReceivedAmount').val())
+          erc20AddressSent: $('#input2').val(),
+          erc20AddressReceived: $('#input4').val(),
+          counterParty: $('#input1').val(),
+          amountSent: parseFloat($('#input3').val()),
+          amountReceived: parseFloat($('#input5').val())
         }
       } else if (combined === 'erc1155ToErc1155') {
         data = {
-          counterParty: $('#counterParty').val(),
-          tokenIdSent: $('#tokenIdSent').val(),
-          tokenSentAmount: $('#tokenIdSentAmount').val(),
-          tokenIdReceived: $('#tokenIdReceived').val(),
-          tokenReceivedAmount: $('#tokenReceivedAmount').val()
+          counterParty: $('#input1').val(),
+          tokenIdSent: $('#input2').val(),
+          tokenSentAmount: $('#input3').val(),
+          tokenIdReceived: $('#input4').val(),
+          tokenReceivedAmount: $('#input5').val()
         }
       } else if (combined === 'erc1155ToErc20') {
         data = {
-          erc20Address: $('#swapTokenAddress').val(),
-          counterParty: $('#counterParty').val(),
-          amountReceived: parseFloat($('#tokenReceivedAmount').val()),
-          tokenIdSent: $('#tokenIdSent').val(),
-          tokenSentAmount: $('#amountSent').val()
+          erc20Address: $('#input4').val(),
+          counterParty: $('#input1').val(),
+          amountReceived: parseFloat($('#input5').val()),
+          tokenIdSent: $('#input2').val(),
+          tokenSentAmount: $('#input3').val()
         }
       }
 
@@ -710,7 +761,7 @@ let escrowShieldContract = null;
 
       if (mode === 'erc1155') {
         data.tokenId = $('#tokenIdWithdraw').val()
-        data.erc1155Address = $('#tokenAddressWithdraw').val()
+        data.erc1155Address = response.tokens.ERC1155
         delete data.erc20Address
       }
       toastr.info('Processing withdraw...')

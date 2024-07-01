@@ -153,17 +153,18 @@
           <!-- Switch component for ERC20 and ERC1155 -->
           <br /><br />
           <label for="tokenAddressWithdraw" class="text-gray-600" id="labelTokenAddressWithdraw">Endereço do
-            Token</label>
-          <div class="bg-white my-3 rounded-2xl p-6 text-2xl border flex justify-between">
+            Token ERC20</label>
+          <div class="bg-white my-3 rounded-2xl p-6 text-2xl border flex justify-between"
+            id="inputTokenAddressWithdraw">
             <input type="text" class="bg-transparent outline-none w-full text-2xl text-gray-900"
-              placeholder="Endereço do Token" id="tokenAddressWithdraw">
+              placeholder="0x0000000000000000...." id="tokenAddressWithdraw">
           </div>
           <label for="tokenIdInput" class="text-gray-600" id="labelTokenIdWithdraw">ID Do Token</label>
           <div class="bg-white my-3 rounded-2xl p-6 text-2xl border flex justify-between hidden" id="tokenIdInput">
             <input type="text" class="bg-transparent outline-none w-full text-2xl text-gray-900"
               placeholder="ID Do Token" id="tokenIdWithdraw">
           </div>
-          <label for="amountWithdraw" class="text-gray-600">Quantidade</label>
+          <label for="amountWithdraw" class="text-gray-600" id="amountWithdrawLabel">Quantidade</label>
           <div class="bg-white my-3 rounded-2xl p-6 text-3xl border flex justify-between">
             <input type="text" class="bg-transparent outline-none w-full text-1xl text-gray-900" placeholder="0,00"
               id="amountWithdraw">

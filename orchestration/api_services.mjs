@@ -39,14 +39,20 @@ import {
   reinstateNullifiers
 } from './common/commitment-storage.mjs'
 import web3 from './common/web3.mjs'
-import { getContractAddress, getContractInstance, getContractMetadata } from './common/contract.mjs'
+import { getContractInstance, getContractMetadata } from './common/contract.mjs'
 import axios from 'axios'
 import { generalise } from 'general-number'
 import parseCommitments from './common/parseCommitments.js'
 import formatCommitments from './common/format-commitments.mjs'
 import { EncryptedDataEventListener } from './encrypted-data-listener.mjs'
-import { hasERC1155Balance, hasERC20Balance } from './common/validateBalance.mjs'
-import web3Instance from 'mocha'
+import {
+  hasERC1155Approval,
+  hasShieldedERC1155Balance,
+  hasERC20Allowance,
+  hasShieldedERC20Balance,
+  hasERC20Balance, hasERC1155Balance
+} from './common/validateBalance.mjs'
+import { ZeroAddress } from './common/constants.mjs'
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 let leafIndex
@@ -102,6 +108,21 @@ export class ServiceManager {
       const { amount } = req.body
       const balances_msgSender_erc20Address_newOwnerPublicKey =
       req.body.balances_msgSender_erc20Address_newOwnerPublicKey || 0
+
+      if (!await hasERC20Balance(erc20Address, amount)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
+      if (!await hasERC20Allowance(erc20Address, amount)) {
+        const SwapShieldMetadata = await getContractMetadata('SwapShield')
+        const swapShieldAddress =
+          web3.connection().utils.isAddress(SwapShieldMetadata?.address) ? SwapShieldMetadata.address : ZeroAddress
+
+        logger.warn(`Insufficient ERC20 approval. Please ensure you have approved enough ERC20 tokens for SwapEscrow: ${swapShieldAddress}.`)
+        return res.status(403).send(`Insufficient ERC20 approval. Please ensure you have approved enough ERC20 tokens for SwapEscrow: ${swapShieldAddress}.`)
+      }
+
       const { tx, encEvent, commitment } = await this.depositErc20.depositErc20(
         erc20Address,
         amount,
@@ -137,6 +158,21 @@ export class ServiceManager {
       const { tokenId } = req.body
       const tokenOwners_msgSender_tokenId_newOwnerPublicKey =
       req.body.tokenOwners_msgSender_tokenId_newOwnerPublicKey || 0
+
+      if (!await hasERC1155Balance(tokenId, amount)) {
+        logger.warn('The account does not have enough funds to perform this operation.')
+        return res.status(403).send('The account does not have enough funds to perform this operation.')
+      }
+
+      if (!await hasERC1155Approval()) {
+        const SwapShieldMetadata = await getContractMetadata('SwapShield')
+        const swapShieldAddress =
+          web3.connection().utils.isAddress(SwapShieldMetadata?.address) ? SwapShieldMetadata.address : ZeroAddress
+
+        logger.warn(`Insufficient ERC1155 approval. Please ensure you have approved ERC1155 tokens for SwapEscrow: ${swapShieldAddress}.`)
+        return res.status(403).send(`Insufficient ERC1155 approval. Please ensure you have approved ERC1155 tokens for SwapEscrow: ${swapShieldAddress}.`)
+      }
+
       const { tx, encEvent, commitment } = await this.depositErc1155.depositErc1155(
         erc1155Address,
         amount,
@@ -178,7 +214,7 @@ export class ServiceManager {
       const swapProposals_swapIdCounter_1_newOwnerPublicKey =
       req.body.swapProposals_swapIdCounter_1_newOwnerPublicKey || 0
 
-      if (!await hasERC20Balance(erc20Address, amountSent)) {
+      if (!await hasShieldedERC20Balance(erc20Address, amountSent)) {
         logger.warn('The account does not have enough funds to perform this operation.')
         return res.status(403).send('The account does not have enough funds to perform this operation.')
       }
@@ -227,7 +263,7 @@ export class ServiceManager {
       const swapProposals_swapIdCounter_2_newOwnerPublicKey =
       req.body.swapProposals_swapIdCounter_2_newOwnerPublicKey || 0
 
-      if (!await hasERC20Balance(erc20AddressSent, amountSent)) {
+      if (!await hasShieldedERC20Balance(erc20AddressSent, amountSent)) {
         logger.warn('The account does not have enough funds to perform this operation.')
         return res.status(403).send('The account does not have enough funds to perform this operation.')
       }
@@ -276,7 +312,7 @@ export class ServiceManager {
       const swapProposals_swapIdCounter_3_newOwnerPublicKey =
       req.body.swapProposals_swapIdCounter_3_newOwnerPublicKey || 0
 
-      if (!await hasERC1155Balance(tokenIdSent, tokenSentAmount)) {
+      if (!await hasShieldedERC1155Balance(tokenIdSent, tokenSentAmount)) {
         logger.warn('The account does not have enough funds to perform this operation.')
         return res.status(403).send('The account does not have enough funds to perform this operation.')
       }
@@ -325,7 +361,7 @@ export class ServiceManager {
       const swapProposals_swapIdCounter_4_newOwnerPublicKey =
       req.body.swapProposals_swapIdCounter_4_newOwnerPublicKey || 0
 
-      if (!await hasERC1155Balance(tokenIdSent, tokenSentAmount)) {
+      if (!await hasShieldedERC1155Balance(tokenIdSent, tokenSentAmount)) {
         logger.warn('The account does not have enough funds to perform this operation.')
         return res.status(403).send('The account does not have enough funds to perform this operation.')
       }
@@ -387,7 +423,7 @@ export class ServiceManager {
       const tokenId = swapCommitment.preimage.value.swapTokenRecievedId
       const swapAmount = swapCommitment.preimage.value.swapTokenRecievedAmount
 
-      if (!await hasERC1155Balance(tokenId, swapAmount)) {
+      if (!await hasShieldedERC1155Balance(tokenId, swapAmount)) {
         logger.warn('The account does not have enough funds to perform this operation.')
         return res.status(403).send('The account does not have enough funds to perform this operation.')
       }
@@ -446,7 +482,7 @@ export class ServiceManager {
       const erc20Address = generalise(swapCommitment.preimage.value.erc20AddressSent).hex()
       const swapAmount = swapCommitment.preimage.value.swapAmountRecieved
 
-      if (!await hasERC20Balance(erc20Address, swapAmount)) {
+      if (!await hasShieldedERC20Balance(erc20Address, swapAmount)) {
         logger.warn('The account does not have enough funds to perform this operation.')
         return res.status(403).send('The account does not have enough funds to perform this operation.')
       }
@@ -506,7 +542,7 @@ export class ServiceManager {
       const erc20Address = generalise(swapCommitment.preimage.value.erc20AddressRecieved).hex()
       const swapAmount = swapCommitment.preimage.value.swapAmountRecieved
 
-      if (!await hasERC20Balance(erc20Address, swapAmount)) {
+      if (!await hasShieldedERC20Balance(erc20Address, swapAmount)) {
         logger.warn('The account does not have enough funds to perform this operation.')
         return res.status(403).send('The account does not have enough funds to perform this operation.')
       }
@@ -566,7 +602,7 @@ export class ServiceManager {
       const tokenId = swapCommitment.preimage.value.swapTokenRecievedId
       const swapAmount = swapCommitment.preimage.value.swapTokenRecievedAmount
 
-      if (!await hasERC1155Balance(tokenId, swapAmount)) {
+      if (!await hasShieldedERC1155Balance(tokenId, swapAmount)) {
         logger.warn('The account does not have enough funds to perform this operation.')
         return res.status(403).send('The account does not have enough funds to perform this operation.')
       }

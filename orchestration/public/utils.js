@@ -8,25 +8,26 @@ const numberFormatter = new Intl.NumberFormat('pt-BR', {
   minimumFractionDigits: 2
 })
 
-function setIsLoading (isLoading) {
+function setIsLoading(isLoading) {
   if (isLoading) {
-    $('#isLoading').removeClass('hidden')
-    return
+    $('#isLoading, .isLoading').removeClass('hidden');
+  } else {
+    $('#isLoading, .isLoading').addClass('hidden');
   }
-  $('#isLoading').addClass('hidden')
 }
-function shortenString (str, maxLength = 10) {
+
+function shortenString(str, maxLength = 10) {
   return str.length > maxLength ? str.substring(0, maxLength) + '...' : str
 }
 
-function humanizeAddress (address) {
+function humanizeAddress(address) {
   if (typeof address !== 'string' || address.length !== 42) {
     throw new Error('Invalid Ethereum address')
   }
   return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`
 }
 
-function copyToClipboard (text) {
+function copyToClipboard(text) {
   const tempInput = document.createElement('input')
   tempInput.value = text
   document.body.appendChild(tempInput)
@@ -36,18 +37,20 @@ function copyToClipboard (text) {
   window.alert('Copied to clipboard!')
 }
 
-function formatNumber (num) {
+function formatNumber(num) {
   return new Intl.NumberFormat().format(num)
 }
 
-function toggleAccordion (event) {
-  console.log('toggleAccordion', event.currentTarget.parentElement)
+function convertHexToAddress(hex) {
+  return `0x${BigInt(hex).toString(16).padStart(40, '0')}`;
+}
+
+function toggleAccordion(event) {
   const panel = $(event.currentTarget.parentElement).next('.panel')
-  console.log('panel', panel)
   panel.toggleClass('hidden')
 }
 
-function generateEndpointCompleteSwap (commitment) {
+function generateEndpointCompleteSwap(commitment) {
   const value = commitment.preimage.value
 
   if (value.erc20AddressSent !== '0' && value.erc20AddressRecieved !== '0' &&
@@ -66,5 +69,5 @@ function generateEndpointCompleteSwap (commitment) {
     value.swapTokenSentId !== '0' && value.swapTokenRecievedId === '0') {
     return '/completeSwapFromErc1155ToErc20'
   }
-  return 'Unknown Scenario'
+  return '/completeSwapFromErc1155ToErc20'
 }

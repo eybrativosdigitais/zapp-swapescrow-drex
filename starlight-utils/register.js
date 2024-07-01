@@ -1,11 +1,21 @@
+#!/usr/bin/env node
 require('dotenv').config()
 const crypto = require('crypto')
 const fs = require('fs')
+const { program } = require('commander')
 const { ethers, JsonRpcProvider } = require('ethers')
 const { generalise, GN } = require('general-number')
 const abi = require('./swapescrow-shield.abi.json')
-const erc20Abi = require('./ierc20.abi.json')
 const config = require('../config/default.js')
+const path = require('node:path')
+
+const provider = new JsonRpcProvider(process.env.STARLIGHT_RPC_URL)
+const defaultAccountSigner = new ethers.Wallet(process.env.STARLIGHT_DEFAULT_ACCOUNT_KEY, provider)
+const escrowShieldContract = new ethers.Contract(
+  process.env.STARLIGHT_ESCROWSHIELD_ADDRESS,
+  abi,
+  defaultAccountSigner
+)
 
 function generateRandomHex (length) {
   const bufSecret = crypto.randomBytes(length)
@@ -128,21 +138,31 @@ function scalarMult (scalar, h, form = 'Edwards') {
   return accumulatedP
 }
 
-async function main () {
-  const provider = new JsonRpcProvider(process.env.STARLIGHT_RPC_URL)
-  const defaultAccountSigner = new ethers.Wallet(process.env.STARLIGHT_DEFAULT_ACCOUNT_KEY, provider)
+async function registerInSwapEscrow (publicKey) {
+  const txParams = {
+    gas: config.web3.options.defaultGas,
+    gasPrice: config.web3.options.defaultGasPrice
+  }
+
+  const tx = await escrowShieldContract.registerZKPPublicKey(publicKey.integer, txParams)
+  console.log('registerKey - Transaction params to register public key in EscrowShield is:',
+    txParams)
+  console.log('registerKey -',
+    'Transaction has been sent and the tx hash to register public key in EscrowShield is:',
+    tx.hash)
+  const txReceipt = await tx.wait()
+  console.log('registerKey - Tx was processed. Result:', txReceipt.status)
+
+  if (txReceipt.status !== 1) {
+    console.error('registerKey - Transaction failed. Exiting...')
+    process.exit(1)
+  }
+}
+
+async function main ({ path: keyPath, register }) {
   const defaultAccountAddress = await defaultAccountSigner.getAddress()
   console.log('Generating ECDH keys using BabyJubJub curve to the defaultAccount: ',
     defaultAccountAddress)
-
-  const registerNewKey = false
-
-  // Define the contract
-  const escrowShieldContract = new ethers.Contract(
-    process.env.STARLIGHT_ESCROWSHIELD_ADDRESS,
-    abi,
-    defaultAccountSigner
-  )
 
   console.log('Connected to ',
     process.env.STARLIGHT_ESCROWSHIELD_ADDRESS,
@@ -152,8 +172,33 @@ async function main () {
 
   let secretKey
   let publicKey
+  let fileContents
+  let keyDbPath = path.resolve(__dirname, keyPath)
+  const stats = fs.statSync(keyDbPath, {
+    throwIfNoEntry: false
+  })
 
-  if (registerNewKey) {
+  if (stats != null && stats.isDirectory()) {
+    keyDbPath = path.resolve(__dirname, keyPath, './key.json')
+  }
+
+  // Check if the file in path exists
+  if (fs.existsSync(keyDbPath)) {
+    // Trying to read JSON from a given path
+    try {
+      fileContents = fs.readFileSync(keyDbPath, 'utf-8')
+      const keyJson = JSON.parse(fileContents)
+      secretKey = generalise(keyJson.secretKey)
+      publicKey = generalise(keyJson.publicKey)
+      console.log('Reading BabyJubJub ECDH key from key.json. They are:')
+      console.log('secretKey:', secretKey.integer)
+      console.log('publicKey:', publicKey.integer)
+    } catch (error) {
+      console.error(`The JSON could not be parsed: ${error.message}`)
+      process.exit(1)
+    }
+  } else {
+    // If the JSON do not exist, create a new key pair and save it to the path
     secretKey = generalise(generateRandomHex(31))
     let publicKeyPoint = generalise(
       scalarMult(secretKey.hex(32), config.BABYJUBJUB.GENERATOR)
@@ -179,48 +224,32 @@ async function main () {
     }
     const keyJsonStringified = JSON.stringify(keyJson, null, 4)
 
-    const keyDbPath = 'key.json'
-
     console.log('Writing key\n',
       keyJsonStringified, '\n',
       'to keyDbPath: ',
       keyDbPath)
 
     fs.writeFileSync(keyDbPath, keyJsonStringified)
-  } else {
-    const keyDbPath = 'key.json'
-    const keyJson = JSON.parse(fs.readFileSync(keyDbPath, 'utf-8'))
-    secretKey = generalise(keyJson.secretKey)
-    publicKey = generalise(keyJson.publicKey)
-    console.log('Reading BabyJubJub ECDH key from key.json. They are:')
-    console.log('secretKey:', secretKey.integer)
-    console.log('publicKey:', publicKey.integer)
   }
 
-  const txParams = {
-    gas: config.web3.options.defaultGas,
-    gasPrice: config.web3.options.defaultGasPrice
-  }
-  const tx = await escrowShieldContract.registerZKPPublicKey(publicKey.integer, txParams)
-  console.log('registerKey - Transaction params to register public key in EscrowShield is:',
-    txParams)
-  console.log('registerKey -',
-    'Transaction has been sent and the tx hash to register public key in EscrowShield is:',
-    tx.hash)
-  const txReceipt = await tx.wait()
-  console.log('registerKey - Tx was processed. Result:', txReceipt.status)
-
-  if (txReceipt.status !== 1) {
-    console.error('registerKey - Transaction failed. Exiting...')
-    return
+  if (register) {
+    await registerInSwapEscrow(publicKey)
   }
 
   const defaultAccountPubKey = await escrowShieldContract.zkpPublicKeys(defaultAccountAddress)
   console.log('defaultAccountPubKey registered into EscrowShield: ', defaultAccountPubKey)
 }
 
-try {
-  main()
-} catch (error) {
-  console.error(error)
-}
+program
+  .name('register')
+  .description('Generate new keys and register in the SwapEscrow contract')
+  .option('--path <path>', 'Path where to save the keys', './key.json')
+  .option('--no-register', 'Do not try to register the public key in the SwapEscrow contract')
+  .action(async ({ path, register }) => {
+    try {
+      await main({ path, register })
+    } catch (error) {
+      console.error(error)
+    }
+  })
+  .parse()

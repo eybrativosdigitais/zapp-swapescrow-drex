@@ -1,10 +1,10 @@
 import { getContractAddress, getContractInstance, getContractMetadata } from './common/contract.mjs'
 import web3 from 'web3'
 import logger from './common/logger.mjs'
+import { ZeroAddress } from './common/constants.mjs'
 
 export default async function stats (req, res) {
   try {
-    const ZeroAddress = '0x0000000000000000000000000000000000000000'
     const SwapShieldMetadata = await getContractMetadata('SwapShield')
 
     const response = {

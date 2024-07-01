@@ -132,7 +132,7 @@
         </div>
       </header>
       <div class="w-screen flex items-center justify-center mt-[180px] md:mt-[140px] md:p-0 p-6">
-        <div class="w-[40rem] rounded-2xl bg-white p-4 shadow-lg">
+        <div class="w-[50rem] rounded-2xl bg-white p-4 shadow-lg">
           <!-- <div class="flex flex-col items-center justify-center  px-2 text-xl font-semibold text-gray-900">
             Swap Token
           </div> -->
@@ -187,86 +187,84 @@
             </div>
             <br />
             <form>
-              <label for="swapTokenAddress" class="text-gray-600" id="labelSwapTokenAddress">Endereço do token</label>
-              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="swapTokenAddressInput">
+              <label for="input1" class="text-gray-600" id="input1Label">Endereço Destinatário</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl">
                 <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                  placeholder="Endereço do token" id="swapTokenAddress" />
+                  placeholder="0x0000000000000000...." id="input1" />
               </div>
 
-              <label for="erc20AddressReceived" class="text-gray-600" id="labelErc20AddressReceived">Endereço do ERC20
-                Test token</label>
-              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="erc20AddressReceivedInput">
+              <label for="input2" class="text-gray-600" id="input2Label">Endereço do token ERC20 para enviar</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl">
                 <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                  placeholder="Endereço do token" id="erc20AddressReceived" />
+                  placeholder="0x0000000000000000...." id="input2" />
               </div>
 
-              <label for="counterParty" class="text-gray-600" id="labelCounterParty">Endereço Destinatário</label>
-              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="counterPartyInput">
-                <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                  placeholder="Endereço Destinatário" id="counterParty" />
-              </div>
-
-              <label for="amountSent" class="text-gray-600" id="labelAmountSent">Quantidade para enviar</label>
-              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="amountSentInput">
+              <label for="input3" class="text-gray-600" id="input3Label">Valor de tokens ERC20 para enviar</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl">
                 <input type="text" class="money w-full bg-transparent text-2xl text-gray-900 outline-none"
-                  placeholder="Quantidade para enviar" id="amountSent" />
+                  placeholder="0" id="input3" />
               </div>
 
-              <label for="tokenIdSent" class="text-gray-600" id="labelTokenIdSent">ID Do Token para enviar</label>
-              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdSentInput">
-                <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                  placeholder="ID Do Token para enviar" id="tokenIdSent" />
+              <label for="input4" class="text-gray-600" id="input4Label">Endereço do token ERC20 para receber</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl">
+                <input type="text" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="0x0000000000000000...." id="input4" />
               </div>
 
-              <label for="tokenIdSentAmount" class="text-gray-600" id="labelTokenIdSentAmount">Quantidade de tokens para
-                enviar</label>
-              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdSentAmountInput">
-                <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                  placeholder="Quantidade de tokens para enviar" id="tokenIdSentAmount" />
+              <label for="input5" class="text-gray-600" id="input5Label">Valor de tokens ERC20 para receber</label>
+              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl">
+                <input type="text" class="money w-full bg-transparent text-2xl text-gray-900 outline-none"
+                  placeholder="0" id="input5" />
               </div>
 
-              <label for="tokenIdReceived" class="text-gray-600" id="labelTokenIdReceived">ID Do Token para
-                receber</label>
-              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenIdReceivedInput">
-                <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                  placeholder="ID Do Token para receber" id="tokenIdReceived" />
-              </div>
 
-              <label for="tokenReceivedAmount" class="text-gray-600" id="labelTokenReceivedAmount">Quantidade de tokens
-                a
-                receber</label>
-              <div class="my-3 rounded-2xl border bg-white p-6 text-2xl" id="tokenReceivedAmountInput">
-                <input type="number" class="w-full bg-transparent text-2xl text-gray-900 outline-none"
-                  placeholder="Quantidade de tokens a receber" id="tokenReceivedAmount" />
-              </div>
 
-              <div
-                class="my-2 flex cursor-pointer items-center justify-center rounded-2xl bg-blue-500 px-8 py-6 text-xl font-semibold text-white"
-                id="startSwapButton">
-                <svg class="-ml-1 mr-3 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg"
-                  fill="none" viewBox="0 0 24 24" id="isLoading">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                  </path>
-                </svg>
-                Iniciar Proposta de Swap
-              </div>
-              <br />
             </form>
+            <div
+              class="my-2 flex cursor-pointer items-center justify-center rounded-2xl bg-blue-500 px-8 py-6 text-xl font-semibold text-white"
+              id="startSwapButton">
+              <svg class="-ml-1 mr-3 hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24" id="isLoading">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+              </svg>
+              Iniciar Proposta de Swap
+            </div>
+            <br />
           </div>
 
           <div id="tableTabContent" class="hidden">
             <!-- Table Content -->
             <div class="mt-10 w-full ">
               <!-- Filter by Status -->
-              <div class="mb-4 flex items-center justify-start">
-                <label for="statusFilter" class="mr-2 font-semibold text-gray-700">Filtrar pelo status:</label>
-                <select id="statusFilter" class="rounded-md border p-2">
-                  <option value="">Todos</option>
-                  <option value="Aberto">Abertos</option>
-                  <option value="Fechado">Fechados</option>
-                </select>
+              <div class="flex space-between">
+                <div class="mb-4 flex flex-1 items-center justify-start">
+                  <label for="statusFilter" class="mr-2 font-semibold text-gray-700">Filtrar pelo status:</label>
+                  <select id="statusFilter" class="rounded-md border p-2">
+                    <option value="">Todos</option>
+                    <option value="Aberto">Abertos</option>
+                    <option value="Fechado">Fechados</option>
+                  </select>
+                </div>
+
+
+                <div class="flex flex-1 items-center justify-end w-full">
+                  <button
+                    class="flex items-center py-2 px-2 text-sm font-medium text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
+                    id="swapListRefreshButton">
+                    <svg class="animate-spin h-5 w-5 text-white isLoading" xmlns="http://www.w3.org/2000/svg"
+                      fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                      </circle>
+                      <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                      </path>
+                    </svg>
+                    <span>&nbsp;Atualizar lista</span>
+                  </button>
+                </div>
               </div>
 
               <table class="w-full caption-bottom text-sm">
@@ -276,6 +274,7 @@
                     <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Destinatário Swap</th>
                     <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Emissor Swap</th>
                     <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Estado</th>
+                    <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Detalhes</th>
                     <th class="h-12 px-4 text-left align-middle font-medium text-gray-700">Ações</th>
                   </tr>
                 </thead>
