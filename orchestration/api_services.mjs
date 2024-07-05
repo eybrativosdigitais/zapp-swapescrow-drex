@@ -35,7 +35,6 @@ import {
   getBalanceByState,
   getCommitmentsByState,
   getCommitmentsWhere,
-  getSharedSecretskeys,
   reinstateNullifiers
 } from './common/commitment-storage.mjs'
 import web3 from './common/web3.mjs'
@@ -813,18 +812,6 @@ export async function service_reinstateNullifiers (req, res, next) {
   try {
     await reinstateNullifiers()
     return res.send('Complete')
-  } catch (err) {
-    logger.error(err)
-    return res.status(422).send({ errors: [err.message] })
-  }
-}
-
-export async function service_getSharedKeys (req, res, next) {
-  try {
-    const { recipientAddress } = req.body
-    const recipientPubKey = req.body.recipientPubKey || 0
-    const SharedKeys = await getSharedSecretskeys(recipientAddress, recipientPubKey)
-    return res.send({ SharedKeys })
   } catch (err) {
     logger.error(err)
     return res.status(422).send({ errors: [err.message] })

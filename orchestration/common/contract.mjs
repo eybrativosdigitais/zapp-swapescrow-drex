@@ -107,13 +107,10 @@ export async function getContractInstance (contractName, deployedAddress) {
 async function registerKeyOnChain (contractName, publicKey, walletAddress) {
   const instance = await getContractInstance(contractName)
   const contractAddr = await getContractAddress(contractName)
-  const onChainKey = await instance.methods.zkpPublicKeys(walletAddress)
-    .call({ from: walletAddress })
-  if (onChainKey === '0') {
-    console.log('!onChainKey passed!', generalise(publicKey).integer)
-    const txData = await instance.methods
-      .registerZKPPublicKey(generalise(publicKey).integer)
-      .encodeABI()
+  const onChainKey = await instance.methods.zkpPublicKeys(walletAddress).call({ from: walletAddress })
+  if (onChainKey !== generalise(publicKey).integer) {
+    console.log('registerKeyOnChain - onChainKey !== generalise(publicKey).integer', onChainKey, generalise(publicKey).integer)
+    const txData = await instance.methods.registerZKPPublicKey(generalise(publicKey).integer).encodeABI()
     const txParams = {
       from: walletAddress,
       to: contractAddr,

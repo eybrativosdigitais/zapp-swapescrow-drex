@@ -976,46 +976,6 @@
 			"response": []
 		},
 		{
-			"name": "getSharedKeys",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"followRedirects": true,
-				"disableUrlEncoding": false,
-				"disableCookies": false
-			},
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{bank_a_zapp}}/getSharedKeys?recipientPubKey=2896870047453904306852556494815455180533065883379047246540688797413861815957",
-					"host": [
-						"{{bank_a_zapp}}"
-					],
-					"path": [
-						"getSharedKeys"
-					],
-					"query": [
-						{
-							"key": "recipientPubKey",
-							"value": "2896870047453904306852556494815455180533065883379047246540688797413861815957"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "getZKPPublicKey",
 			"event": [
 				{

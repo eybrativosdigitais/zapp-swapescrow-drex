@@ -4,7 +4,6 @@ import {
   service_reinstateNullifiers,
   service_getBalance,
   service_getBalanceByState,
-  service_getSharedKeys,
   service_timberProxy,
   service_getZKPPublicKey,
   service_verify,
@@ -94,7 +93,6 @@ export class Router {
     router.get('/getCommitmentsByVariableName', service_getCommitmentsByState)
     router.get('/getBalance', service_getBalance)
     router.get('/getBalanceByState', service_getBalanceByState)
-    router.get('/getSharedKeys', service_getSharedKeys)
 
     // Debugging utils
     router.use('/timber', service_timberProxy)

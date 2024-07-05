@@ -1,13 +1,5 @@
 /* global $ */
 
-const brlFormatter = new Intl.NumberFormat('pt-BR', {
-  style: 'currency',
-  currency: 'BRL'
-})
-const numberFormatter = new Intl.NumberFormat('pt-BR', {
-  minimumFractionDigits: 2
-})
-
 function setIsLoading(isLoading) {
   if (isLoading) {
     $('#isLoading, .isLoading').removeClass('hidden');
@@ -38,7 +30,9 @@ function copyToClipboard(text) {
 }
 
 function formatNumber(num) {
-  return new Intl.NumberFormat().format(num)
+  // @deprecated - we decided to remove the formatting
+  // return new Intl.NumberFormat().format(num)
+  return num;
 }
 
 function convertHexToAddress(hex) {

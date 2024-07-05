@@ -83,14 +83,14 @@ const fetchBalances = () => {
         $(`.shielded-balance[data-address='${address}']`).parent().remove()
         return
       }
-      const balance = parseFloat(response.balances.balances[address] || 0).toFixed(2)
+      const balance = parseFloat(response.balances.balances[address] || 0)
       $(`.shielded-balance[data-address='${address}']`).text(balance)
     })
 
     // Update ERC1155 shielded balances
     const erc1155Balances = response.balances.tokenOwners
     Object.keys(erc1155Balances).forEach((key) => {
-      const balance = parseFloat(erc1155Balances[key]).toFixed(2)
+      const balance = parseFloat(erc1155Balances[key])
       if ($(`.shielded-balance[data-address='${key}']`).length === 0) {
         $('#tokenAddressList').append(generateTokenAddressHTML(key, 'erc1155', balance, '-'))
       } else {
@@ -116,7 +116,7 @@ const fetchBalances = () => {
     // Update ERC1155 public balances
     const erc1155Balances = response.balances.tokenOwners
     Object.keys(erc1155Balances).forEach((key) => {
-      const balance = parseFloat(erc1155Balances[key]).toFixed(2)
+      const balance = parseFloat(erc1155Balances[key])
       if ($(`.public-balance[data-address='${key}']`).length === 0) {
         $('#tokenAddressList').append(generateTokenAddressHTML(key, 'erc1155', '-', balance))
       } else {
@@ -191,19 +191,25 @@ let escrowShieldContract = null;
 
 (async function () {
   const response = await initializeEnvironment()
-  const provider = response.rpcUrl.includes("ws://") ? new ethers.providers.WebSocketProvider(response.rpcUrl) : new ethers.providers.JsonRpcProvider(response.rpcUrl)
-  $.getJSON("abis/swapescrow-shield.abi.json", function (json) {
-    escrowShieldContract = new ethers.Contract(response.swapShieldAddress, json, provider)
-  });
 
-  $(document).on('click', '#verifyZkpPublicKeysButton', function () {
-    const inputAddress = $('#verifyZkpPublicKeysInput').val()
-    escrowShieldContract.zkpPublicKeys(inputAddress).then((result) => {
-      $('#zkpPublicKeysResult').text(result)
-    }).catch((error) => {
-      console.error('Error getting zkp public key:', error)
+  // prevent the main thread of blocking while initializing the contract
+  try {
+    const provider = response.rpcUrl.includes("ws://") ? new ethers.providers.WebSocketProvider(response.rpcUrl) : new ethers.providers.JsonRpcProvider(response.rpcUrl)
+    $.getJSON("abis/swapescrow-shield.abi.json", function (json) {
+      escrowShieldContract = new ethers.Contract(response.swapShieldAddress, json, provider)
     });
-  });
+
+    $(document).on('click', '#verifyZkpPublicKeysButton', function () {
+      const inputAddress = $('#verifyZkpPublicKeysInput').val()
+      escrowShieldContract.zkpPublicKeys(inputAddress).then((result) => {
+        $('#zkpPublicKeysResult').text(result)
+      }).catch((error) => {
+        console.error('Error getting zkp public key:', error)
+      });
+    });
+  } catch (ex) {
+    console.log('Error initializing escrow shield contract:', ex)
+  }
 
   $('#tokenInfoTable').append(generateInfoTableRow('ERC20 Token: ', response.tokens.ERC20))
   $('#tokenInfoTable').append(generateInfoTableRow('ERC1155 Token: ', response.tokens.ERC1155))
@@ -363,20 +369,20 @@ let escrowShieldContract = null;
 
       commitments.forEach(commitment => {
         const nameClass = nameClasses[commitment.name] || 'bg-gray-500 text-white';
-        const preimageValue = typeof commitment.preimage.value === 'object' ? 'Detalhes' : numberFormatter.format(commitment.preimage.value);
+        const preimageValue = typeof commitment.preimage.value === 'object' ? 'Detalhes' : commitment.preimage.value;
         const preimageClass = typeof commitment.preimage.value === 'object' ? 'text-blue-500 underline accordion cursor-pointer' : '';
 
         $('#commitmentsTable').append(`
       <tr>
         <td class="px-6 py-4 whitespace-nowrap text-sm flex font-medium text-gray-900">
-          ${shortenString(commitment.mappingKey)}
+          ${commitment.mappingKey}
           <span class="copy-btn" onclick="copyToClipboard('${commitment.mappingKey}')">${copyIconSVG}</span>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
           <div class="${nameClass} w-auto text-center rounded-full px-3 py-1">${commitment.name}</div>
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm ${preimageClass}">${preimageValue}</td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm ${commitment.isNullified ? 'text-red-600' : 'text-green-600'}">${commitment.isNullified}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm ${commitment.isNullified ? 'text-green-600' : 'text-red-600'}">${commitment.isNullified}</td>
       </tr>
       <tr class="panel hidden transition">
         <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
