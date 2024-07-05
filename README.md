@@ -105,7 +105,9 @@ A primeira etapa será a configuração inicial do sistema. Há 3 formas diferen
     cp docker-compose.external-db-using-image.yml docker-compose.yml
     ```
 
-> IMPORTANTE: mesmo com a configuração acima usando imagens Dockers que constam no repositório Github Container Repository, são requeridos que os seguintes diretórios estejam no mesmo diretório onde estejam os arquivos .env e docker-compose.yml. São eles: circuits, proving-files, orchestration/common/db, build e config.
+> NOTA 01: mesmo com a configuração acima usando imagens Dockers que constam no repositório Github Container Repository, são requeridos que os seguintes diretórios estejam no mesmo diretório onde estejam os arquivos .env e docker-compose.yml. São eles: circuits, proving-files, orchestration/common/db, build e config.
+
+> NOTA 02: Caso você se conecte em um servidor Besu menor que a versão 24.5.1, há um bug no Besu com a lib Web3.js 1.8.2 usada pelo SwapEscrow. Dessa maneira, você precisa copiar o arquivo *bn.js* que esta no projeto que contém um workaround para este bug. Se você esta usando arquivo docker-compose baseado em imagens você precisa mapear o arquivo como um volume no docker-compose.yml na seção zapp -> volumes `- ./bn.js:/app/node_modules/number-to-bn/node_modules/bn.js/lib/bn.js`). Caso você use a versão para dar build internamente, você precisa copiá-lo alterando o Dockerfile (antes da linha com o comando EXPOSE, adicionar a linha: `COPY bn.js ./node_modules/number-to-bn/node_modules/bn.js/lib` ).
 
 6) Dar permissões de execução para o script de inicialização:
 
